@@ -2,6 +2,8 @@
 name = "backend"
 version = "0.1.0"
 description = ""
+[tool.poetry]
+package-mode = false
 authors = [
     {name = "Your Name",email = "you@example.com"}
 ]
