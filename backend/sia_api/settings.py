@@ -43,9 +43,8 @@ INSTALLED_APPS = [
 
 
     #Apps de django
-    'modules.users'
-
-
+    'modules.users',
+    'modules.products',
 ]
 
 MIDDLEWARE = [
