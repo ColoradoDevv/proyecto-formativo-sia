@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 
 
     #Apps de django
-    'users'
+    'modules.users'
 
 
 ]
