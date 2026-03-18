@@ -22,5 +22,6 @@ from rest_framework.permissions import AllowAny
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('docs/', include_docs_urls(title="SIA API"))
-    path('users/', include('users.urls'))
+    path('usersModel/', include('users.urls'))
+    
 ]
