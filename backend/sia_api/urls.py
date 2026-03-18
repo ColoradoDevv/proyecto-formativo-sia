@@ -20,6 +20,7 @@ from rest_framework.documentation import include_docs_urls
 from rest_framework.permissions import AllowAny
 
 urlpatterns = [
+    # Aquí juntamos las rutas del admin, docs y las apps.
     path('admin/', admin.site.urls),
     path('docs/', include_docs_urls(title="SIA API")),
     path("", include("modules.home.urls")),

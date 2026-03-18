@@ -1,3 +1,3 @@
-from django.contrib import admin
+# Punto de entrada del admin para el modulo home (por ahora sin modelos).
 
-# Register your models here.
+from django.contrib import admin

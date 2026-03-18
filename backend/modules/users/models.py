@@ -1,21 +1,30 @@
+# 
+# Modelos del modulo users.
+# Aqui vive la data principal de personas y roles.
+# 
+
 from django.db import models
 
 class Role(models.Model):
-    # agrega los campos que necesites
+    # Rol basico para clasificar usuarios.
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=225, null=True)
 
     def __str__(self):
         return self.name
 
+
 class DocumentType(models.TextChoices):
+    # Tipos de documento fijos para evitar valores raros.
     CC = "CC", "CC"
     TI = "TI", "TI"
     CE = "CE", "CE"
     PPT = "PPT", "PPT"
     PPE = "PPE", "PPE"
 
+
 class User(models.Model):
+    # Registro principal de usuario con datos de contacto y estado.
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     type_document = models.CharField(max_length=3, choices=DocumentType.choices)

@@ -1,3 +1,5 @@
+# Rutas del CRUD de usuarios.
+
 from django.urls import path
 
 from . import views

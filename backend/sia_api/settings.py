@@ -20,14 +20,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 def _split_env_list(value):
+    # Convierte "a,b,c" en una lista limpia.
+    # Nos evita errores por espacios o comas extra.
     return [item.strip() for item in value.split(",") if item.strip()]
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# Clave secreta usada por Django para firmar sesiones.
+# Si no esta definida, varias partes de seguridad fallan.
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Activa el modo debug para ver errores detallados.
+# En produccion deberia ir en False.
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
+# Lista de hosts permitidos.
+# Si el host no esta aqui, Django rechaza la peticion.
 ALLOWED_HOSTS = _split_env_list(os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
 if "locahost" in ALLOWED_HOSTS and "localhost" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("localhost")
@@ -91,6 +99,8 @@ WSGI_APPLICATION = 'sia_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Conexion a base de datos tomada del .env.
+# Sin esto, el proyecto no puede leer ni guardar datos.
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE'),
@@ -127,9 +137,13 @@ REST_FRAMEWORK={
 
 }
 
+# Origenes permitidos para llamadas desde el navegador.
+# Si faltan, el frontend se bloquea por CORS.
 CORS_ALLOWED_ORIGINS = _split_env_list(
     os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
 )
+# Origenes confiables para CSRF en formularios y POST.
+# Si faltan, Django puede responder 403.
 CSRF_TRUSTED_ORIGINS = _split_env_list(
     os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
 )
