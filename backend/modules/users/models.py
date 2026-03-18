@@ -3,7 +3,7 @@ from django.db import models
 class Type_document(models.Model):
     # agrega los campos que necesites
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=225)
+    description = models.CharField(max_length=225, null=True)
 
     def __str__(self):
         return self.name
@@ -11,7 +11,7 @@ class Type_document(models.Model):
 class Role(models.Model):
     # agrega los campos que necesites
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=225)
+    description = models.CharField(max_length=225, null=True)
 
     def __str__(self):
         return self.name
