@@ -1,6 +1,4 @@
-"""
-Vistas del CRUD de usuarios.
-"""
+# Vistas del CRUD de usuarios.
 
 from rest_framework import generics
 
