@@ -1,13 +1,21 @@
+# Modelos de inventario (productos).
+
 from django.db import models
 from modules.users.models import User
 
 class Brand(models.Model):
+    # Marca simple para agrupar materiales.
     name = models.CharField(max_length=100)
 
+
 class Category(models.Model):
+    # Categoria para ordenar el inventario.
     name =  models.CharField(max_length=100)
 
+
 class Consumable_material(models.Model):
+    # Material consumible con estado y cantidad.
+    # Estados permitidos para evitar valores inventados.
     STATE_CHOICES = [
         ('Disponible', 'Disponible'),
         ('No Disponible', 'No Disponible'),
@@ -32,7 +40,9 @@ class Consumable_material(models.Model):
     def __str__(self):
         return self.material_name
 
+
 class Returnable_material(models.Model):
+    # Material retornable con datos tecnicos.
     id_material = models.OneToOneField(
         Consumable_material,
         on_delete=models.RESTRICT,

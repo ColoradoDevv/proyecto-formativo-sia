@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
-
-class ProductsConfig(AppConfig):
-    name = "products"
+class HomeConfig(AppConfig):
+    # Ajustes minimos del modulo home.
+    name = "modules.home"
