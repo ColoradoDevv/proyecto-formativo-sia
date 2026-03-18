@@ -19,13 +19,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
+def _split_env_list(value):
+    return [item.strip() for item in value.split(",") if item.strip()]
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = _split_env_list(os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+if "locahost" in ALLOWED_HOSTS and "localhost" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("localhost")
+if DEBUG:
+    for host in ("localhost", "127.0.0.1"):
+        if host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
 
 
 # Application definition
@@ -43,6 +52,7 @@ INSTALLED_APPS = [
 
 
     #Apps de django
+    'modules.home',
     'modules.users',
     'modules.products',
 ]
@@ -116,6 +126,13 @@ REST_FRAMEWORK={
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 
 }
+
+CORS_ALLOWED_ORIGINS = _split_env_list(
+    os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
+)
+CSRF_TRUSTED_ORIGINS = _split_env_list(
+    os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
+)
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
