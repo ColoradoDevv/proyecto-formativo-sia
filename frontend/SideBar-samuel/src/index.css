@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Variables */
+
+:root {
+    /*Primary color*/
+    /* Primary color (extraído correctamente de la imagen) */
+    --primary-950: #1E2B18;
+    --primary-900: #243B18;
+    --primary-800: #295214;
+    --primary-700: #2C610F;
+    --primary-600: #2E710A;
+    --primary-500: #308106;
+    --primary-400: #329102;
+    --primary-300: #41A600;
+    --primary-200: #5DBA00;
+    --primary-100: #84CF2A;
+    --primary-50:  #B4E86A;
+
+    /*Secundary color*/
+    --secondary-950: #2A2A2A;
+    --secondary-900: #2F352E;
+    --secondary-800: #38443A;
+    --secondary-700: #45524A;
+    --secondary-600: #55615A;
+    --secondary-500: #68736E;
+    --secondary-400: #7F8D8F;
+    --secondary-300: #98A7B2;
+    --secondary-200: #AFC0D0;
+    --secondary-100: #C8D7E5;
+    --secondary-50:  #E4EEF7;
+
+    /*Terciario color*/
+    --tertiary-50:  #E7F3EA;
+    --tertiary-100: #CFE7D4;
+    --tertiary-200: #B5D9BC;
+    --tertiary-300: #9BCBA3;
+    --tertiary-400: #7FB78A;
+    --tertiary-500: #5FA171;
+    --tertiary-600: #4C8C60;
+    --tertiary-700: #3E7350;
+    --tertiary-800: #325C41;
+    --tertiary-900: #2A4A35;
+    --tertiary-950: #1F3325;
+
+    /*Cuaternary color*/
+    --cuaternary-50:  #E6F4F5;
+    --cuaternary-100: #CBE7EA;
+    --cuaternary-200: #A9D6DA;
+    --cuaternary-300: #7FC2C8;
+    --cuaternary-400: #59ADB4;
+    --cuaternary-500: #3E98A0;
+    --cuaternary-600: #2F8088;
+    --cuaternary-700: #23686F;
+    --cuaternary-800: #1A5157;
+    --cuaternary-900: #143F43;
+    --cuaternary-950: #0F2E30;
+
+
+    /* Base/Basic color */
+    --neutral-50:  #F2F2F2;
+    --neutral-100: #E0E0E0;
+    --neutral-200: #CFCFCF;
+    --neutral-300: #BDBDBD;
+    --neutral-400: #A8A8A8;
+    --neutral-500: #949494;
+    --neutral-600: #808080;
+    --neutral-700: #6B6B6B;
+    --neutral-800: #555555;
+    --neutral-900: #3F3F3F;
+    --neutral-950: #2A2A2A;
+
+
+
+    /* Font-family */
+    --main-font: 'Barlow', sans-serif;
+
+    /* Font-size */
+    --fs-xxxxl: 8.0rem;
+    --fs-xxxl: 6.4rem;
+    --fs-xxl: 4.8rem;
+    --fs-xl: 4.0rem;
+    --fs-lg: 3.2rem;
+    --fs-md: 2.4rem;
+    --fs-sm: 2.0rem;
+    --fs-xs: 1.6rem;
+    --fs-xxs: 1.4rem;
+    --fs-xxxs: 1.2rem;
+    --fs-xxxxs: 0.8rem;
+}
+
+body {
+    font-family: var(--main-font);
+    background-color: var(--gray-950);
+    color: var(--gray-100);
+}
+
+.text-primary {
+    color: var(--cuaternario-950);
+}
+
+.bg-primary {
+    background-color: var(--secundary-500);
+}
+
+.bg-secondary {
+    background-color: var(--cuaternario-950);
+}
