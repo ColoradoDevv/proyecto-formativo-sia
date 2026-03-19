@@ -1,0 +1,13 @@
+{
+  "cards": [
+    { "titulo": "Total artículos registrados", "valor": "3.5000" },
+    { "titulo": "Artículos en préstamo", "valor": "34" },
+    { "titulo": "Artículos en mantenimiento", "valor": "12" },
+    { "titulo": "Material disponible", "valor": "102" }
+  ],
+  "tabla": [
+    { "fecha": "27/08/2025", "articulo": "Martillo", "accion": "Prestado", "usuario": "Juan" },
+    { "fecha": "27/08/2025", "articulo": "Taladro", "accion": "Prestado", "usuario": "María" },
+    { "fecha": "27/08/2025", "articulo": "Destornillador", "accion": "Prestado", "usuario": "Samuel" }
+  ]
+}
