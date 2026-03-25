@@ -1,3 +1,5 @@
+# Modelos visibles en el admin para pruebas rapidas.
+
 from django.contrib import admin
 from .models import Brand, Category, Consumable_material, Returnable_material
 
