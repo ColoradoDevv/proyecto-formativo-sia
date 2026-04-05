@@ -3,7 +3,7 @@
 
 from rest_framework import viewsets
 
-from .models import Brand, Category, Consumable_material, Returnable_material
+from .models import Brand, Category, ConsumableMaterial, ReturnableMaterial
 from .serializers import (
     BrandSerializer,
     CategorySerializer,
@@ -14,27 +14,23 @@ from .serializers import (
 
 class BrandViewSet(viewsets.ModelViewSet):
     # CRUD de marcas.
-
     queryset = Brand.objects.all().order_by("id")
     serializer_class = BrandSerializer
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     # CRUD de categorias.
-
     queryset = Category.objects.all().order_by("id")
     serializer_class = CategorySerializer
 
 
 class ConsumableMaterialViewSet(viewsets.ModelViewSet):
     # CRUD de materiales consumibles.
-
-    queryset = Consumable_material.objects.all().order_by("id")
+    queryset = ConsumableMaterial.objects.all().order_by("id")  # 'id' corregido, ya no es Consumable_material
     serializer_class = ConsumableMaterialSerializer
 
 
 class ReturnableMaterialViewSet(viewsets.ModelViewSet):
     # CRUD de materiales retornables.
-
-    queryset = Returnable_material.objects.all().order_by("id_material_id")
+    queryset = ReturnableMaterial.objects.all().order_by("consumable_id")  # 'id_material_id' → 'consumable_id' por el nuevo nombre del campo
     serializer_class = ReturnableMaterialSerializer
