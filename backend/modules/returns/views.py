@@ -1,3 +1,12 @@
-from django.shortcuts import render
+# Vistas del modulo returns.
+# Aqui viven los endpoints CRUD.
 
-# Create your views here.
+from rest_framework import viewsets
+from .models import LoanReturn
+from .serializers import LoanReturnSerializer
+
+
+class LoanReturnViewSet(viewsets.ModelViewSet):
+    # CRUD de retornos de prestamos.
+    queryset = LoanReturn.objects.all().order_by('id')
+    serializer_class = LoanReturnSerializer

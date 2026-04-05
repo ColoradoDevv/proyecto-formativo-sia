@@ -25,4 +25,5 @@ urlpatterns = [
     path("api/users/", include("modules.users.urls")),
     path("api/products/", include("modules.products.urls")),
     path("api/loans/", include("modules.loans.urls")),
+    path("api/returns/", include("modules.returns.urls")),
 ]
