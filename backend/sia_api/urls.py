@@ -16,6 +16,8 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.documentation import include_docs_urls
 from rest_framework.permissions import AllowAny
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     # Aquí juntamos las rutas del admin, docs y las apps.
@@ -26,4 +28,5 @@ urlpatterns = [
     path("api/products/", include("modules.products.urls")),
     path("api/loans/", include("modules.loans.urls")),
     path("api/returns/", include("modules.returns.urls")),
-]
+    path("api/tasks/", include("modules.tasks.urls")),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

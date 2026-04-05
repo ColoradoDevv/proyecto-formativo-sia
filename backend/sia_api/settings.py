@@ -165,4 +165,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
+# Archivos subidos por usuarios (imagenes, documentos, etc).
+# MEDIA_ROOT: carpeta donde se guardan fisicamente en el servidor.
+# MEDIA_URL: prefijo de la URL para acceder a ellos desde el navegador.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
