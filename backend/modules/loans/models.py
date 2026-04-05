@@ -2,7 +2,7 @@
 
 from django.db import models
 from modules.users.models import User
-from modules.products.models import Consumable_material  # FK a materiales de consumo Y devolutivos
+from modules.products.models import ConsumableMaterial  # FK a materiales de consumo Y devolutivos
 
 
 class Loans(models.Model):
@@ -19,9 +19,9 @@ class Loans(models.Model):
     )
 
     # id_material: FK a Materiales (consumo Y devolutivos), obligatorio
-    # Apunta a Consumable_material porque Returnable_material hereda de ella
+    # Apunta a ConsumableMaterial porque Returnable_material hereda de ella
     id_material = models.ForeignKey(
-        Consumable_material,
+        ConsumableMaterial,
         on_delete=models.RESTRICT,
         db_column='id_material',
         null=False

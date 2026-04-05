@@ -61,6 +61,9 @@ INSTALLED_APPS = [
     'modules.home',
     'modules.users',
     'modules.products',
+    'modules.loans',
+    'modules.returns',
+    'modules.tasks',
 ]
 
 MIDDLEWARE = [
