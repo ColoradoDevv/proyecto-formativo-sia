@@ -5,7 +5,7 @@
 
 from rest_framework import serializers
 
-from .models import Brand, Category, Consumable_material, Returnable_material
+from .models import Brand, Category, ConsumableMaterial, ReturnableMaterial
 
 
 class BrandSerializer(serializers.ModelSerializer):
@@ -28,20 +28,15 @@ class ConsumableMaterialSerializer(serializers.ModelSerializer):
     # Serializer para materiales consumibles.
 
     class Meta:
-        model = Consumable_material
+        model = ConsumableMaterial
         fields = "__all__"
         extra_kwargs = {
-            "user": {"required": False, "allow_null": True},
-            "id_brand": {"required": False, "allow_null": True},
-            "plate_sena": {"required": False, "allow_null": True},
-            "image": {"required": False, "allow_null": True},
-            "quantity": {"required": False, "allow_null": True},
-            "unit_price": {"required": False, "allow_null": True},
-            "total_price": {"required": False, "allow_null": True},
-            "state": {"required": False, "allow_null": True},
-            "description": {"required": False, "allow_null": True},
-            "date_of_purchase": {"required": False, "allow_null": True},
-            "ubication": {"required": False, "allow_null": True},
+            # Estos campos son opcionales segun el diccionario
+            "sena_plate":    {"required": False, "allow_null": True},
+            "quantity":      {"required": False, "allow_null": True},
+            # Los siguientes estaban como opcionales en el serializer anterior
+            # pero el diccionario los marca como obligatorios — se dejan
+            # sin extra_kwargs para que DRF los valide correctamente
         }
 
 
@@ -49,12 +44,9 @@ class ReturnableMaterialSerializer(serializers.ModelSerializer):
     # Serializer para materiales retornables.
 
     class Meta:
-        model = Returnable_material
+        model = ReturnableMaterial
         fields = "__all__"
         extra_kwargs = {
-            "id_category": {"required": False, "allow_null": True},
-            "model": {"required": False, "allow_null": True},
-            "serial": {"required": False, "allow_null": True},
-            "technical_specifications": {"required": False, "allow_null": True},
+            # Solo dimensiones es opcional segun el diccionario
             "dimensions": {"required": False, "allow_null": True},
         }
