@@ -1,20 +1,23 @@
+import LoanRegisterForm  from "../components/LoanRegisterForm"
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
-import UserListPage from "../../users/pages/UserListPage"
 
-export default function UserHomePage(){
 
-    return (
+export default function LoansCreatePage(){
+    return(
         <div className="h-screen flex flex-col">
             <Navbar />
 
             <div className="flex flex-1">
                 <Sidebar />
-                <main className="flex-1 bg-gray-100">
-                    <UserListPage />
+
+                <main className="flex-1 w bg-gray-100 text-[#0C2D48] ">
+                    <LoanRegisterForm />    
                 </main>
+
             </div>
 
         </div>
-    );
+    )
 }
+

@@ -1,6 +1,6 @@
 import {Input, Button} from "@/shared";
 
-export default function UserRegisterForm(){
+export default function CmRegisterForm(){
 
     return (
         <div className="grid grid-cols-1 my-4 mx-4 justify-items-center gap-8 p-4">
@@ -9,11 +9,11 @@ export default function UserRegisterForm(){
                     {/* Titulos */}
                     <div className='grid gap-2 justify-items-left'>
                         <h1 className="text-xl  font-bold">
-                            Registro de Usuarios
+                            Crear Material de Consumo
                         </h1>
 
                         <h1 className="text-sm ">
-                            Aca podras registrar a un usuario con los datos correspondientes
+                            Aca podras crear un material consumible con los datos correspondientes
                         </h1>    
                     </div>
             </div>
@@ -22,26 +22,26 @@ export default function UserRegisterForm(){
                         {/* Inputs */}
                         <div className="grid grid-cols-1 items-right gap-4 my-0 mx-auto ">
                             <Input 
-                                label = "Nombres Completos"
-                                placeholder = "Ingrese su nombre"
+                                label = "Marca"
+                                placeholder = "Ingrese la Marca del Material"
                             />      
                             <Input 
-                                label = "Tipo de Documento"
-                                placeholder = "Seleccionar"
+                                label = "Placa Sena"
+                                placeholder = "Ingrese la Placa Sena del Material"
                             />
                             <Input 
-                                label = "Correo"
-                                placeholder = "Ingrese su correo"
+                                label = "Nombre"
+                                placeholder = "Ingrese el nombre del Material"
                                 
                             />
                             <Input 
-                                label = "Contraseña"
-                                placeholder = "Ingrese su contraseña"
+                                label = "Cantidad"
+                                placeholder = "Ingrese la cantidad del Material"
                                 
                             />
                             <Input 
-                                label = "Fecha de inicio"
-                                placeholder = "Fecha de inicio"
+                                label = "Estado"
+                                placeholder = "Ingrese el estado del Material"
                                 
                             />
                         </div>
@@ -49,32 +49,32 @@ export default function UserRegisterForm(){
                         <div className="grid grid-cols-1 items-right gap-4 my-0 mx-auto ">
                         
                             <Input 
-                                label = "Apellidos Completos"
-                                placeholder = "Ingrese sus apellidos"
+                                label = "Descripcion"
+                                placeholder = "Ingrese la descripcion del Material"
                             />
                         
                             <Input 
-                                label = "Numero de documento"
-                                placeholder = "Ingrese su numero de documento"
+                                label = "Ubicacion"
+                                placeholder = "Ingrese la ubicacion del Material"
                             />
                         
                             <Input 
-                                label = "Confirmar Correo"
-                                placeholder = "Confirmar correo electronico"
+                                label = "Valor Unitario"
+                                placeholder = "Ingrese el valor Unitario del Material"
                                 
                             />
 
 
                             <Input 
-                                label = "Confirmar Contraseña"
-                                placeholder = "Confirmar contraseña"
+                                label = "Valor Total"
+                                placeholder = "Ingrese el valor Total del Material"
                                 
                             />
 
 
                             <Input 
-                                label = "Fecha de Finalización"
-                                placeholder = "Ingrese fecha de finalización"
+                                label = "imagen (Opcional)"
+                                placeholder = "Ingrese la imagen del Material"
                                 
                             />        
                         </div>
@@ -138,7 +138,5 @@ export default function UserRegisterForm(){
             </div>
                 
         </div>
-
-
     )
 }

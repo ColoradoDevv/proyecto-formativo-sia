@@ -26,6 +26,7 @@ export default function ListCmPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <RegisterButton
+                        to="/consumibles/crear"
                         onClick={() => {}}
                         className="self-start md:self-auto"
                     >

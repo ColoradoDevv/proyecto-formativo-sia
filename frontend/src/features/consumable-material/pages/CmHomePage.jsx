@@ -1,6 +1,6 @@
 import Navbar from "../../../shared/layouts/Navbar";
 import Sidebar from "../../../shared/layouts/Sidebar";
-import ListCmPage from "./ListCmPage";
+import ListCmPage from "./CmListPage";
 
 export default function CmHomePage(){
     return (

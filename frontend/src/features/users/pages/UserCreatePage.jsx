@@ -5,7 +5,7 @@ import Sidebar  from "../../../shared/layouts/Sidebar"
 export default function CreateUserPage(){
 
     return(
-<div className="h-screen flex flex-col">
+        <div className="h-screen flex flex-col">
             <Navbar />
 
             <div className="flex flex-1">

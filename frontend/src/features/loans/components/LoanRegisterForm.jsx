@@ -1,6 +1,6 @@
 import {Input, Button} from "@/shared";
 
-export default function UserRegisterForm(){
+export default function LoansRegisterForm(){
 
     return (
         <div className="grid grid-cols-1 my-4 mx-4 justify-items-center gap-8 p-4">
@@ -9,75 +9,37 @@ export default function UserRegisterForm(){
                     {/* Titulos */}
                     <div className='grid gap-2 justify-items-left'>
                         <h1 className="text-xl  font-bold">
-                            Registro de Usuarios
+                            Crear Prestamo
                         </h1>
 
                         <h1 className="text-sm ">
-                            Aca podras registrar a un usuario con los datos correspondientes
+                            Aca podras crear un prestamo con los datos correspondientes
                         </h1>    
                     </div>
             </div>
                     {/* Formulario */}
-                    <form className="grid grid-cols-2 items-center gap-42">
+                    <form className="grid grid-cols-1 items-center gap-42">
                         {/* Inputs */}
                         <div className="grid grid-cols-1 items-right gap-4 my-0 mx-auto ">
                             <Input 
-                                label = "Nombres Completos"
-                                placeholder = "Ingrese su nombre"
+                                label = "Cantidad Prestamo"
+                                placeholder = "Ingrese la Cantidad del Prestamo"
                             />      
                             <Input 
-                                label = "Tipo de Documento"
-                                placeholder = "Seleccionar"
+                                label = "Grupo"
+                                placeholder = "Ingrese su Grupo "
                             />
                             <Input 
-                                label = "Correo"
-                                placeholder = "Ingrese su correo"
+                                label = "Justificacion de Uso"
+                                placeholder = "Ingrese la Justificacion de Uso"
                                 
                             />
                             <Input 
-                                label = "Contraseña"
-                                placeholder = "Ingrese su contraseña"
-                                
-                            />
-                            <Input 
-                                label = "Fecha de inicio"
-                                placeholder = "Fecha de inicio"
-                                
+                                label = "Fecha Devolucion"
+                                placeholder = "00/00/00"
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 items-right gap-4 my-0 mx-auto ">
-                        
-                            <Input 
-                                label = "Apellidos Completos"
-                                placeholder = "Ingrese sus apellidos"
-                            />
-                        
-                            <Input 
-                                label = "Numero de documento"
-                                placeholder = "Ingrese su numero de documento"
-                            />
-                        
-                            <Input 
-                                label = "Confirmar Correo"
-                                placeholder = "Confirmar correo electronico"
-                                
-                            />
-
-
-                            <Input 
-                                label = "Confirmar Contraseña"
-                                placeholder = "Confirmar contraseña"
-                                
-                            />
-
-
-                            <Input 
-                                label = "Fecha de Finalización"
-                                placeholder = "Ingrese fecha de finalización"
-                                
-                            />        
-                        </div>
                         {/* Fotografia
                         <div className='flex flex-col gap-4'>
                             <h1 className="text-sm font-bold">
@@ -138,7 +100,5 @@ export default function UserRegisterForm(){
             </div>
                 
         </div>
-
-
     )
 }

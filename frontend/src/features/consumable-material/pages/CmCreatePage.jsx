@@ -1,20 +1,22 @@
+import CmRegisterForm  from "../components/CmRegisterForm"
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
-import UserListPage from "../../users/pages/UserListPage"
 
-export default function UserHomePage(){
+export default function RmCreatePage(){
 
-    return (
+    return(
         <div className="h-screen flex flex-col">
             <Navbar />
 
             <div className="flex flex-1">
                 <Sidebar />
-                <main className="flex-1 bg-gray-100">
-                    <UserListPage />
+
+                <main className="flex-1 w bg-gray-100 text-[#0C2D48] ">
+                    <CmRegisterForm />    
                 </main>
+
             </div>
 
         </div>
-    );
+    )
 }
