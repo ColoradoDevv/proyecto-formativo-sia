@@ -13,7 +13,7 @@ export default function Input({
                     className="
                         block
                         place-self-start
-                        text-[8px]
+                        text-[14px]
                         mb-1
                     ">
                     {label}
