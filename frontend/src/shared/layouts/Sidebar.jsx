@@ -23,7 +23,7 @@ export default function Sidebar() {
                 </li>
 
                 <li>
-                    <Link to="/materiales-consumibles" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
+                    <Link to="/consumibles" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
                         <Wrench size={18} />
                         Materiales de Consumo
                     </Link>

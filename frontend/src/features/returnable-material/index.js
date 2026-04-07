@@ -1,0 +1,1 @@
+export { default as RmHomePage } from "./pages/RmHomePage"
