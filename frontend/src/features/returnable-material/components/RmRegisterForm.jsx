@@ -1,6 +1,73 @@
-import {Input, Button} from "@/shared";
+import { useState, useEffect } from "react";
+
+import { getBrands, getStates, getCategory} from "../../returnable-material/services/selectServices";
+
+import {Input, Button, SelectInput} from "@/shared";
+import { rmSchema } from "../schemas/rmSchema";
 
 export default function RmRegisterForm(){
+
+    const [category, setCategory] = useState([]);
+    const [brands, setBrands] = useState([]);
+    const [states, setStates] = useState([]);
+    const [formData, setFormData] = useState({
+        rmSenaPlate: "",
+        rmName: "",
+        rmState: "",
+        rmCategory: "",
+        rmBrand: "",
+        rmSerial: "",
+        rmQuantity: "",
+        rmUnitValue: "",
+        rmTotalValue: "",
+        rmTechnicalSheet: "",
+    });
+    const [errors, setErrors] = useState({});
+
+    useEffect (() => {
+        getCategory().then(setCategory)
+    }, []);
+
+
+    useEffect (() => {
+        getBrands().then(setBrands);
+    }, []);
+    
+
+    useEffect (() => {
+        getStates().then(setStates);
+    }, []);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+
+        const result = rmSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+
+            result.error.issues.forEach((issue) => {
+                const field = issue.path[0];
+                fieldErrors[field] = issue.message;
+            });
+
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+        console.log("Material devolutivo validado", result.data);
+    };
+
 
     return (
         <div className="grid grid-cols-1 my-4 mx-4 justify-items-center gap-8 p-4">
@@ -18,64 +85,120 @@ export default function RmRegisterForm(){
                     </div>
             </div>
                     {/* Formulario */}
-                    <form className="grid grid-cols-2 items-center gap-42">
+                    <form
+                        noValidate
+                        onSubmit={handleSubmit}
+                        className="flex flex-col items-center gap-6"
+                    >
                         {/* Inputs */}
-                        <div className="grid grid-cols-1 items-right gap-4 my-0 mx-auto ">
+                        <div className="grid grid-cols-2 items-center gap-x-8 gap-y-4">
                             <Input 
                                 label = "Placa Sena"
+                                name="rmSenaPlate"
                                 placeholder = "Ingrese la Placa Sena"
+                                value={formData.rmSenaPlate}
+                                onChange={handleChange}
+                                error={errors.rmSenaPlate}
+                                required
                             />      
                             <Input 
                                 label = "Nombre"
+                                name="rmName"
                                 placeholder = "Ingrese nombre del Material"
+                                value={formData.rmName}
+                                onChange={handleChange}
+                                error={errors.rmName}
+                                required
                             />
-                            <Input 
-                                label = "Estado"
-                                placeholder = "Ingrese estado del Material"
-                                
-                            />
-                            <Input 
-                                label = "Categoria"
-                                placeholder = "Ingrese la categoria del Material"
-                                
-                            />
-                            <Input 
-                                label = "Marca"
-                                placeholder = "Ingrese la Marca del Material"
-                                
-                            />
-                        </div>
 
-                        <div className="grid grid-cols-1 items-right gap-4 my-0 mx-auto ">
+                            <SelectInput 
+                                label = "Estado"
+                                name="rmState"
+                                options={states}
+                                value={formData.rmState}
+                                onChange={handleChange}
+                                error={errors.rmState}
+                                required
+                            />
+
+                            <SelectInput 
+                                label = "Categoria"
+                                name="rmCategory"
+                                options={category}
+                                value={formData.rmCategory}
+                                onChange={handleChange}
+                                error={errors.rmCategory}
+                                required
+                            />
+
+                            <SelectInput
+                                label = "Marca"
+                                name="rmBrand"
+                                options={brands}
+                                value={formData.rmBrand}
+                                onChange={handleChange}
+                                error={errors.rmBrand}
+                                required
+                            />
                         
                             <Input 
                                 label = "Serial"
+                                name="rmSerial"
                                 placeholder = "Ingrese el Serial del Material"
+                                value={formData.rmSerial}
+                                onChange={handleChange}
+                                error={errors.rmSerial}
+                                required
                             />
                         
                             <Input 
                                 label = "Cantidad"
+                                name="rmQuantity"
+                                type="number"
                                 placeholder = "Ingrese la cantidad del Material"
+                                min="1"
+                                step="1"
+                                value={formData.rmQuantity}
+                                onChange={handleChange}
+                                error={errors.rmQuantity}
+                                required
                             />
                         
                             <Input 
                                 label = "Valor Unitario"
+                                name="rmUnitValue"
+                                type="number"
                                 placeholder = "Ingrese el valor Unitario del Material"
-                                
+                                min="0"
+                                step="0.01"
+                                value={formData.rmUnitValue}
+                                onChange={handleChange}
+                                error={errors.rmUnitValue}
+                                required
                             />
 
 
                             <Input 
                                 label = "Valor Total"
+                                name="rmTotalValue"
+                                type="number"
                                 placeholder = "Ingrese el valor Total del Material"
-                                
+                                min="0"
+                                step="0.01"
+                                value={formData.rmTotalValue}
+                                onChange={handleChange}
+                                error={errors.rmTotalValue}
+                                required
                             />
 
 
                             <Input 
                                 label = "Ficha Tecnica (Opcional)"
+                                name="rmTechnicalSheet"
                                 placeholder = "Ingrese la Ficha Tecnica del Material"
-                                
+                                value={formData.rmTechnicalSheet}
+                                onChange={handleChange}
+                                error={errors.rmTechnicalSheet}
                             />        
                         </div>
                         {/* Fotografia
@@ -112,14 +235,9 @@ export default function RmRegisterForm(){
                             </Button>
                         </div>
                          */}
-                    </form>
-
-            <div className='grid grid-cols-1 justify-items-center'>
-                    {/* Botones */}
-                    <div    >
-
-                        <div className="grid grid-cols-2 gap-6">             
+                        <div className="flex gap-6">
                             <Button
+                                type="submit"
                                 variant="primary"
                                 size="md"
                             >
@@ -127,15 +245,14 @@ export default function RmRegisterForm(){
                             </Button>
 
                             <Button
+                                type="button"
                                 variant="secondary"
                                 size="md2"
                             >
                                 Cancelar
                             </Button>
-                                            
                         </div>
-                    </div>
-            </div>
+                    </form>
                 
         </div>
     )

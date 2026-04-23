@@ -1,9 +1,9 @@
 export default function Button({
-    variant = "primary", // Define el estilo visual
-    size = "md", // Define el tamaño visual del boton
-    type = "button", // Tipos de botones: button, submit, reset
-    children, // Contenido interno del boton (texto, iconos, etc.)
-    ...props // Propiedades adicionales (onClick, disabled, etc.)
+    variant = "primary",
+    size = "md",
+    type = "button",
+    children,
+    ...props
 }) {
     const variants = {
         primary: "bg-green text-brand border",
@@ -24,13 +24,12 @@ export default function Button({
         `,
         md2: `
             inline-flex h-11 items-center gap-2 rounded-md
-                bg-[#173B5C] px-5 text-[14px] font-semibold text-white
-                shadow-sm transition-colors duration-200
-                hover:bg-[#12324E]
-                focus:outline-none focus:ring-2 focus:ring-[#9BB5CB] focus:ring-offset-2
-                disabled:cursor-not-allowed disabled:opacity-60
+            bg-[#173B5C] px-5 text-[14px] font-semibold text-white
+            shadow-sm transition-colors duration-200
+            hover:bg-[#12324E]
+            focus:outline-none focus:ring-0 focus:ring-[#9BB5CB] focus:ring-offset-2
+            disabled:cursor-not-allowed disabled:opacity-60
         `,
-        
         smm: `
             h-8 w-64 px-2
             color-black
@@ -41,16 +40,16 @@ export default function Button({
 
     return (
         <button
-        type={type}
-        className={`
-            relative
-            cursor-pointer
-            inline-flex items-center justify-center
-            rounded-md
-            transition-colors
-            ${variants[variant]}
-            ${sizes[size]}
-        `}
+            type={type}
+            className={`
+                relative
+                cursor-pointer
+                inline-flex items-center justify-center
+                rounded-md
+                transition-colors
+                ${variants[variant]}
+                ${sizes[size]}
+            `}
             {...props}
         >
             {children}

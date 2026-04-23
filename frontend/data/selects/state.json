@@ -1,0 +1,23 @@
+[
+    {
+        "id": "D",
+        "label": "Disponible"
+    },
+    {
+        "id": "N.D",
+        "label": "No Disponible"
+    },
+    {
+        "id": "E.P",
+        "label": "En Prestamo"
+    },
+    {
+        "id": "M",
+        "label": "Mantenimiento"
+    },
+    {
+        "id": "T",
+        "label": "Traslado"
+    }
+
+]
