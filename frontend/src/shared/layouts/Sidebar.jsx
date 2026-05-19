@@ -56,10 +56,10 @@ export default function Sidebar() {
                 </li>
 
                 <li>
-                    <button className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3] w-full text-left">
+                    <Link to="/iniciar-sesion" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3] w-full text-left">
                         <LogOut size={18} />
                         Cerrar sesión
-                    </button>
+                    </Link>
                 </li>
 
             </ul>

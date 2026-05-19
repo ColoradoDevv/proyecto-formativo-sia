@@ -1,13 +1,19 @@
-import SearchBar from "../../../shared/components/SearchBar";
-import { RegisterButton } from "../../../shared";
-import { DownloadReportButton } from "../../../shared";
+import SearchField from "@/components/SearchField";
+import { RegisterButton, DownloadReportButton } from "@/shared";
+import { useState } from "react";
 
 export default function ListCmPage() {
-    const materialFilters = [
-        { value: "todos", label: "Todos" },
-        { value: "nombre", label: "Nombre" },
-        { value: "categoria", label: "Categoria" },
-    ];
+// Componente de busqueda
+
+    const [search, setSearch] = useState("");
+
+    const handleSearch = (value) => {
+        console.log("Buscar: ", value)
+    }
+
+    const handleClear = () => {
+        console.log("Campo limpiado")
+    }
 
     return (
         <div className="h-full p-6 text-[#0C2D48]">
@@ -16,13 +22,16 @@ export default function ListCmPage() {
                     Listado de Materiales de Consumo
                 </h2>
 
-                <SearchBar
-                    placeholder="Buscar material..."
-                    onSearch={() => {}}
-                    filterOptions={materialFilters}
-                    onFilterChange={() => {}}
-                    className="md:max-w-md"
-                />
+                    <SearchField
+                        value={search}
+                        onChange={setSearch}
+                        onSubmit={handleSearch}
+                        onClear={handleClear}
+                        placeholder="Buscar productos..."
+                        size="md"
+                        variant="outlined"
+                        className="w-75"
+                    />
 
                 <div className="grid grid-cols-2 gap-4">
                     <RegisterButton

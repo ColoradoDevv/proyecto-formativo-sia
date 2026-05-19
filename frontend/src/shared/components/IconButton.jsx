@@ -27,15 +27,18 @@ export const IconButton = React.forwardRef(function IconButton(
         inline-flex items-center justify-center
         rounded-full
         transition-colors duration-200
+        cursor-pointer
         focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
         disabled:opacity-50 disabled:pointer-events-none
     `
 
     const variants = {
         default: `
-        text-neutral-700
-        hover:bg-neutral-200
-        focus-visible:ring-neutral-400
+            text-white
+            hover:bg-neutral-200
+            hover:text-black
+            focus-visible:ring-neutral-400
+
         `,
         ghost: `
         text-neutral-600
@@ -46,6 +49,7 @@ export const IconButton = React.forwardRef(function IconButton(
         text-white bg-blue-600
         hover:bg-neutral-700
         focus-visible:ring-blue-300
+        cursor-pointer
         `,
     }
 
@@ -57,7 +61,7 @@ export const IconButton = React.forwardRef(function IconButton(
             onClick={onClick}
             disabled={disabled}
             className={clsx(baseStyles, variants[variant], className, {
-                "bg-neutral-300": isActive,
+                "bg-neutral-300": isActive, 
             })}
             style={{
                 width: `${hitSize}px`,

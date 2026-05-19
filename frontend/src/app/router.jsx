@@ -3,6 +3,9 @@
 // Rutas
 import { Routes, Route } from "react-router-dom";
 
+// Imports Auth
+import { LoginPage } from "@/features/auth"
+
 // Imports Inicio
 import { HomePage } from "@/features/home";
 
@@ -24,6 +27,9 @@ export default function AppRouter() {
         <Routes>
             {/* Ruta de Inicio - Home */}
             <Route path="/" element={<HomePage />} />
+
+            {/* Ruta Auth */}
+            <Route path="/iniciar-sesion" element={<LoginPage />} />
 
             {/* Rutas (CRUD) de Usuario */}
             <Route path="/usuarios" element={<UserHomePage />} />
