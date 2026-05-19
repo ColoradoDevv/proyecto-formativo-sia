@@ -10,7 +10,7 @@ export { default as DataTable } from "./components/DataTable"
 export { default as Switch } from "./components/Switch"
 export { default as Card } from "./components/Card"
 export { default as FileInput } from "./components/FileInput"
-export { default as SearchField } from "./components/SearchField"
+export { SearchField } from "./components/SearchField"
 
 export {  DropdownTrigger } from "./components/Dropdown"
 export {  DropdownItem } from "./components/Dropdown"
