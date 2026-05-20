@@ -1,6 +1,6 @@
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
-import ListUserPage from "../../users/pages/ListUserPage"
+import UserListPage from "../../users/pages/UserListPage"
 
 export default function UserHomePage(){
 
@@ -10,8 +10,8 @@ export default function UserHomePage(){
 
             <div className="flex flex-1">
                 <Sidebar />
-                <main className="flex-1 bg-gray-100">
-                    <ListUserPage />
+                <main className="flex-1 bg-background">
+                    <UserListPage />
                 </main>
             </div>
 

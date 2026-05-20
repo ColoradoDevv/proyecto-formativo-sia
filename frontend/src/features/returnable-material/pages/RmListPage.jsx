@@ -1,31 +1,27 @@
-import SearchBar from "../../../shared/components/SearchBar";
-import { RegisterButton } from "../../../shared";
-import { DownloadReportButton } from "../../../shared";
+import { SearchField, RegisterButton, DownloadReportButton } from "@/shared";
+import { useState } from "react";
 
-export default function ListCmPage() {
-    const materialFilters = [
-        { value: "todos", label: "Todos" },
-        { value: "nombre", label: "Nombre" },
-        { value: "categoria", label: "Categoria" },
-    ];
+export default function RmListPage() {
+    const [search, setSearch] = useState("");
 
     return (
-        <div className="h-full p-6 text-[#0C2D48]">
+        <div className="h-full p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <h2 className="text-xl font-bold">
-                    Listado de Materiales de Consumo
+                <h2 className="text-h3 font-heading">
+                    Listado de Materiales Devolutivos
                 </h2>
 
-                <SearchBar
+                <SearchField
+                    value={search}
+                    onChange={setSearch}
                     placeholder="Buscar material..."
-                    onSearch={() => {}}
-                    filterOptions={materialFilters}
-                    onFilterChange={() => {}}
+                    variant="outlined"
                     className="md:max-w-md"
                 />
 
                 <div className="grid grid-cols-2 gap-4">
                     <RegisterButton
+                        to="/devolutivos/crear"
                         onClick={() => {}}
                         className="self-start md:self-auto"
                     >

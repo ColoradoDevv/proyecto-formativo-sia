@@ -1,0 +1,182 @@
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react"
+import { createPortal } from "react-dom"
+
+// ─── Context ────────────────────────────────────────────────────────────────
+
+const DropdownContext = createContext(null)
+
+// ─── Dropdown (root) ────────────────────────────────────────────────────────
+
+export function Dropdown({
+    children,
+    open: controlledOpen,
+    onOpenChange,
+    className = "",
+}) {
+    const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+
+    const isControlled = controlledOpen !== undefined
+    const open = isControlled ? controlledOpen : uncontrolledOpen
+
+    const setOpen = useCallback(
+        (value) => {
+            if (isControlled) {
+                onOpenChange?.(value)
+            } else {
+                setUncontrolledOpen(value)
+            }
+        },
+        [isControlled, onOpenChange]
+    )
+
+    const containerRef = useRef(null)
+    const triggerRef   = useRef(null)
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                setOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [setOpen])
+
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === "Escape") setOpen(false)
+        }
+        document.addEventListener("keydown", handleEscape)
+        return () => document.removeEventListener("keydown", handleEscape)
+    }, [setOpen])
+
+    return (
+        <DropdownContext.Provider value={{ open, setOpen, triggerRef }}>
+            <div
+                ref={containerRef}
+                className={`relative inline-block ${className}`}
+            >
+                {children}
+            </div>
+        </DropdownContext.Provider>
+    )
+}
+
+// ─── DropdownTrigger ─────────────────────────────────────────────────────────
+
+export function DropdownTrigger({ children, className = "" }) {
+    const { open, setOpen, triggerRef } = useContext(DropdownContext)
+
+    return (
+        <button
+            ref={triggerRef}
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            aria-haspopup="menu"
+            className={`flex items-center gap-1 cursor-pointer ${className}`}
+        >
+            {children}
+        </button>
+    )
+}
+
+// ─── DropdownContent ─────────────────────────────────────────────────────────
+// Usa un portal para renderizar fuera del DOM de la tabla y evitar que
+// overflow:hidden/auto del contenedor padre recorte el menú.
+
+export function DropdownContent({ children, className = "", align = "right" }) {
+    const { open, triggerRef } = useContext(DropdownContext)
+    const contentRef = useRef(null)
+    const [style, setStyle] = useState({ position: "fixed", top: -9999, left: -9999, visibility: "hidden" })
+
+    useEffect(() => {
+        if (!open) return
+
+        const frame = requestAnimationFrame(() => {
+            if (!contentRef.current || !triggerRef?.current) return
+
+            const triggerRect   = triggerRef.current.getBoundingClientRect()
+            const contentHeight = contentRef.current.offsetHeight
+            const contentWidth  = contentRef.current.offsetWidth
+            const spaceBelow    = window.innerHeight - triggerRect.bottom
+            const spaceAbove    = triggerRect.top
+
+            const goUp = spaceBelow < contentHeight && spaceAbove > spaceBelow
+
+            const top = goUp
+                ? triggerRect.top - contentHeight - 4
+                : triggerRect.bottom + 4
+
+            const left = align === "right"
+                ? Math.max(8, triggerRect.right - contentWidth)
+                : Math.min(triggerRect.left, window.innerWidth - contentWidth - 8)
+
+            setStyle({ position: "fixed", top, left, visibility: "visible" })
+        })
+
+        return () => cancelAnimationFrame(frame)
+    }, [open, triggerRef, align])
+
+    if (!open) return null
+
+    return createPortal(
+        <div
+            ref={contentRef}
+            role="menu"
+            style={style}
+            className={`
+                z-50
+                min-w-48
+                border border-border
+                text-text-primary
+                p-2
+                bg-surface-hover/80
+                backdrop-blur-[10px]
+                shadow-lg
+                rounded-sm
+                overflow-hidden
+                hover:shadow-black/50
+                transition-shadow
+                duration-700
+                ${className}
+            `}
+        >
+            {children}
+        </div>,
+        document.body
+    )
+}
+
+// ─── DropdownItem ─────────────────────────────────────────────────────────────
+
+export function DropdownItem({
+    children,
+    onClick,
+    className = "",
+}) {
+    const { setOpen } = useContext(DropdownContext)
+
+    const handleClick = (e) => {
+        onClick?.(e)
+        setOpen(false)
+    }
+
+    return (
+        <button
+            role="menuitem"
+            onClick={handleClick}
+            className={`w-full text-left px-3 py-2 rounded-sm text-medium
+                hover:bg-surface-muted
+                focus:bg-surface-muted transition-colors ${className}`}
+        >
+            {children}
+        </button>
+    )
+}
