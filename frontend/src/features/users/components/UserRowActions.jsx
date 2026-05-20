@@ -37,36 +37,30 @@ export default function UserRowActions({ user }) {
     // Contenedor de los botones de acciones
     <div className="flex gap-2">
       {/* Botón editar */}
-      <button
-        onClick={handleEdit} // Ejecuta la navegación a la página de edición
-        className="p-1 rounded hover:bg-gray-100"
+      <IconButton
+        onClick={handleEdit}
+        variant="ghost"
+        hitSize={32}
+        iconSize={16}
       >
-        <Pencil size={16} /> {/* Icono de editar */}
-      </button>
+        <Pencil size={16} />
+      </IconButton>
 
-
-        {/* Boton opciones */}
-
-        <Dropdown >
-            <DropdownTrigger className="p-1 rounded hover:bg-gray-100">
-                    <EllipsisVertical size={16} />
-            </DropdownTrigger>
+      {/* Botón opciones */}
+      <Dropdown>
+          <DropdownTrigger className="inline-flex justify-center items-center w-8 h-8 rounded-full text-text-secondary hover:bg-surface-muted transition-colors duration-200">
+              <EllipsisVertical size={16} />
+          </DropdownTrigger>
 
             <DropdownContent className="right-0 w-48">
                 <DropdownItem>
-                    <Link to="#" className="block w-full">
-                    Opcion 1
-                    </Link>
+                    <Link to="#" className="block w-full">Opcion 1</Link>
                 </DropdownItem>
                 <DropdownItem>
-                    <Link to="#" className="block w-full">
-                    Opcion 2
-                    </Link>
+                    <Link to="#" className="block w-full">Opcion 2</Link>
                 </DropdownItem>
                 <DropdownItem>
-                    <Link to="#" className="block w-full">
-                    Opcion 3
-                    </Link>
+                    <Link to="#" className="block w-full">Opcion 3</Link>
                 </DropdownItem>
             </DropdownContent>
         </Dropdown>

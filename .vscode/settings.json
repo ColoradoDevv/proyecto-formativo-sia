@@ -1,5 +1,5 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.defaultPackageManager": "ms-python.python:pip",
-    "tailwindCSS.experimental.configFile": "src/styles/global.css"
+    "tailwindCSS.experimental.configFile": "frontend/src/styles/global.css"
 }

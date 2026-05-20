@@ -11,7 +11,7 @@ export default function CreateUserPage(){
             <div className="flex flex-1">
                 <Sidebar />
 
-                <main className="flex-1 w bg-gray-100 text-[#0C2D48] ">
+                <main className="flex-1 bg-background text-text-primary">
                     <UserRegisterForm />    
                 </main>
 

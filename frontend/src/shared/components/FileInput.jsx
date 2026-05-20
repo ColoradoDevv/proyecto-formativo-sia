@@ -15,7 +15,7 @@ export default function FileInput({
     const isFile = (file) => file.type.startsWith("image/");
 
     const previews = useMemo(
-        () => value.map((file) => (isFile(file) ? URL.createObjectURL(file) : null)), 
+        () => value.map((file) => (isFile(file) ? URL.createObjectURL(file) : null)),
         [value],
     );
 
@@ -58,26 +58,26 @@ export default function FileInput({
                     onDragStart={() => setDragIndex(i)}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => reorder(dragIndex, i)}
-                    className="relative w-24 h-24 border rounded overflow-hidden group"
+                    className="relative w-24 h-24 border border-border rounded overflow-hidden group"
                 >
                     {isFile(file) ? (
                         <img src={previews[i]} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-[10px] px-1">
-                            <span className="font-semibold">PDF</span>
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-surface-muted text-small px-1">
+                            <span className="font-heading">PDF</span>
                             <span className="truncate w-full text-center">{file.name}</span>
                         </div>
                     )}
                     <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100">
-                        <button className="w-7 h-7 bg-white rounded-full text-black text-xs">↔</button>
-                        <button onClick={() => remove(i)} className="w-7 h-7 bg-white rounded-full text-black text-xs">×</button>
+                        <button className="w-7 h-7 bg-surface-hover rounded-full text-text-primary text-xs">↔</button>
+                        <button onClick={() => remove(i)} className="w-7 h-7 bg-surface-hover rounded-full text-text-primary text-xs">×</button>
                     </div>
                 </div>
             ))}
 
             <div
                 onClick={() => !isLoading && inputRef.current.click()}
-                className="w-24 h-24 border-2 border-dashed rounded flex items-center justify-center cursor-pointer"
+                className="w-24 h-24 border-2 border-dashed border-border rounded flex items-center justify-center cursor-pointer"
             >
                 {isLoading ? (
                     <InfinityLoader
@@ -89,7 +89,7 @@ export default function FileInput({
                         color="black"
                     />
                 ) : (
-                    <span className="text-blue-500 text-sm">Seleccionar</span>
+                    <span className="text-brand text-medium">Seleccionar</span>
                 )}
             </div>
 

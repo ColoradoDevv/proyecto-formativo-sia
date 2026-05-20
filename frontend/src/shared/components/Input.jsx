@@ -8,11 +8,11 @@ export default function Input({
     return(
         <div className="w-[320px]">
             {label && (
-                <label 
+                <label
                     className={`
                         block
                         place-self-start
-                        text-[14px]
+                        text-medium
                         mb-1
                         ${error ? "text-error" : "text-text-primary"}
                     `}
@@ -21,19 +21,20 @@ export default function Input({
                 </label>
             )}
 
-            <div className="relative h-12 flex items-center">
-                <input 
+            <div className="relative h-14 flex items-center">
+                <input
                     type={type}
                     required={required}
                     className={`
                         relative
                         w-full
-                        h-12
+                        h-14
                         rounded-md
                         border
                         px-4
                         text-base
-                        bg-white
+                        bg-surface-hover
+                        placeholder:text-text-muted
                         focus:outline-none
                         focus:ring-2
                         focus:ring-focus-ring
@@ -45,7 +46,7 @@ export default function Input({
             </div>
 
             {error && (
-                <p className="text-red-800 text-[12px] place-self-start">
+                <p className="text-error text-small place-self-start mt-1">
                     {error}
                 </p>
             )}

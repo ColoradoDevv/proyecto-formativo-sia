@@ -1,5 +1,4 @@
-import SearchField from "@/components/SearchField";
-import { RegisterButton, DownloadReportButton } from "@/shared";
+import { SearchField, RegisterButton, DownloadReportButton } from "@/shared";
 import { useState } from "react";
 
 export default function ListCmPage() {
@@ -16,9 +15,9 @@ export default function ListCmPage() {
     }
 
     return (
-        <div className="h-full p-6 text-[#0C2D48]">
+        <div className="h-full p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <h2 className="text-xl font-bold">
+                <h2 className="text-h3 font-heading">
                     Listado de Materiales de Consumo
                 </h2>
 

@@ -1,4 +1,3 @@
-import SearchBar from "../../../shared/components/SearchBar";
 import DataTable from "@/shared/components/DataTable";
 import { userColumns } from "../table/UserColumns.jsx";
 import { users } from "../data/users/users.js";
@@ -7,9 +6,9 @@ import { DownloadReportButton } from "../../../shared";
 
 export default function ListUserPage() {
     return (
-        <div className="h-full p-6 text-[#0C2D48]">
+        <div className="h-full p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <h2 className="text-xl font-bold">
+                <h2 className="text-h3 font-heading">
                     Listado de Usuarios
                 </h2>
 

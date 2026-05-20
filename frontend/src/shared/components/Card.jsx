@@ -5,7 +5,7 @@ export default function Card ( { product } ){
             w-80
             text-text-inverse
             dark:bg-neutral-950/80 
-            border border-neutral-200/80
+            border border-border
             backdrop-blur-[2px] 
             shadow-lg 
             rounded-2xl 

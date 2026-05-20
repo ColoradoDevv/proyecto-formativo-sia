@@ -3,41 +3,41 @@ import { House, Users, Wrench, Truck, Scroll , Settings, LogOut } from "lucide-r
 
 export default function Sidebar() {
     return (
-        <aside className="w-64 bg-white border-r border-gray-300 text-[#0C2D48] p-5 flex flex-col justify-between">
-            
+        <aside className="w-64 bg-surface-hover border-r border-border text-text-primary p-5 flex flex-col justify-between">
+
             {/* TOP */}
             <ul className="flex flex-col gap-4">
 
                 <li>
-                    <Link to="/" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
+                    <Link to="/" className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted">
                         <House size={18} />
                         Inicio
                     </Link>
                 </li>
 
                 <li>
-                    <Link to="/usuarios" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
+                    <Link to="/usuarios" className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted">
                         <Users size={18} />
                         Gestión de Usuarios
                     </Link>
                 </li>
 
                 <li>
-                    <Link to="/consumibles" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
+                    <Link to="/consumibles" className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted">
                         <Wrench size={18} />
                         Materiales de Consumo
                     </Link>
                 </li>
 
                 <li>
-                    <Link to="/devolutivos" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
+                    <Link to="/devolutivos" className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted">
                         <Scroll size={18} />
                         Materiales Devolutivos
                     </Link>
                 </li>
 
                 <li>
-                    <Link to="/prestamos" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
+                    <Link to="/prestamos" className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted">
                         <Truck size={18} />
                         Préstamos
                     </Link>
@@ -49,14 +49,14 @@ export default function Sidebar() {
             <ul className="flex flex-col gap-4">
 
                 <li>
-                    <Link to="/configuracion" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3]">
+                    <Link to="/configuracion" className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted">
                         <Settings size={18} />
                         Configuración
                     </Link>
                 </li>
 
                 <li>
-                    <Link to="/iniciar-sesion" className="flex items-center gap-3 p-2 rounded hover:bg-[#E1EBE3] w-full text-left">
+                    <Link to="/iniciar-sesion" className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted w-full text-left">
                         <LogOut size={18} />
                         Cerrar sesión
                     </Link>

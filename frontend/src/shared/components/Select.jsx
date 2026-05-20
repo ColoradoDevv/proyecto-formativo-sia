@@ -3,7 +3,6 @@ export default function Select({
     name,
     options = [],
 }){
-    
 
     return(
         <div
@@ -26,15 +25,14 @@ export default function Select({
 
             <select
                 name={name}
-                
                 className="
                     w-full
-                    h-12
-                    border 
+                    h-14
+                    border
                     border-border
                     px-4
-                    bg-white
-                    text-black
+                    bg-surface-hover
+                    text-text-primary
                 "
             >
                 <option
@@ -43,7 +41,7 @@ export default function Select({
                     Seleccione una opción
                 </option>
 
-                {   
+                {
                     options.map((opt) => (
                         <option
                             key={opt.id}

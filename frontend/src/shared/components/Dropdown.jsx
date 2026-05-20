@@ -6,10 +6,11 @@ import {
     useRef,
     useState,
 } from "react"
+import { createPortal } from "react-dom"
 
 // ─── Context ────────────────────────────────────────────────────────────────
 
-export const DropdownContext = createContext(null)
+const DropdownContext = createContext(null)
 
 // ─── Dropdown (root) ────────────────────────────────────────────────────────
 
@@ -24,7 +25,6 @@ export function Dropdown({
     const isControlled = controlledOpen !== undefined
     const open = isControlled ? controlledOpen : uncontrolledOpen
 
-    // Wrapped in useCallback para evitar re-renders y closures stale en efectos
     const setOpen = useCallback(
         (value) => {
             if (isControlled) {
@@ -37,9 +37,8 @@ export function Dropdown({
     )
 
     const containerRef = useRef(null)
-    const triggerRef   = useRef(null)  // expuesto al contexto para que DropdownContent mida posición
+    const triggerRef   = useRef(null)
 
-    // Click fuera del componente → cerrar
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -50,7 +49,6 @@ export function Dropdown({
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [setOpen])
 
-    // Tecla Escape → cerrar
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === "Escape") setOpen(false)
@@ -90,67 +88,69 @@ export function DropdownTrigger({ children, className = "" }) {
 }
 
 // ─── DropdownContent ─────────────────────────────────────────────────────────
+// Usa un portal para renderizar fuera del DOM de la tabla y evitar que
+// overflow:hidden/auto del contenedor padre recorte el menú.
 
-export function DropdownContent({ children, className = "" }) {
+export function DropdownContent({ children, className = "", align = "right" }) {
     const { open, triggerRef } = useContext(DropdownContext)
-
-    // "up" | "down" — se calcula justo antes de pintar
-    const [direction, setDirection] = useState("down")
     const contentRef = useRef(null)
+    const [style, setStyle] = useState({ position: "fixed", top: -9999, left: -9999, visibility: "hidden" })
 
     useEffect(() => {
         if (!open) return
 
-        // Necesitamos un frame para que el DOM haya pintado el contenido
-        // y podamos leer su offsetHeight real
         const frame = requestAnimationFrame(() => {
             if (!contentRef.current || !triggerRef?.current) return
 
             const triggerRect   = triggerRef.current.getBoundingClientRect()
             const contentHeight = contentRef.current.offsetHeight
+            const contentWidth  = contentRef.current.offsetWidth
             const spaceBelow    = window.innerHeight - triggerRect.bottom
             const spaceAbove    = triggerRect.top
 
-            // Abre hacia arriba solo si:
-            // 1. No cabe abajo, Y
-            // 2. Hay más espacio (o suficiente) arriba
-            if (spaceBelow < contentHeight && spaceAbove > spaceBelow) {
-                setDirection("up")
-            } else {
-                setDirection("down")
-            }
+            const goUp = spaceBelow < contentHeight && spaceAbove > spaceBelow
+
+            const top = goUp
+                ? triggerRect.top - contentHeight - 4
+                : triggerRect.bottom + 4
+
+            const left = align === "right"
+                ? Math.max(8, triggerRect.right - contentWidth)
+                : Math.min(triggerRect.left, window.innerWidth - contentWidth - 8)
+
+            setStyle({ position: "fixed", top, left, visibility: "visible" })
         })
 
         return () => cancelAnimationFrame(frame)
-    }, [open, triggerRef])
+    }, [open, triggerRef, align])
 
     if (!open) return null
 
-    return (
+    return createPortal(
         <div
             ref={contentRef}
             role="menu"
+            style={style}
             className={`
-                absolute
                 z-50
                 min-w-48
-                border
-                text-text
+                border border-border
+                text-text-primary
                 p-2
-                bg-white/80
-                backdrop-blur-[1px]
+                bg-surface-hover/80
+                backdrop-blur-[10px]
                 shadow-lg
                 rounded-sm
                 overflow-hidden
                 hover:shadow-black/50
                 transition-shadow
                 duration-700
-                ${direction === "up" ? "bottom-full mb-1" : "top-full mt-1"}
                 ${className}
             `}
         >
             {children}
-        </div>
+        </div>,
+        document.body
     )
 }
 
@@ -172,8 +172,9 @@ export function DropdownItem({
         <button
             role="menuitem"
             onClick={handleClick}
-            className={`w-full text-left px-3 py-2 rounded-sm text-[14px] hover:bg-gray-500
-                hover:text-white focus:bg-gray-100 transition-colors ${className}`}
+            className={`w-full text-left px-3 py-2 rounded-sm text-medium
+                hover:bg-surface-muted
+                focus:bg-surface-muted transition-colors ${className}`}
         >
             {children}
         </button>

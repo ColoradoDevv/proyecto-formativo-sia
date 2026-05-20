@@ -1,160 +1,141 @@
-import { Input, Button, Select, Checkbox, IconButton, Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from "@/shared";
 import { Link, useNavigate } from "react-router-dom";
-import { ExternalLink, Menu } from "lucide-react";
+import { Eye, EyeOff, Asterisk } from "lucide-react";
 import { useState } from "react";
 import { loginSchemas } from "../schemas/loginSchemas";
 
-
-export default function LoginForm(){
+export default function LoginForm() {
     const navigate = useNavigate();
-    const [errors, setErrors] = useState({})
+    const [errors, setErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         userEmail: "",
         userPassword: "",
     });
 
-
-    
-    // ===========================================
-    //                 Handles
-    // ===========================================
-    // Función que se ejecuta cada vez que cambia el valor de un input del formulario
     const handleChange = (e) => {
-        // Se obtiene el nombre del campo y su valor
         const { name, value, type, checked } = e.target;
-
         setFormData((prev) => ({
-            // Se copian todos los valores anteriores del estado
             ...prev,
-
-            // Se actualiza únicamente lo que cambió
             [name]: type === "checkbox" ? checked : value,
         }));
-    }
+    };
 
-        
-    // Función que se ejecuta cuando se envía el formulario 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        // Se valida el objeto de formData usando el esquema definido con Zod
-        // safeParse devuelve un objeto indicando si la validacion fue exitosa o no
         const result = loginSchemas.safeParse(formData);
 
-        // Si la validación falla
-        if (!result.success){
-            // Objeto donde se almacenarán los errores por campo
+        if (!result.success) {
             const fieldErrors = {};
-
-            // Zod devuelve los errores en un arreglo llamado issues
-            // Se recorren para asociar cada error a su campo correspondiente
             result.error.issues.forEach((issue) => {
-                // Issue.path contiene la ruta del campo que falló
                 const field = issue.path[0];
-
-                // Se guarda el mensaje de error en el objeto fieldErrors
                 fieldErrors[field] = issue.message;
             });
-            
-            
-        
-            // Se actualiza el estado de errores para mostrarlos en el formulario
             setErrors(fieldErrors);
-
-            // Se detiene la ejecución porque el formulario tiene errores
-            return ;
+            return;
         }
-        
-        // Si la validación es exitosa se limpian los errores anteriores 
+
         setErrors({});
+        navigate("/");
+    };
 
-        // navigate("/dashboard")
-        // result.data contiene los datos ya validados por Zod
-        console.log("Usuario valido:", result.data)
-    }
+    return (
+        <div className="bg-white rounded-3xl shadow-2xl px-8 py-10 w-[320px]">
 
-    return(
-        <div className="flex flex-col justify-center h-screen">
-            <h1
-                className="
-                    text-text-primary
-                    text-2xl mb-6
-                    text-center
-                "
+            <h1 className="text-center text-xl font-semibold mb-7"
+                style={{ color: "var(--color-quaternary-700)" }}
             >
-                Login
+                Iniciar Sesión
             </h1>
 
-            <form 
-                className="
-                    grid
-                    grid-cols-1
-                    items-center
-                    gap-6
-                "
-                onSubmit={handleSubmit}
-            >
-                {/* Inputs */}
-                <div
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+                {/* Correo */}
+                <div>
+                    <div className="relative">
+                        <input
+                            type="email"
+                            name="userEmail"
+                            placeholder="Correo Electrónico"
+                            value={formData.userEmail}
+                            onChange={handleChange}
+                            className={`
+                                w-full h-12 rounded-xl border px-4 pr-10
+                                text-sm text-gray-500 bg-white
+                                focus:outline-none focus:ring-2
+                                focus:ring-[var(--color-quaternary-600)]/40
+                                placeholder:text-gray-400
+                                ${errors.userEmail ? "border-red-400" : "border-gray-200"}
+                            `}
+                        />
+                        <Asterisk
+                            size={16}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        />
+                    </div>
+                    {errors.userEmail && (
+                        <p className="text-red-500 text-xs mt-1 pl-1">{errors.userEmail}</p>
+                    )}
+                </div>
+
+                {/* Contraseña */}
+                <div>
+                    <div className="relative">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            name="userPassword"
+                            placeholder="Contraseña"
+                            value={formData.userPassword}
+                            onChange={handleChange}
+                            className={`
+                                w-full h-12 rounded-xl border px-4 pr-10
+                                text-sm text-gray-500 bg-white
+                                focus:outline-none focus:ring-2
+                                focus:ring-[var(--color-quaternary-600)]/40
+                                placeholder:text-gray-400
+                                ${errors.userPassword ? "border-red-400" : "border-gray-200"}
+                            `}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                        </button>
+                    </div>
+                    {errors.userPassword && (
+                        <p className="text-red-500 text-xs mt-1 pl-1">{errors.userPassword}</p>
+                    )}
+                </div>
+
+                {/* Olvidó contraseña */}
+                <div className="text-center -mt-1">
+                    <Link
+                        to="/forgot-password"
+                        className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
+                    >
+                        ¿Olvidó su contraseña?
+                    </Link>
+                </div>
+
+                {/* Botón */}
+                <button
+                    type="submit"
                     className="
-                        grid 
-                        grid-rows-2
-                        gap-6
-                        my-0 mx-auto
-                        border
-                        p-6
-                        rounded-2xl
+                        w-full h-12 rounded-xl mt-1
+                        text-white font-semibold text-sm
+                        hover:opacity-90 active:scale-[0.98]
+                        transition-all duration-150 shadow-md cursor-pointer
                     "
+                    style={{
+                        background: `linear-gradient(to right, var(--color-quaternary-600), var(--color-quaternary-950))`
+                    }}
                 >
+                    Entrar
+                </button>
 
-                    <Input 
-                        label = "Correo"
-                        name = "userEmail"
-                        placeholder = "Ingrese su correo"
-                        type="email"
-
-                        value={formData.userEmail}
-                        onChange = {handleChange}
-                        error={errors.userEmail}
-                    />
-
-                    <Input 
-                        label = "Contraseña"
-                        name  = "userPassword"
-                        placeholder = "Ingrese su contraseña"
-                        type="password"
-                        
-                        value={formData.userPassword}
-                        onChange = {handleChange}
-                        error={errors.userPassword}
-                    />
-                </div>
-
-
-                {/* Actions */}
-                <div 
-                    className=" flex items-center justify-center gap-6"
-                >
-
-                    <Button
-                        variant = "secondary"
-                        size = "sm"
-                        onClick={() => { navigate(-1) }} /* Función de React Router que navega a la página anterior */
-                    >
-                        Cancelar
-                    </Button>
-
-                    <Button
-                        variant = "primary"
-                        size = "sm"
-                        type="submit"
-                        onClick={() => { navigate("/home") }}
-                    >
-                        Iniciar sesión
-                    </Button>
-                </div>
             </form>
         </div>
-    )
-    }
+    );
+}

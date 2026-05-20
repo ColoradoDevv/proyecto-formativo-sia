@@ -14,7 +14,7 @@ export default function SelectInput({
                     className="
                         block
                         place-self-start
-                        text-[14px]
+                        text-medium
                         mb-1
                     "
                 >
@@ -30,18 +30,16 @@ export default function SelectInput({
                 className={`
                     relative
                     w-full
-                    h-12
+                    h-14
                     rounded-md
                     border
-                    border-border
-                    border-black
                     px-4
-                    bg-white
+                    bg-surface-hover
                     focus:outline-none
                     focus:ring-2
                     focus:border-focus-border
                     ${error ? "border-red-500" : "border-border"}
-                    ${!value ? "text-gray-400" : "text-gray-900"}
+                    ${!value ? "text-text-muted" : "text-text-primary"}
                 `}
             >
                 <option value="">
@@ -57,10 +55,10 @@ export default function SelectInput({
                     </option>
                 ))}
 
-            </select> 
+            </select>
 
             {error && (
-                <p className="text-red-800 text-[12px] place-self-start">
+                <p className="text-error text-small place-self-start mt-1">
                     {error}
                 </p>
             )}

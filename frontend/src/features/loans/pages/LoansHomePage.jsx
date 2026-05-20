@@ -10,7 +10,7 @@ export default function LoansHomePage(){
             <div className="flex flex-1">
                 <Sidebar />
 
-                <main className="flex-1 bg-gray-100">
+                <main className="flex-1 bg-background">
                     <ListPage />
                 </main>
 

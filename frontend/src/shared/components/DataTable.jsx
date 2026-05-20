@@ -11,7 +11,8 @@ import {
 import { useState } from "react";
 
 // Botón reutilizable del sistema de componentes
-import { Button } from "@/shared";
+import { Button, SearchField } from "@/shared";
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
 
 // Componente reutilizable de tabla
 // Recibe:
@@ -61,19 +62,18 @@ export default function DataTable({ data, columns }) {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mt-4">
       {/* ================== TOOLBAR ================== */}
       {/* Barra superior con buscador y selector de filas */}
 
       <div className="flex items-center justify-between gap-4">
         {/* ================== BUSCADOR ================== */}
         {/* Filtra todas las columnas de la tabla */}
-        <input
-          type="text"
+        <SearchField
           placeholder="Buscar..."
           value={globalFilter ?? ""}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="border rounded px-3 py-2 w-64"
+          onChange={setGlobalFilter}
+          variant="outlined"
         />
 
         {/* ================== SELECTOR DE FILAS ================== */}
@@ -83,9 +83,9 @@ export default function DataTable({ data, columns }) {
           onChange={(e) => table.setPageSize(Number(e.target.value))}
           className="border rounded px-2 py-2"
         >
-          {[5, 7, 10, 20, 50].map((size) => (
+          {[5, 10, 20, 30, 50].map((size) => (
             <option key={size} value={size}>
-              {size} filas
+              {size} Filas
             </option>
           ))}
         </select>
@@ -95,7 +95,7 @@ export default function DataTable({ data, columns }) {
       <div className="overflow-x-auto border rounded">
         <table className="w-full">
           {/* ================== CABECERA ================== */}
-          <thead className="bg-gray-100">
+          <thead className="bg-surface-muted">
             {/* TanStack agrupa cabeceras automáticamente */}
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -122,7 +122,7 @@ export default function DataTable({ data, columns }) {
           <tbody>
             {/* Filas generadas por TanStack */}
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50">
+              <tr key={row.id} className="bg-surface-hover hover:bg-surface-muted">
                 {/* Celdas visibles de cada fila */}
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} className="p-3 border-b">
@@ -137,80 +137,88 @@ export default function DataTable({ data, columns }) {
       </div>
 
       {/* ================== FOOTER ================== */}
-      <div className="flex items-center justify-between">
-        {/* ================== INFORMACIÓN ================== */}
-        {/* Cantidad de registros visibles */}
-        <span className="text-sm text-gray-600">
-          Mostrando {table.getRowModel().rows.length} de{" "}
-          {table.getFilteredRowModel().rows.length} registros
-        </span>
-
+      <div className="flex items-center justify-center">
         {/* ================== CONTROLES DE PAGINACIÓN ================== */}
         <div className="flex items-center gap-2">
-          {/* Ir a la primera página */}
           <Button
             size="sm"
-            variant="secondary"
+            variant="table"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
+            aria-label="Primera página"
           >
+            <ChevronsLeft size={16} />
             Inicio
           </Button>
 
-          {/* Página anterior */}
           <Button
             size="sm"
-            variant="secondary"
+            variant="table"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            aria-label="Página anterior"
           >
+            <ChevronLeft size={16} />
             Anterior
           </Button>
 
-          {/* Información de página actual */}
-          <span className="text-sm px-2">
+          <span className="text-medium px-2">
             Página {table.getState().pagination.pageIndex + 1} de{" "}
             {table.getPageCount()}
           </span>
 
-          {/* Página siguiente */}
           <Button
             size="sm"
+            variant="table"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            aria-label="Página siguiente"
           >
             Siguiente
+            <ChevronRight size={16} />
           </Button>
 
-          {/* Ir a la última página */}
           <Button
             size="sm"
+            variant="table"
             onClick={() => table.setPageIndex(table.getPageCount() - 1)}
             disabled={!table.getCanNextPage()}
+            aria-label="Última página"
           >
             Final
+            <ChevronsRight size={16} />
           </Button>
         </div>
       </div>
+      
+      <div className="grid gap-4">
 
-      {/* ================== IR A PÁGINA ================== */}
-      {/* Permite navegar directamente a una página específica */}
-      <div className="flex items-center gap-2 text-sm">
-        <span>Ir a página:</span>
+        {/* ================== INFORMACIÓN ================== */}
+        {/* Cantidad de registros visibles */}
+        <span className="text-medium text-text-secondary">
+          Mostrando {table.getRowModel().rows.length} de{" "}
+          {table.getFilteredRowModel().rows.length} registros
+        </span>
 
-        <input
-          type="number"
-          // Página actual (se muestra +1 porque el índice empieza en 0)
-          defaultValue={table.getState().pagination.pageIndex + 1}
-          onChange={(e) => {
-            // Convierte el número ingresado en índice de página
-            const page = e.target.value ? Number(e.target.value) - 1 : 0;
+        {/* ================== IR A PÁGINA ================== */}
+        {/* Permite navegar directamente a una página específica */}
+        <div className="flex items-center gap-2 text-sm">
+          <span>Ir a página:</span>
 
-            // Cambia la página
-            table.setPageIndex(page);
-          }}
-          className="border rounded px-2 py-1 w-16"
-        />
+          <input
+            type="number"
+            // Página actual (se muestra +1 porque el índice empieza en 0)
+            defaultValue={table.getState().pagination.pageIndex + 1}
+            onChange={(e) => {
+              // Convierte el número ingresado en índice de página
+              const page = e.target.value ? Number(e.target.value) - 1 : 0;
+
+              // Cambia la página
+              table.setPageIndex(page);
+            }}
+            className="border rounded px-2 py-1 w-16"
+          />
+        </div>
       </div>
     </div>
   );

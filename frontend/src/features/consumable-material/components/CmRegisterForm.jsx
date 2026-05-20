@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { getBrands, getStates } from "../services/selectServices";
 
-
-import {Input, Button, SelectInput} from "@/shared";
+import {Input, Button, SelectInput, ConfirmCancelModal} from "@/shared";
 import { cmSchema } from "../schemas/cmSchema";
 
 export default function CmRegisterForm(){
 
+        const navigate = useNavigate();
+        const [showCancelModal, setShowCancelModal] = useState(false);
         const [brands, setBrands] = useState([]);
         const [states, setStates] = useState([]);
         const [formData, setFormData] = useState({
@@ -62,7 +64,8 @@ export default function CmRegisterForm(){
         };
 
     return (
-        <div className="grid grid-cols-1 my-4 mx-4 justify-items-center gap-8 p-4">
+        <>
+        <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
 
             <div className="grid grid-cols-3 justify-items-left">
                     {/* Titulos */}
@@ -224,25 +227,19 @@ export default function CmRegisterForm(){
                                 </Button>
                         </div>
                          */}
-                        <div className="flex gap-6">
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                size="md"
-                            >
-                                Crear
-                            </Button>
-
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size="md2"
-                            >
-                                Cancelar
-                            </Button>
+                        <div className="flex gap-4">
+                            <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>Cancelar</Button>
+                            <Button type="submit"  variant="primary"   size="md">Crear</Button>
                         </div>
                     </form>
-                
+
         </div>
+
+        <ConfirmCancelModal
+            isOpen={showCancelModal}
+            onClose={() => setShowCancelModal(false)}
+            onConfirm={() => navigate(-1)}
+        />
+        </>
     )
 }
