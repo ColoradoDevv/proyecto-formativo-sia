@@ -9,6 +9,7 @@ export default function FileInput({
     placeholder,
     className = "w-24 h-24",
     multiple = false,
+    error,
     accept = "image/*,application/pdf",
 }) {
     const inputRef = useRef();
@@ -55,7 +56,13 @@ export default function FileInput({
     return (
         <div className="flex flex-col gap-1">
             {label && (
-                <label className="text-small text-text-secondary">{label}</label>
+                <label className={`
+                        block
+                        place-self-start
+                        text-medium
+                        mb-1
+                        ${error ? "text-error" : "text-text-primary"}
+                    `}>{label}</label>
             )}
 
             <div className="flex items-center gap-2">
