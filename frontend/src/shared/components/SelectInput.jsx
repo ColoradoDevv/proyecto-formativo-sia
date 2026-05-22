@@ -3,6 +3,7 @@ export default function SelectInput({
     name,
     error,
     value,
+    className = "",
     onChange,
     required,
     options = [],
