@@ -3,6 +3,8 @@ node_modules/
 
 # Claude Code worktrees and internal files
 .claude/
+.mcp.json
+.CLAUDE.md
 
 # Build outputs
 dist/
@@ -33,3 +35,5 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+# Added by code-review-graph
+.code-review-graph/
