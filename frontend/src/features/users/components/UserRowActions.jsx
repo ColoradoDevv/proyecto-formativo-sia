@@ -7,10 +7,10 @@ import {
 } from "@/shared";
 
 // Iconos usados en los botones de acciones
-import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
+import { EllipsisVertical, Eye, Trash2 } from "lucide-react";
 
 // Hook de React Router para navegar programáticamente entre rutas
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // Componente que renderiza las acciones de cada fila de usuario
 // Recibe como prop el objeto user
@@ -25,7 +25,11 @@ export default function UserRowActions({ user }) {
   // Acción para editar el usuario
   // Redirige a la página de edición usando el id del usuario
   const handleEdit = () => {
-    navigate(`/users/${user.id}/edit`);
+    navigate(`/usuarios/editar/${user.id}`);
+  };
+
+  const handleVisualizer = () => {
+    navigate(`/usuarios/visualizar/${user.id}`);
   };
 
   // Acción para eliminar el usuario
@@ -38,12 +42,12 @@ export default function UserRowActions({ user }) {
     <div className="flex gap-2">
       {/* Botón editar */}
       <IconButton
-        onClick={handleEdit}
+        onClick={handleVisualizer}
         variant="ghost"
         hitSize={32}
         iconSize={16}
       >
-        <Pencil size={16} />
+        <Eye size={16} />
       </IconButton>
 
       {/* Botón opciones */}
@@ -53,15 +57,9 @@ export default function UserRowActions({ user }) {
           </DropdownTrigger>
 
             <DropdownContent className="right-0 w-48">
-                <DropdownItem>
-                    <Link to="#" className="block w-full">Opcion 1</Link>
-                </DropdownItem>
-                <DropdownItem>
-                    <Link to="#" className="block w-full">Opcion 2</Link>
-                </DropdownItem>
-                <DropdownItem>
-                    <Link to="#" className="block w-full">Opcion 3</Link>
-                </DropdownItem>
+                <DropdownItem onClick={handleEdit}>Editar</DropdownItem>
+                <DropdownItem>Opcion 2</DropdownItem>
+                <DropdownItem>Opcion 3</DropdownItem>
             </DropdownContent>
         </Dropdown>
     </div>

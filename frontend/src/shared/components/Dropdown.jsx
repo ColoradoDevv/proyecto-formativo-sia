@@ -45,8 +45,8 @@ export function Dropdown({
                 setOpen(false)
             }
         }
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
+        document.addEventListener("click", handleClickOutside)
+        return () => document.removeEventListener("click", handleClickOutside)
     }, [setOpen])
 
     useEffect(() => {
@@ -172,7 +172,7 @@ export function DropdownItem({
         <button
             role="menuitem"
             onClick={handleClick}
-            className={`w-full text-left px-3 py-2 rounded-sm text-medium
+            className={`w-full text-left px-3 py-2 cursor-pointer rounded-sm text-medium
                 hover:bg-surface-muted
                 focus:bg-surface-muted transition-colors ${className}`}
         >
