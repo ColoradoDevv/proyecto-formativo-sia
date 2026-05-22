@@ -1,31 +1,44 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDocumentTypes } from "../services/selectServices";
-import {Input, Button, SelectInput, ConfirmCancelModal} from "@/shared";
+import { getDocumentTypes, getUserRoles} from "../services/selectServices";
+import {Input, Button, SelectInput, FileInput,ConfirmCancelModal, TagInput, Checkbox} from "@/shared";
 import { userSchema } from "../schemas/userSchema";
+import { Upload } from "lucide-react";
 
 export default function UserRegisterForm(){
 
     const navigate = useNavigate();
     const [showCancelModal, setShowCancelModal] = useState(false);
-    const [documentTypes, setDocumentTypes] = useState([]);
+
     const [formData, setFormData] = useState({
         userName: "",
         userLastName: "",
         userEmail: "",
         userConfirmEmail: "",
+        userInstitutionalEmail: "",
+        userProfile: [],
         userDocumentType: "",
+        userRole: "",
         userDocumentNumber: "",
-        userPassword: "",
-        userConfirmPassword: "",
         userStartDate: "",
         userEndDate: "",
+        userAdditionalPhone: "",
+        userPhone: "",
+        isActive: false,
+        userAddres: "",
     });
-
+    
+    const uploadIcon = <Upload size={16} />;
     const [errors, setErrors] = useState({});
-
+    
+    const [documentTypes, setDocumentTypes] = useState([]);
     useEffect(() => {
         getDocumentTypes().then(setDocumentTypes);
+    }, []);
+
+    const [userRoles, setUserRoles] = useState([]);
+    useEffect(() => {
+        getUserRoles().then(setUserRoles);
     }, []);
 
     const handleChange = (e) => {
@@ -57,9 +70,9 @@ export default function UserRegisterForm(){
 
     return (
         <>
-            <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
+            <div className="grid grid-cols-1 my-2 mx-2 sm:mx-4 justify-items-center p-2 sm:p-4">
 
-                <div className="grid grid-cols-3 justify-items-left">
+                <div className="grid grid-cols-1 sm:grid-cols-3 justify-items-left mb-4 w-full">
                     <div className="grid gap-2 justify-items-left">
                         <h1 className="text-xl font-bold">
                             Registro de Usuarios
@@ -73,13 +86,13 @@ export default function UserRegisterForm(){
                 <form
                     noValidate
                     onSubmit={handleSubmit}
-                    className="flex flex-col items-center gap-6"
+                    className="flex flex-col items-center gap-6 mt-4 w-full"
                 >
                     {/* Grid de inputs */}
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6 w-full">
 
                         {/* Columna izquierda */}
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 gap-4 min-w-0">
                             <Input
                                 label="Nombres Completos"
                                 name="userName"
@@ -99,28 +112,16 @@ export default function UserRegisterForm(){
                                 error={errors.userDocumentType}
                                 required
                             />
-                            <Input
-                                label="Correo"
-                                name="userEmail"
-                                autoComplete="off"
-                                placeholder="Ingrese su correo"
-                                type="email"
-                                value={formData.userEmail}
+                            <SelectInput
+                                label="Tipo de Usuario"
+                                name="userRole"
+                                options={userRoles}
+                                value={formData.userRole}
                                 onChange={handleChange}
-                                error={errors.userEmail}
+                                error={errors.userRole}
                                 required
                             />
-                            <Input
-                                label="Contraseña"
-                                name="userPassword"
-                                autoComplete="new-password"
-                                placeholder="Ingrese su contraseña"
-                                type="password"
-                                value={formData.userPassword}
-                                onChange={handleChange}
-                                error={errors.userPassword}
-                                required
-                            />
+
                             <Input
                                 label="Fecha de inicio"
                                 name="userStartDate"
@@ -131,10 +132,21 @@ export default function UserRegisterForm(){
                                 error={errors.userStartDate}
                                 required
                             />
+
+                            <Input
+                                label="Fecha de Finalización"
+                                name="userEndDate"
+                                placeholder="Ingrese fecha de finalización"
+                                type="date"
+                                value={formData.userEndDate}
+                                onChange={handleChange}
+                                error={errors.userEndDate}
+                                required
+                            />
                         </div>
 
                         {/* Columna derecha */}
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 gap-4 min-w-0">
                             <Input
                                 label="Apellidos Completos"
                                 name="userLastName"
@@ -155,6 +167,18 @@ export default function UserRegisterForm(){
                                 required
                             />
                             <Input
+                                label="Correo"
+                                name="userEmail"
+                                autoComplete="off"
+                                placeholder="Ingrese su correo"
+                                type="email"
+                                value={formData.userEmail}
+                                onChange={handleChange}
+                                error={errors.userEmail}
+                                required
+                            />
+
+                            <Input
                                 label="Confirmar Correo"
                                 name="userConfirmEmail"
                                 autoComplete="off"
@@ -165,26 +189,81 @@ export default function UserRegisterForm(){
                                 error={errors.userConfirmEmail}
                                 required
                             />
+
                             <Input
-                                label="Confirmar Contraseña"
-                                name="userConfirmPassword"
-                                autoComplete="new-password"
-                                placeholder="Confirmar contraseña"
-                                type="password"
-                                value={formData.userConfirmPassword}
+                                label="Correo Institucional (Opcional)"
+                                name="userInstitutionalEmail"
+                                autoComplete="off"
+                                placeholder="Ingrese su correo institucional"
+                                type="email"
+                                value={formData.userInstitutionalEmail}
                                 onChange={handleChange}
-                                error={errors.userConfirmPassword}
+                                error={errors.userInstitutionalEmail}
+                            />
+                        </div>
+
+
+                         <div className="grid grid-cols-1 gap-4 min-w-0">
+
+                            <Input
+                                label="Telefono"
+                                name="userPhone"
+                                autoComplete="tel"
+                                placeholder="Ingrese su numero de telefono"
+                                value={formData.userPhone}
+                                onChange={handleChange}
+                                error={errors.userPhone}
                                 required
                             />
                             <Input
-                                label="Fecha de Finalización"
-                                name="userEndDate"
-                                placeholder="Ingrese fecha de finalización"
-                                type="date"
-                                value={formData.userEndDate}
+                                label="Telefono Adicional (Opcional)"
+                                name="userAdditionalPhone"
+                                autoComplete="tel"
+                                placeholder="Ingrese su numero de telefono adicional"
+                                value={formData.userAdditionalPhone}
                                 onChange={handleChange}
-                                error={errors.userEndDate}
+                                error={errors.userAdditionalPhone}
+                            />
+                            <Input
+                                label="Direccion"
+                                name="userAddress"
+                                autoComplete="off"
+                                placeholder="Ingrese su direccion"
+                                value={formData.userAddress}
+                                onChange={handleChange}
+                                error={errors.userAddress}
                                 required
+                            />
+                            <TagInput
+                                label="Tareas (Opcional)"
+                                name="userTasks"
+                                placeholder="Agregar tareas"
+                                value={formData.userTasks}
+                                onChange={handleChange}
+                                error={errors.userTasks}
+                            />
+                            <Checkbox
+                                id="isActive"
+                                label="Usuario Activo"
+                                name="isActive"
+                                className="h-18"
+                                checked={formData.isActive}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="min-w-0">
+                            <FileInput
+                                label="Foto de Perfil"
+                                name="userProfile"
+                                className="w-full h-58"
+                                placeholder="Subir foto de perfil"
+                                type="file"
+                                value={formData.userProfile}
+                                onChange={handleChange}
+                                error={errors.userProfile}
+                                accept="image/*"
                             />
                         </div>
 
