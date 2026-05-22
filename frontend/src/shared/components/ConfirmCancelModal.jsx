@@ -1,6 +1,12 @@
 import { createPortal } from "react-dom";
 
-export default function ConfirmCancelModal({ isOpen, onClose, onConfirm }) {
+export default function ConfirmCancelModal({ 
+        isOpen, 
+        onClose, 
+        onConfirm,     
+        className = "",
+        
+    }) {
     if (!isOpen) return null;
 
     return createPortal(

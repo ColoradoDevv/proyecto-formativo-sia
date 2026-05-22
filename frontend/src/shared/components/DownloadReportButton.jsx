@@ -4,6 +4,7 @@ export default function DownloadReportButton({
     children = "Descargar Reporte",
     className = "",
     type = "button",
+    
     ...props
 }) {
     return (

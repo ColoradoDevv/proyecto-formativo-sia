@@ -7,6 +7,7 @@ export default function TagInput({
     onChange,
     placeholder = "Agregar...",
     error,
+    className = "",
     required,
 }) {
     const [inputValue, setInputValue] = useState("");
