@@ -5,3 +5,11 @@ export async function getDocumentTypes(){
     return res.json()
 
 }
+
+export async function getUserRoles(){
+
+    const res = await fetch("/../../data/selects/userRoles.json")
+    
+    return res.json()
+
+}
