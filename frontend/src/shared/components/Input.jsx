@@ -18,6 +18,7 @@ export default function Input({
                     `}
                 >
                     {label}
+                    {required && <span className="text-error ml-1">*</span>}
                 </label>
             )}
 

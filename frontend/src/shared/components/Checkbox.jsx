@@ -6,7 +6,7 @@ export default function Checkbox({
     onChange,                   // Función que maneja el cambio de estado 
     disable = false,            // Indica si el checkbox esta habilitado
     className = "",             // Clases adicionales para personalización
-
+    required
 }) {
 
     return (
@@ -25,6 +25,7 @@ export default function Checkbox({
             {/* Input */}
             <input 
                 type="checkbox"
+                required={required}
                 id={id}
                 name={name}
                 checked={checked}
@@ -34,6 +35,7 @@ export default function Checkbox({
             />
             {/* Texto del checkbox */}
             <span>{label}</span>
+            {required && <span className="text-error ml-1">*</span>}
         </label>
     )
 }
