@@ -7,7 +7,7 @@ export default function ConfirmCancelModal({ isOpen, onClose, onConfirm }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+                className="absolute inset-0 bg-slate-500/20 backdrop-blur-xs"
                 onClick={onClose}
             />
 
@@ -52,14 +52,14 @@ export default function ConfirmCancelModal({ isOpen, onClose, onConfirm }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 h-10 rounded-full border border-[#CAD5D3] bg-white/40 text-[#0C2D48] text-sm font-medium transition-colors duration-200 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
+                        className="flex-1 cursor-pointer h-10 rounded-full border border-[#CAD5D3] bg-white/40 text-[#0C2D48] text-sm font-medium transition-colors duration-200 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
                     >
                         Seguir aquí
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
-                        className="flex-1 h-10 rounded-full bg-[#203F57] border border-[#203F57] text-white text-sm font-medium transition-colors duration-200 hover:bg-[#0C2D48] focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
+                        className="flex-1 cursor-pointer h-10 rounded-full bg-[#203F57] border border-[#203F57] text-white text-sm font-medium transition-colors duration-200 hover:bg-[#0C2D48] focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
                     >
                         Sí, cancelar
                     </button>
