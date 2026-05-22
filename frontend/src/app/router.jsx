@@ -34,7 +34,10 @@ export default function AppRouter() {
             {/* Rutas (CRUD) de Usuario */}
             <Route path="/usuarios" element={<UserHomePage />} />
             <Route path="/usuarios/crear" element={<UserCreatePage />} />
+            <Route path="/usuarios/visualizar/:id" element={<UserCreatePage />} />
+            <Route path="/usuarios/editar/:id" element={<UserCreatePage />} />
 
+            
             {/* Rutas (CRUD) de Materiales Consumibles */}
             <Route path="/consumibles" element={<CmHomePage />} />
             <Route path="/consumibles/crear" element={<CmCreatePage />} />
