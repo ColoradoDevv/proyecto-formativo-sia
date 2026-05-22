@@ -1,5 +1,6 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { Infinity as InfinityLoader } from "ldrs/react";
+import { Upload } from "lucide-react";
 
 
 export default function FileInput({
@@ -104,7 +105,10 @@ export default function FileInput({
                             color="black"
                         />
                     ) : (
-                        <span className="text-brand text-medium">{placeholder}</span>
+                        <span className="flex flex-col items-center gap-1 text-brand text-medium">
+                            <Upload size={28} />
+                            {placeholder}
+                        </span>
                     )}
                 </div>
 
