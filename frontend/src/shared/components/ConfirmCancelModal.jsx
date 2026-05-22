@@ -8,7 +8,6 @@ export default function ConfirmCancelModal({ isOpen, onClose, onConfirm }) {
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-500/20 backdrop-blur-xs"
-                onClick={onClose}
             />
 
             {/* Glass card */}
