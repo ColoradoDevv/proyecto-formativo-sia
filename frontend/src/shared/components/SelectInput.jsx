@@ -3,6 +3,7 @@ export default function SelectInput({
     name,
     error,
     value,
+    className = "",
     onChange,
     required,
     options = [],
@@ -11,14 +12,16 @@ export default function SelectInput({
         <div className="w-[320px]">
             {label && (
                 <label
-                    className="
+                    className={`
                         block
                         place-self-start
                         text-medium
                         mb-1
-                    "
+                        ${error ? "text-error" : "text-text-primary"}
+                    `}
                 >
                     {label}
+                    {required && <span className="text-error ml-1">*</span>}
                 </label>
             )}
 

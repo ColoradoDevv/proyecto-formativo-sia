@@ -10,7 +10,7 @@ import { LoginPage } from "@/features/auth"
 import { HomePage } from "@/features/home";
 
 // Imports Usuarios 
-import { UserHomePage, UserCreatePage } from "@/features/users";
+import { UserHomePage, UserCreatePage, UserDetailPage, UserEditPage} from "@/features/users";
 
 // Imports Material de Consumo
 import { CmHomePage, CmCreatePage } from "@/features/consumable-material";
@@ -34,7 +34,10 @@ export default function AppRouter() {
             {/* Rutas (CRUD) de Usuario */}
             <Route path="/usuarios" element={<UserHomePage />} />
             <Route path="/usuarios/crear" element={<UserCreatePage />} />
+            <Route path="/usuarios/visualizar/:id" element={<UserDetailPage />} />
+            <Route path="/usuarios/editar/:id" element={<UserEditPage />} />
 
+            
             {/* Rutas (CRUD) de Materiales Consumibles */}
             <Route path="/consumibles" element={<CmHomePage />} />
             <Route path="/consumibles/crear" element={<CmCreatePage />} />

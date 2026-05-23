@@ -2,6 +2,8 @@ export default function Select({
     label,
     name,
     options = [],
+    className = "",
+
 }){
 
     return(

@@ -2,6 +2,7 @@ export default function Button({
     variant = "primary",
     size = "md",
     type = "button",
+    className = "",
     children,
     ...props
 }) {

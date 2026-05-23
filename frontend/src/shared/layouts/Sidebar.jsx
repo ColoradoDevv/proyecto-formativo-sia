@@ -3,7 +3,7 @@ import { House, Users, Wrench, Truck, Scroll , Settings, LogOut } from "lucide-r
 
 export default function Sidebar() {
     return (
-        <aside className="w-64 bg-surface-hover border-r border-border text-text-primary p-5 flex flex-col justify-between">
+        <aside className="w-64 bg-surface-hover border-r border-border text-text-primary p-5 hidden sm:flex flex-col justify-between">
 
             {/* TOP */}
             <ul className="flex flex-col gap-4">

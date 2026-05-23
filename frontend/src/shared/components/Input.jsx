@@ -2,11 +2,12 @@ export default function Input({
     label,
     type = "text",
     required,
+    className = "w-[320px]",
     error,
     ...props
 }){
     return(
-        <div className="w-[320px]">
+        <div className={className}>
             {label && (
                 <label
                     className={`
@@ -18,6 +19,7 @@ export default function Input({
                     `}
                 >
                     {label}
+                    {required && <span className="text-error ml-1">*</span>}
                 </label>
             )}
 
