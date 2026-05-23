@@ -1,8 +1,8 @@
-import UserRegisterForm  from "../components/create/UserRegisterForm"
+import UserDetailView  from "../components/detail/UserDetailView"
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
 
-export default function CreateUserPage(){
+export default function UserDetailPage(){
 
     return(
         <div className="h-screen flex flex-col">
@@ -12,7 +12,7 @@ export default function CreateUserPage(){
                 <Sidebar />
 
                 <main className="flex-1 bg-background text-text-primary">
-                    <UserRegisterForm />    
+                    <UserDetailView />
                 </main>
 
             </div>

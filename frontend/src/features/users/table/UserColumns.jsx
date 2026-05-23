@@ -3,7 +3,7 @@ import { Switch } from "@/shared";
 
 
 // Componente que contiene los botones de acciones (editar y eliminar) para cada usuario
-import UserRowActions from "../components/UserRowActions";
+import UserRowActions from "../components/list/UserRowActions";
 
 // Definición de las columnas de la tabla de usuarios
 // Este arreglo suele usarse en librerías de tablas como TanStack Table

@@ -7,7 +7,7 @@ import {
 } from "@/shared";
 
 // Iconos usados en los botones de acciones
-import { EllipsisVertical, Eye, Trash2 } from "lucide-react";
+import { EllipsisVertical, Eye } from "lucide-react";
 
 // Hook de React Router para navegar programáticamente entre rutas
 import { useNavigate } from "react-router-dom";

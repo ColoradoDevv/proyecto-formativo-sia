@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDocumentTypes, getUserRoles} from "../services/selectServices";
-import {Input, Button, SelectInput, FileInput,ConfirmCancelModal, TagInput, Checkbox} from "@/shared";
-import { userSchema } from "../schemas/userSchema";
-import { Upload } from "lucide-react";
+import { getDocumentTypes, getUserRoles} from "../../services/selectServices";
+import {Input, Button, SelectInput, ProfileFileInput, ConfirmCancelModal} from "@/shared";
+import UserTaskModal from "./UserTaskModal";
+import { userSchema } from "../../schemas/userSchema";
+import { Plus } from "lucide-react";
 
 export default function UserRegisterForm(){
 
     const navigate = useNavigate();
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [showTaskModal, setShowTaskModal] = useState(false);
 
     const [formData, setFormData] = useState({
         userName: "",
@@ -24,12 +26,12 @@ export default function UserRegisterForm(){
         userEndDate: "",
         userAdditionalPhone: "",
         userPhone: "",
-        isActive: false,
-        userAddres: "",
+        userAddress: "",
+        userTasks: [],
     });
     
-    const uploadIcon = <Upload size={16} />;
     const [errors, setErrors] = useState({});
+    const [showAdditionalPhone, setShowAdditionalPhone] = useState(false);
     
     const [documentTypes, setDocumentTypes] = useState([]);
     useEffect(() => {
@@ -42,11 +44,19 @@ export default function UserRegisterForm(){
     }, []);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: type === "checkbox" ? checked : value,
         }));
+    };
+
+    const handleProfileChange = (files) => {
+        setFormData((prev) => ({ ...prev, userProfile: files }));
+    };
+
+    const handleAddTask = (task) => {
+        setFormData((prev) => ({ ...prev, userTasks: [...prev.userTasks, task] }));
     };
 
     const handleSubmit = (e) => {
@@ -215,15 +225,32 @@ export default function UserRegisterForm(){
                                 error={errors.userPhone}
                                 required
                             />
-                            <Input
-                                label="Telefono Adicional (Opcional)"
-                                name="userAdditionalPhone"
-                                autoComplete="tel"
-                                placeholder="Ingrese su numero de telefono adicional"
-                                value={formData.userAdditionalPhone}
-                                onChange={handleChange}
-                                error={errors.userAdditionalPhone}
-                            />
+                            <div className="flex flex-col gap-2 ">
+                                <label className="block text-medium text-text-primary">
+                                    Telefono Adicional (Opcional)
+                                </label>
+                                {!showAdditionalPhone ? (
+                                    
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="md"
+                                        onClick={() => setShowAdditionalPhone(true)}
+                                    >
+                                        + Agregar número
+                                    </Button>
+                                ) : (
+                                    <Input
+                                        name="userAdditionalPhone"
+                                        autoComplete="tel"
+                                        placeholder="Ingrese su numero de telefono adicional"
+                                        value={formData.userAdditionalPhone}
+                                        onChange={handleChange}
+                                        error={errors.userAdditionalPhone}
+                                    />
+                                )}
+                            </div>
+
                             <Input
                                 label="Direccion"
                                 name="userAddress"
@@ -234,36 +261,40 @@ export default function UserRegisterForm(){
                                 error={errors.userAddress}
                                 required
                             />
-                            <TagInput
-                                label="Tareas (Opcional)"
-                                name="userTasks"
-                                placeholder="Agregar tareas"
-                                value={formData.userTasks}
-                                onChange={handleChange}
-                                error={errors.userTasks}
-                            />
-                            <Checkbox
-                                id="isActive"
-                                label="Usuario Activo"
-                                name="isActive"
-                                className="h-18"
-                                checked={formData.isActive}
-                                onChange={handleChange}
-                                required
-                            />
+                            {/* Botón que abre el modal de tareas */}
+                            <div className="flex flex-col gap-2 ">
+                                <label className="block text-medium text-text-primary">
+                                    Tareas (Opcional)
+                                </label>
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="md"
+                                    onClick={() => setShowTaskModal(true)}
+                                >
+                                    <Plus size={16} />
+                                    Agregar tarea
+                                </Button>
+
+                                {/* Lista de tareas añadidas */}
+                                {formData.userTasks.map((task, i) => (
+                                    <span key={i} className="text-sm text-text-primary bg-surface-muted border border-border rounded-full px-3 py-1 w-fit">
+                                        {task.taskName}
+                                    </span>
+                                ))}
+                            </div>
+                            <div className="h-20.75"></div>
                         </div>
 
                         <div className="min-w-0">
-                            <FileInput
+                            <ProfileFileInput
                                 label="Foto de Perfil"
                                 name="userProfile"
                                 className="w-full h-58"
                                 placeholder="Subir foto de perfil"
-                                type="file"
                                 value={formData.userProfile}
-                                onChange={handleChange}
+                                onChange={handleProfileChange}
                                 error={errors.userProfile}
-                                accept="image/*"
                             />
                         </div>
 
@@ -282,6 +313,12 @@ export default function UserRegisterForm(){
                 isOpen={showCancelModal}
                 onClose={() => setShowCancelModal(false)}
                 onConfirm={() => navigate(-1)}
+            />
+
+            <UserTaskModal
+                isOpen={showTaskModal}
+                onClose={() => setShowTaskModal(false)}
+                onAdd={handleAddTask}
             />
         </>
     );

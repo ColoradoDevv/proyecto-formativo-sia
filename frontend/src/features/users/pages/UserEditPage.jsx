@@ -2,7 +2,7 @@ import UserRegisterForm  from "../components/create/UserRegisterForm"
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
 
-export default function CreateUserPage(){
+export default function UserEditPage(){
 
     return(
         <div className="h-screen flex flex-col">
@@ -12,7 +12,7 @@ export default function CreateUserPage(){
                 <Sidebar />
 
                 <main className="flex-1 bg-background text-text-primary">
-                    <UserRegisterForm />    
+                    {/* <UserRegisterForm />     */}
                 </main>
 
             </div>
