@@ -71,9 +71,12 @@ export const rmSchema = z.object({
         }),
 
     rmTechnicalSheet: z
-        .string()
-        .trim()
-        .max(255, "La ficha tecnica es demasiado larga"),
+        .array(z.instanceof(File))
+        .optional(),
+
+    rmPhoto: z
+        .array(z.instanceof(File))
+        .optional(),
 }).refine(
     (data) => toCents(data.rmUnitValue) * Number(data.rmQuantity) === toCents(data.rmTotalValue),
     {

@@ -1,5 +1,8 @@
 import { SearchField, RegisterButton, DownloadReportButton } from "@/shared";
 import { useState } from "react";
+import { Rm } from "../data/returnable-materials";
+import { RmColumns } from "../table/RmColumns";
+import DataTable from "@/shared/components/DataTable";
 
 export default function RmListPage() {
     const [search, setSearch] = useState("");
@@ -10,15 +13,6 @@ export default function RmListPage() {
                 <h2 className="text-h3 font-heading">
                     Listado de Materiales Devolutivos
                 </h2>
-
-                <SearchField
-                    value={search}
-                    onChange={setSearch}
-                    placeholder="Buscar material..."
-                    variant="outlined"
-                    className="md:max-w-md"
-                />
-
                 <div className="grid grid-cols-2 gap-4">
                     <RegisterButton
                         to="/devolutivos/crear"
@@ -33,8 +27,11 @@ export default function RmListPage() {
                     >
                         Descargar Reporte
                     </DownloadReportButton>
+                    
+                
                 </div>
             </div>
+            <DataTable data={Rm} columns={RmColumns} />
         </div>
     );
 }
