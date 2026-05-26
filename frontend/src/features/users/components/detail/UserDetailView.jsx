@@ -1,13 +1,28 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/shared";
-import { users } from "../../data/users/users";
+
 import DetailCard from "./DetailCard";
 import DetailField from "./DetailField";
+import useUser from "../../hooks/useUser.js";
+import { TailChase } from 'ldrs/react'
+import 'ldrs/react/TailChase.css'
 
 export default function UserDetailView() {
     const navigate = useNavigate();
     const { id }   = useParams();
-    const user     = users.find((u) => String(u.id) === String(id)) ?? users[0];
+
+    // FETCH GET /api/users/{id}/
+    const { user, loading, error } = useUser(id);
+
+    if (loading)
+        return (
+            <div className="h-full flex items-center justify-center">
+                <TailChase size="40" speed="1.75" color="black"/>
+            </div>
+        )
+
+    if (error) return <p>Error al cargar Usuarios: {error.message}</p>
+
 
     return (
         <div className="h-full p-6 text-text-primary flex flex-col gap-6">
@@ -24,14 +39,14 @@ export default function UserDetailView() {
 
                     <div className="w-20 h-20 rounded-full overflow-hidden border border-border bg-surface-muted flex items-center justify-center shrink-0">
                         {user.profilePicture
-                            ? <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
-                            : <span className="text-xl font-semibold text-text-muted">{(user.name ?? "?")[0].toUpperCase()}</span>
+                            ? <img src={user.profilePicture} alt={user.first_name} className="w-full h-full object-cover" />
+                            : <span className="text-xl font-semibold text-text-muted">{(user.first_name ?? "?")[0].toUpperCase()}</span>
                         }
                     </div>
 
                     <div className="flex flex-col gap-1 flex-1 text-center sm:text-left">
-                        <h3 className="text-lg font-bold">{user.name}</h3>
-                        <span className="text-sm text-text-muted">{user.role ?? "Sin rol"}</span>
+                        <h3 className="text-lg font-bold">{user.first_name} {user.last_name}</h3>
+                        <span className="text-sm text-text-muted">{user.role?.name ?? "Sin rol"}</span>
                         <span className={`mt-1 w-fit px-3 py-0.5 rounded-full text-xs font-medium ${user.is_active !== false ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                             {user.is_active !== false ? "Activo" : "Inactivo"}
                         </span>
@@ -46,15 +61,15 @@ export default function UserDetailView() {
                 <DetailCard title="Información Personal">
                     <DetailField    
                         label="Nombre completo"     
-                        value={user.name} 
+                        value={user.first_name + " " + user.last_name} 
                     />
                     <DetailField    
                         label="Tipo de documento"   
-                        value={user.documentType}   
+                        value={user.document_type?.name ?? "Sin tipo de documento"}   
                     />
                     <DetailField    
                         label="Número de documento"     
-                        value={user.documentNumber}     
+                        value={user.document_number}     
                     />
                 </DetailCard>
 
@@ -66,19 +81,19 @@ export default function UserDetailView() {
                     />
                     <DetailField    
                         label="Correo institucional"    
-                        value={user.institutionalEmail}     
+                        value={user.institutional_email}     
                     />
                     <DetailField    
                         label="Teléfono"    
-                        value={user.phone}  
+                        value={user.phone_number}  
                     />
                     <DetailField    
                         label="Teléfono adicional"  
-                        value={user.additionalPhone}    
+                        value={user.second_phone_number ?? "Sin teléfono adicional"}    
                     />
                     <DetailField    
                         label="Dirección"   
-                        value={user.addres ?? user.address}     
+                        value={user.address}     
                         fullWidth   
                     />
                 </DetailCard>
@@ -87,7 +102,7 @@ export default function UserDetailView() {
                 <DetailCard title="Información del Sistema">
                     <DetailField    
                         label="Tipo de usuario"         
-                        value={user.role}   
+                        value={user.role?.name ?? "Sin rol"}   
                     />
                     <DetailField    
                         label="Estado"                  
@@ -95,11 +110,11 @@ export default function UserDetailView() {
                     />
                     <DetailField    
                         label="Fecha de inicio"         
-                        value={user.startDate}  
+                        value={user.start_date}  
                     />
                     <DetailField    
                         label="Fecha de finalización"   
-                        value={user.endDate}    
+                        value={user.end_date ?? "No definida"}    
                     />
                 </DetailCard>
             </div>

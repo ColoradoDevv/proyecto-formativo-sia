@@ -21,7 +21,7 @@ export function buildReportDataset({ data, selectedFields, scope = "all", filter
 
     const rows = records.map((item) =>
         orderedFields.map((field) => {
-            const value = item[field.key];
+            const value = field.accessor ? field.accessor(item) : item[field.key];
             if (typeof value === "boolean") return value ? "Activo" : "Inactivo";
             if (value === null || value === undefined) return "-";
             return String(value);

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { getUsers } from "../services/userService";
+import { getUserById } from "../services/userService";
 
-function useUsers() {
-    const [users, setUsers] = useState([]);
+function useUser(id) {
+    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchUsers = async() => {
+        const fetchUser = async() => {
             try {
                 setLoading(true); // Reinicia el estado de carga si el efecto se vuelve a ejecutar
-                const data = await getUsers();
-                setUsers(data) // Guarda los datos obtenidos
+                const data = await getUserById(id);
+                setUser(data) // Guarda los datos obtenidos
             } catch (err) {
                 setError(err) // Captura el error si la API falla
             } finally {
@@ -19,10 +19,10 @@ function useUsers() {
             }
         };
 
-        fetchUsers();
-    }, []) // Un array vacio para que solo se ejecute al montar el componente 
+        fetchUser();
+    }, [id]) // Un array con `id` para que se ejecute cuando cambie
 
-    return { users, loading, error}
+    return { user, loading, error}
 }
 
-export default useUsers;
+export default useUser;

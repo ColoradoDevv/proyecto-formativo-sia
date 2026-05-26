@@ -9,7 +9,7 @@ from django.db import models
 class Role(models.Model):
     # Rol para clasificar y controlar permisos de usuarios.
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=225, null=True)  # Opcional segun diccionario
+    description = models.CharField(max_length=225, null=True, blank=True)  # Opcional segun diccionario
 
     def __str__(self):
         return self.name
@@ -19,7 +19,7 @@ class DocumentType(models.Model):
     # Tabla de tipos de documento (CC, TI, CE, etc).
     # Se maneja como tabla real en BD segun diccionario, no como TextChoices.
     name = models.CharField(max_length=50)
-    description = models.CharField(max_length=255, null=True)  # Opcional segun diccionario
+    description = models.CharField(max_length=255, null=True, blank=True)  # Opcional segun diccionario
 
     def __str__(self):
         return self.name
@@ -59,19 +59,19 @@ class User(models.Model):
 
     # CharField porque el diccionario define telefono como Alfanumérico (puede tener +57, etc)
     phone_number = models.CharField(max_length=15, unique=True)
-    second_phone_number = models.CharField(max_length=15, null=True)  # Opcional segun diccionario
+    second_phone_number = models.CharField(max_length=15, null=True, blank=True)  # Opcional segun diccionario
 
     address = models.CharField(max_length=100)
 
     # --- Estado y multimedia ---
-    status = models.BooleanField(default=True)  # Default 1 segun diccionario
-    profile_picture = models.ImageField(upload_to='profiles/', null=True)  # Opcional
+    is_active = models.BooleanField(default=True)  # Default 1 segun diccionario
+    profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)  # Opcional
 
     # --- Acceso al sistema ---
-    password = models.CharField(max_length=255)
+    password = models.CharField(max_length=255, blank=True)  # En un sistema real, esto debería ser un hash seguro
 
     # Cuentadante: persona responsable de responder por los materiales
-    accountable = models.CharField(max_length=100)
+    accountable = models.CharField(max_length=100, null=True, blank=True)  # Opcional segun diccionario
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
