@@ -4,6 +4,7 @@ import { getDocumentTypes, getUserRoles} from "../../services/selectServices";
 import {Input, Button, SelectInput, ProfileFileInput, ConfirmCancelModal} from "@/shared";
 import UserTaskModal from "./UserTaskModal";
 import { userSchema } from "../../schemas/userSchema";
+import { createUser } from "../../services/userService";
 import { Plus } from "lucide-react";
 
 export default function UserRegisterForm(){
@@ -59,23 +60,33 @@ export default function UserRegisterForm(){
         setFormData((prev) => ({ ...prev, userTasks: [...prev.userTasks, task] }));
     };
 
-    const handleSubmit = (e) => {
+    async function handleSubmit(e) {
         e.preventDefault();
 
-        const result = userSchema.safeParse(formData);
+        try {
+            const result = userSchema.safeParse(formData);
 
-        if (!result.success) {
-            const fieldErrors = {};
-            result.error.issues.forEach((issue) => {
-                const field = issue.path[0];
-                fieldErrors[field] = issue.message;
-            });
-            setErrors(fieldErrors);
-            return;
+            if (!result.success) {
+                const fieldErrors = {};
+                result.error.issues.forEach((issue) => {
+                    const field = issue.path[0];
+                    fieldErrors[field] = issue.message;
+                });
+                setErrors(fieldErrors);
+                return;
+            }
+
+            setErrors({});
+
+            await createUser(result.data);
+
+            alert("Usuario creado exitosamente");
+            navigate("/usuarios");
+
+        } catch (error) {
+            console.error("Error al crear usuario:", error);
+            alert(error.message);
         }
-
-        setErrors({});
-        console.log("Usuario validado", result.data);
     };
 
     return (

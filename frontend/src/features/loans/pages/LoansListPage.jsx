@@ -2,6 +2,7 @@ import { RegisterButton, DownloadReportButton } from "@/shared";
 import DataTable from "@/shared/components/DataTable";
 import { loansColumns } from "../table/LoansColumns";
 import { loans } from "../data/loans/loans";
+import { loansReportConfig } from "../reports/loansReportConfig.js";
 
 export default function LoansListPage() {
     return (
@@ -19,7 +20,8 @@ export default function LoansListPage() {
                         Registrar Préstamo
                     </RegisterButton>
                     <DownloadReportButton
-                        onClick={() => {}}
+                        data={loans}
+                        reportConfig={loansReportConfig}
                         className="self-start md:self-auto"
                     >
                         Descargar Reporte

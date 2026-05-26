@@ -1,15 +1,38 @@
 export async function getDocumentTypes(){
+    const response = await fetch("/api/users/document-types/");
 
-    const res = await fetch("/../../data/selects/documentTypes.json")
-    
-    return res.json()
+    if (!response.ok) {
+        throw new Error(
+        "¡Houston, tenemos un problema! El servidor se fue a tomar café.",
+        );
+    }
 
+    // Convertimos la respuesta del servidor desde formato JSON a un objeto de JavaScript
+    const data = await response.json();
+
+    // Si todo sale bien, devolvemos los datos obtenidos del servidor
+    return data.map((item) => ({
+        id: item.id,
+        label: item.name,
+    }));
 }
 
 export async function getUserRoles(){
+    const response = await fetch("/api/users/roles/");
 
-    const res = await fetch("/../../data/selects/userRoles.json")
-    
-    return res.json()
+    if (!response.ok) {
+        throw new Error(
+        "¡Houston, tenemos un problema! El servidor se fue a tomar café.",
+        );
+    }
+
+    // Convertimos la respuesta del servidor desde formato JSON a un objeto de JavaScript
+    const data = await response.json();
+
+    // Si todo sale bien, devolvemos los datos obtenidos del servidor
+    return data.map((item) => ({
+        id: item.id,
+        label: item.name,
+    }));
 
 }
