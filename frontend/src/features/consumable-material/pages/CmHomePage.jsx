@@ -1,6 +1,10 @@
+// import DataTable from "@/shared/components/DataTable";
+// import { materialColumns } from "../table/materialColumns.jsx";
+// import { materials } from "../data/materials/materials.js";
 import Navbar from "../../../shared/layouts/Navbar";
 import Sidebar from "../../../shared/layouts/Sidebar";
 import ListCmPage from "./CmListPage";
+
 
 export default function CmHomePage(){
     return (
@@ -15,6 +19,7 @@ export default function CmHomePage(){
                 </main>
 
             </div>
+            
 
         </div>
     );

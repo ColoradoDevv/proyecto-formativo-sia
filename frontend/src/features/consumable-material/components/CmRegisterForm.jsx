@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getBrands, getStates } from "../services/selectServices";
 
-import {Input, Button, SelectInput, ConfirmCancelModal} from "@/shared";
+import {Input, FileInput, Button, SelectInput, ConfirmCancelModal} from "@/shared";
 import { cmSchema } from "../schemas/cmSchema";
 
 export default function CmRegisterForm(){
@@ -22,6 +22,8 @@ export default function CmRegisterForm(){
             cmState: "",
             cmUnitValue: "",
             cmTotalValue: "",
+            cmTechnicalSheet: [],
+            cmPhoto: [],
         });
         const [errors, setErrors] = useState({});
 
@@ -40,6 +42,10 @@ export default function CmRegisterForm(){
                 ...prev,
                 [name]: value,
             }));
+        };
+
+        const handleFileChange = (name) => (files) => {
+            setFormData({ ...formData, [name]: files });
         };
 
         const handleSubmit = (e) => {
@@ -70,11 +76,11 @@ export default function CmRegisterForm(){
             <div className="grid grid-cols-3 justify-items-left">
                     {/* Titulos */}
                     <div className='grid gap-2 justify-items-left'>
-                        <h1 className="text-xl  font-bold">
+                        <h1 className="text-xl">
                             Crear Material de Consumo
                         </h1>
 
-                        <h1 className="text-sm ">
+                        <h1 className="text-sm text-text-muted">
                             Aca podras crear un material consumible con los datos correspondientes
                         </h1>    
                     </div>
@@ -86,112 +92,132 @@ export default function CmRegisterForm(){
                         className="flex flex-col items-center gap-6"
                     >
                         {/* Inputs */}
-                        <div className="grid grid-cols-2 items-center gap-x-8 gap-y-4">
+                        <div className="flex gap-8 items-start">
+                            <div className="grid grid-cols-2 items-center gap-x-8 gap-y-4">
 
-                            <Input 
-                                label = "Nombre"
-                                name="cmName"
-                                placeholder = "Ingrese el nombre del Material"
-                                value={formData.cmName}
-                                onChange={handleChange}
-                                error={errors.cmName}
-                                required
-                            />
+                                <Input
+                                    label = "Nombre"
+                                    name="cmName"
+                                    placeholder = "Ingrese el nombre del Material"
+                                    value={formData.cmName}
+                                    onChange={handleChange}
+                                    error={errors.cmName}
+                                    required
+                                />
 
-                            <Input 
-                                label = "Descripcion"
-                                name="cmDescription"
-                                placeholder = "Ingrese la descripcion del Material"
-                                value={formData.cmDescription}
-                                onChange={handleChange}
-                                error={errors.cmDescription}
-                                required
-                            />
+                                <Input
+                                    label = "Descripcion"
+                                    name="cmDescription"
+                                    placeholder = "Ingrese la descripcion del Material"
+                                    value={formData.cmDescription}
+                                    onChange={handleChange}
+                                    error={errors.cmDescription}
+                                    required
+                                />
 
-                            <Input 
-                                label = "Placa Sena"
-                                name="cmSenaPlate"
-                                placeholder = "Ingrese la Placa Sena del Material"
-                                value={formData.cmSenaPlate}
-                                onChange={handleChange}
-                                error={errors.cmSenaPlate}
-                                required
-                            />
+                                <Input
+                                    label = "Placa Sena"
+                                    name="cmSenaPlate"
+                                    placeholder = "Ingrese la Placa Sena del Material"
+                                    value={formData.cmSenaPlate}
+                                    onChange={handleChange}
+                                    error={errors.cmSenaPlate}
+                                    required
+                                />
 
-                            <Input 
-                                label = "Cantidad"
-                                name="cmQuantity"
-                                type="number"
-                                placeholder = "Ingrese la cantidad del Material"
-                                min="1"
-                                step="1"
-                                value={formData.cmQuantity}
-                                onChange={handleChange}
-                                error={errors.cmQuantity}
-                                required
-                            />
+                                <Input
+                                    label = "Cantidad"
+                                    name="cmQuantity"
+                                    type="number"
+                                    placeholder = "Ingrese la cantidad del Material"
+                                    min="1"
+                                    step="1"
+                                    value={formData.cmQuantity}
+                                    onChange={handleChange}
+                                    error={errors.cmQuantity}
+                                    required
+                                />
 
-                            <Input 
-                                label = "Ubicacion"
-                                name="cmLocation"
-                                placeholder = "Ingrese la ubicacion del Material"
-                                value={formData.cmLocation}
-                                onChange={handleChange}
-                                error={errors.cmLocation}
-                                required
-                            />
+                                <Input
+                                    label = "Ubicacion"
+                                    name="cmLocation"
+                                    placeholder = "Ingrese la ubicacion del Material"
+                                    value={formData.cmLocation}
+                                    onChange={handleChange}
+                                    error={errors.cmLocation}
+                                    required
+                                />
 
-                            <SelectInput
-                                label = "Marca"
-                                name="cmBrand"
-                                options={brands}
-                                value={formData.cmBrand}
-                                onChange={handleChange}
-                                error={errors.cmBrand}
-                                required
-                            />
+                                <SelectInput
+                                    label = "Marca"
+                                    name="cmBrand"
+                                    options={brands}
+                                    value={formData.cmBrand}
+                                    onChange={handleChange}
+                                    error={errors.cmBrand}
+                                    required
+                                />
 
-                            <SelectInput
-                                label = "Estado"
-                                name="cmState"
-                                options={states}
-                                value={formData.cmState}
-                                onChange={handleChange}
-                                error={errors.cmState}
-                                required
-                            />
+                                <SelectInput
+                                    label = "Estado"
+                                    name="cmState"
+                                    options={states}
+                                    value={formData.cmState}
+                                    onChange={handleChange}
+                                    error={errors.cmState}
+                                    required
+                                />
 
-                            <Input 
-                                label = "Valor Unitario"
-                                name="cmUnitValue"
-                                type="number"
-                                placeholder = "Ingrese el valor Unitario del Material"
-                                min="0"
-                                step="0.01"
-                                value={formData.cmUnitValue}
-                                onChange={handleChange}
-                                error={errors.cmUnitValue}
-                                required
-                            />
+                                <Input
+                                    label = "Valor Unitario"
+                                    name="cmUnitValue"
+                                    type="number"
+                                    placeholder = "Ingrese el valor Unitario del Material"
+                                    min="0"
+                                    step="0.01"
+                                    value={formData.cmUnitValue}
+                                    onChange={handleChange}
+                                    error={errors.cmUnitValue}
+                                    required
+                                />
 
-                            <Input 
-                                label = "Valor Total"
-                                name="cmTotalValue"
-                                type="number"
-                                placeholder = "Ingrese el valor Total del Material"
-                                min="0"
-                                step="0.01"
-                                value={formData.cmTotalValue}
-                                onChange={handleChange}
-                                error={errors.cmTotalValue}
-                                required
-                            />
+                                <Input
+                                    label = "Valor Total"
+                                    name="cmTotalValue"
+                                    type="number"
+                                    placeholder = "Ingrese el valor Total del Material"
+                                    min="0"
+                                    step="0.01"
+                                    value={formData.cmTotalValue}
+                                    onChange={handleChange}
+                                    error={errors.cmTotalValue}
+                                    required
+                                />
 
-                            <Input 
-                                label = "imagen (Opcional)"
-                                type="file"
-                            />
+                            </div>
 
+                            <div className="flex flex-col gap-4">
+                                <FileInput
+                                    label="Foto del Producto (Opcional)"
+                                    name="cmPhoto"
+                                    placeholder="Subir foto"
+                                    value={formData.cmPhoto}
+                                    onChange={handleFileChange("cmPhoto")}
+                                    error={errors.cmPhoto}
+                                    accept="image/*"
+                                    className="w-64 h-48"
+                                />
+                                <FileInput
+                                    label="Ficha Tecnica (Opcional)"
+                                    name="cmTechnicalSheet"
+                                    placeholder="Ingrese la Ficha Tecnica del Material"
+                                    value={formData.cmTechnicalSheet}
+                                    onChange={handleFileChange("cmTechnicalSheet")}
+                                    error={errors.cmTechnicalSheet}
+                                    accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                    className="w-64 h-40"
+                                />
+                            </div>
                         </div>
                         {/* Fotografia
                             <div className='flex flex-col gap-4'>
