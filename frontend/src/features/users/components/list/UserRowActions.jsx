@@ -7,7 +7,7 @@ import {
 } from "@/shared";
 
 // Iconos usados en los botones de acciones
-import { EllipsisVertical, Eye } from "lucide-react";
+import { EllipsisVertical, Eye, Pencil} from "lucide-react";
 
 // Hook de React Router para navegar programáticamente entre rutas
 import { useNavigate } from "react-router-dom";
@@ -42,6 +42,14 @@ export default function UserRowActions({ user }) {
     <div className="flex gap-2">
       {/* Botón editar */}
       <IconButton
+        onClick={handleEdit}
+        variant="ghost"
+        hitSize={32}
+        iconSize={16}
+      >
+        <Pencil size={16} />
+      </IconButton>
+      <IconButton
         onClick={handleVisualizer}
         variant="ghost"
         hitSize={32}
@@ -57,7 +65,7 @@ export default function UserRowActions({ user }) {
           </DropdownTrigger>
 
             <DropdownContent className="right-0 w-48">
-                <DropdownItem onClick={handleEdit}>Editar</DropdownItem>
+                <DropdownItem>Opcion 1</DropdownItem>
                 <DropdownItem>Opcion 2</DropdownItem>
                 <DropdownItem>Opcion 3</DropdownItem>
             </DropdownContent>
