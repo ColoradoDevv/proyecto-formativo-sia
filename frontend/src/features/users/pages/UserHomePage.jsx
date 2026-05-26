@@ -1,6 +1,6 @@
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
-import UserListPage from "../../users/pages/UserListPage"
+import UserListPage from "../../users/components/list/UserListPage"
 
 export default function UserHomePage(){
 
