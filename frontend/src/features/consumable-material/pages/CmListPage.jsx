@@ -1,4 +1,7 @@
 import { SearchField, RegisterButton, DownloadReportButton } from "@/shared";
+import DataTable from "@/shared/components/DataTable";
+import { materialColumns } from "../table/materialColumns.jsx";
+import { materials } from "../data/materials/materials.js";
 import { useState } from "react";
 
 export default function ListCmPage() {
@@ -20,7 +23,6 @@ export default function ListCmPage() {
                 <h2 className="text-h3 font-heading">
                     Listado de Materiales de Consumo
                 </h2>
-
                     <SearchField
                         value={search}
                         onChange={setSearch}
@@ -48,6 +50,7 @@ export default function ListCmPage() {
                     </DownloadReportButton>
                 </div>
             </div>
+            <DataTable data={materials} columns={materialColumns} />
         </div>
     );
 }
