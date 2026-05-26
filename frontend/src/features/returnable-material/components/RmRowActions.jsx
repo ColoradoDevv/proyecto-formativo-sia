@@ -6,20 +6,20 @@ import {
     DropdownItem,
 } from "@/shared";
 
-import { EllipsisVertical, Pencil } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { EllipsisVertical, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export default function RmRowActions({ loan }) {
+export default function RmRowActions({ Rm }) {
     const navigate = useNavigate();
 
-    const handleEdit = () => {
-        navigate(`/prestamos/${loan.id}/editar`);
+    const handleVisualizar = () => {
+        navigate(`/devolutivos/visualizar/${Rm.id}`);
     };
 
     return (
         <div className="flex gap-2">
-            <IconButton onClick={handleEdit} variant="ghost" hitSize={32} iconSize={16}>
-                <Pencil size={16} />
+            <IconButton onClick={handleVisualizar} variant="ghost" hitSize={32} iconSize={16}>
+                <Eye size={16} />
             </IconButton>
 
             <Dropdown>
@@ -28,15 +28,9 @@ export default function RmRowActions({ loan }) {
                 </DropdownTrigger>
 
                 <DropdownContent className="w-48">
-                    <DropdownItem>
-                        <Link to="#" className="block w-full">Ver detalle</Link>
-                    </DropdownItem>
-                    <DropdownItem>
-                        <Link to="#" className="block w-full">Añadir Novedad</Link>
-                    </DropdownItem>
-                    <DropdownItem>
-                        <Link to="#" className="block w-full">Deshabilitar</Link>
-                    </DropdownItem>
+                    <DropdownItem onClick={() => navigate(`/devolutivos/editar/${Rm.id}`)}>Editar</DropdownItem>
+                    <DropdownItem>Añadir Novedad</DropdownItem>
+                    <DropdownItem>Deshabilitar</DropdownItem>
                 </DropdownContent>
             </Dropdown>
         </div>

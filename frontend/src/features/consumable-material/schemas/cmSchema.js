@@ -71,6 +71,13 @@ export const cmSchema = z.object({
         .refine((value) => Number(value) > 0, {
             message: "El valor total debe ser mayor a 0",
         }),
+    cmTechnicalSheet: z
+        .array(z.instanceof(File))
+        .optional(),
+
+    cmPhoto: z
+        .array(z.instanceof(File))
+        .optional(),
 }).refine(
     (data) => toCents(data.cmUnitValue) * Number(data.cmQuantity) === toCents(data.cmTotalValue),
     {

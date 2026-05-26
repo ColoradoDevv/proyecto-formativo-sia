@@ -8,23 +8,23 @@ export const RmColumns = [
     },
     {
         accessorKey: "rm_name",
-        header: "RmName",
+        header: "Nombre",
     },
     {
         accessorKey: "rm_state",
-        header: "RmState",
+        header: "Estado",
     },
     {
         accessorKey: "rm_category",
-        header: "rmCategory",
+        header: "Categoría",
     },
     {
         accessorKey: "rm_brand",
-        header: "RmBrand",
+        header: "Marca",
     },
     {
         accessorKey: "rm_serial",
-        header: "RmSerial",
+        header: "Serial",
     },
     {
         accessorKey: "is_active",

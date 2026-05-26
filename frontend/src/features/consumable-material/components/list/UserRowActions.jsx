@@ -25,11 +25,11 @@ export default function UserRowActions({ user }) {
   // Acción para editar el usuario
   // Redirige a la página de edición usando el id del usuario
   const handleEdit = () => {
-    navigate(`/usuarios/editar/${user.id}`);
+    navigate(`/consumibles/editar/${user.id}`);
   };
 
   const handleVisualizer = () => {
-    navigate(`/usuarios/visualizar/${user.id}`);
+    navigate(`/consumibles/visualizar/${user.id}`);
   };
 
   // Acción para eliminar el usuario

@@ -23,16 +23,6 @@ export default function ListCmPage() {
                 <h2 className="text-h3 font-heading">
                     Listado de Materiales de Consumo
                 </h2>
-                    <SearchField
-                        value={search}
-                        onChange={setSearch}
-                        onSubmit={handleSearch}
-                        onClear={handleClear}
-                        placeholder="Buscar productos..."
-                        size="md"
-                        variant="outlined"
-                        className="w-75"
-                    />
 
                 <div className="grid grid-cols-2 gap-4">
                     <RegisterButton
