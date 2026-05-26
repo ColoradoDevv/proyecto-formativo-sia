@@ -1,10 +1,17 @@
 import DataTable from "@/shared/components/DataTable";
 import { userColumns } from "../../table/UserColumns.jsx";
-import { users } from "../../data/users/users.js";
-import { RegisterButton } from "../../../../shared/index.js";
-import { DownloadReportButton } from "../../../../shared/index.js";
+import { RegisterButton, DownloadReportButton } from "../../../../shared/index.js";
+import { usersReportConfig } from "../../reports/usersReportConfig.js";
+import useUsers from "../../hooks/useUsers.js";
 
 export default function ListUserPage() {
+
+    // FETCH GET /api/users/
+    const { users, loading, error } = useUsers();
+
+    if (loading) return <p>Cargando Usuarios...</p>
+    if (error) return <p>Error al cargar Usuarios: {error.message}</p>
+
     return (
         <div className="h-full p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -20,13 +27,15 @@ export default function ListUserPage() {
                         Registrar Usuario
                     </RegisterButton>
                     <DownloadReportButton
-                        onClick={() => {}}
+                        data={users}
+                        reportConfig={usersReportConfig}
                         className="self-start md:self-auto"
                     >
                         Descargar Reporte
                     </DownloadReportButton>
                 </div>
             </div>
+
             <DataTable data={users} columns={userColumns} />
         </div>
     );

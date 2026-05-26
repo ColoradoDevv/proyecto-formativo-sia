@@ -14,6 +14,7 @@ export { default as ProfileFileInput } from "./components/ProfileFileInput"
 export { default as TagInput } from "./components/TagInput"
 export { default as SearchField } from "./components/SearchField"
 export { default as ConfirmCancelModal } from "./components/ConfirmCancelModal"
+export { default as ReportModal } from "./components/ReportModal"
 
 export {  DropdownTrigger } from "./components/Dropdown"
 export {  DropdownItem } from "./components/Dropdown"
