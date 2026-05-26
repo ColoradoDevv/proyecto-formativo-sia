@@ -19,7 +19,7 @@ export default function FileInput({
 
     const isFile = (file) => file.type.startsWith("image/");
 
-    const previews = useMemo(
+    const previews = useMemo( 
         () => value.map((file) => (isFile(file) ? URL.createObjectURL(file) : null)),
         [value],
     );
