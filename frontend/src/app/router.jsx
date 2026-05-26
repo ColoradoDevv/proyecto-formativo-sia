@@ -23,6 +23,7 @@ import { LoansHomePage, LoansCreatePage } from "@/features/loans";
 
 // Import de Marcas
 import TmHomePage from "@/features/trademarks/pages/TmHomePage";
+import { ConfigLayout } from "@/shared";
 
 
 export default function AppRouter() {
@@ -57,6 +58,8 @@ export default function AppRouter() {
 
             {/* {marcas} */}
             <Route path="/marcas" element={<TmHomePage />} />
+
+            <Route path="/configuracion" element={<ConfigLayout />} />
 
         </Routes>
     );
