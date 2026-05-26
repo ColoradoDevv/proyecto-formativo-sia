@@ -8,28 +8,44 @@ import UserRowActions from "../components/list/UserRowActions";
 // Definición de las columnas de la tabla de usuarios
 // Este arreglo suele usarse en librerías de tablas como TanStack Table
 export const userColumns = [
-  // Columna ID
+  // Columna ID (oculta pero útil para acciones)
   {
-    accessorKey: "id", // Propiedad del objeto user que se mostrará en la columna
-    header: "Id", // Título de la columna
+    accessorKey: "id", // Campo del objeto user que se usará para esta columna
+    header: "ID",
   },
-
   // Columna Nombre
   {
-    accessorKey: "name", // Campo del objeto user
-    header: "Nombre", // Encabezado visible
+    accessorFn: (row) => `${row.first_name} ${row.last_name}`,
+    id: "nombre",
+    header: "Nombre",
+  },
+  // Columna Rol
+  {
+    accessorFn: (row) => row.role?.name ?? "Sin rol",
+    id: "role",
+    header: "Rol",
+  },
+  // Columna Tipo de documento
+  {
+    accessorFn: (row) => row.document_type?.name ?? "Sin tipo de documento",
+    id: "document_type",
+    header: "Tipo de Documento",
   },
 
-  // Columna Email
+  // Columna numero de documento
   {
-    accessorKey: "email",
-    header: "Email",
+    accessorKey: "document_number", // Campo del objeto user
+    header: "Numero de Documento",
   },
 
   // Columna Dirección
   {
-    accessorKey: "addres",
-    header: "Dirección",
+    accessorKey: "email",
+    header: "Correo",
+  },
+  {
+    accessorKey: "phone_number",
+    header: "Teléfono",
   },
 
   // Columna Estado (activo / inactivo)
@@ -66,6 +82,7 @@ export const userColumns = [
   // Columna de acciones (editar / eliminar)
   {
     id: "actions", // No usa accessorKey porque no corresponde a un campo del usuario
+    header: "Acciones",
 
     // Renderiza el componente de acciones pasando el usuario completo
     cell: ({ row }) => <UserRowActions user={row.original} />,
