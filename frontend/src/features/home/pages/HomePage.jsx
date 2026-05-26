@@ -11,8 +11,8 @@ export default function HomePage(){
                 <Sidebar />
 
                 <main className="flex-1 w p-6 bg-background text-text-primary">
-                    <h2 className="font-heading text-h3">Hola!, Administrador.</h2>
-                    <p className="mt-2 text-text-secondary">Bienvenido al Sistema de Gestion Inventario.</p>
+                    <h2 className="text-h3">Hola!, Administrador.</h2>
+                    <p className="text-sm text-text-muted">Bienvenido al Sistema de Gestion Inventario.</p>
                 </main>
 
             </div>

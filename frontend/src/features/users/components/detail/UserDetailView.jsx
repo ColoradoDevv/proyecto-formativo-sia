@@ -13,7 +13,7 @@ export default function UserDetailView() {
         <div className="h-full p-6 text-text-primary flex flex-col gap-6">
             {/* Encabezado */}
             <div className="flex flex-col gap-1">
-                <h2 className="text-h3 font-bold">Visualizar Usuario</h2>
+                <h2 className="text-h3">Visualizar Usuario</h2>
                 <p className="text-sm text-text-muted">Información completa en modo solo lectura.</p>
             </div>
 

@@ -84,10 +84,10 @@ export default function UserRegisterForm(){
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 justify-items-left mb-4 w-full">
                     <div className="grid gap-2 justify-items-left">
-                        <h1 className="text-xl font-bold">
+                        <h1 className="text-h3">
                             Registro de Usuarios
                         </h1>
-                        <h1 className="text-sm">
+                        <h1 className="text-sm text-text-muted">
                             Aca podras registrar a un usuario con los datos correspondientes
                         </h1>
                     </div>

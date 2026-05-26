@@ -1,14 +1,14 @@
 import DataTable from "@/shared/components/DataTable";
-import { userColumns } from "../table/UserColumns.jsx";
-import { users } from "../data/users/users.js";
-import { RegisterButton } from "../../../shared";
-import { DownloadReportButton } from "../../../shared";
+import { userColumns } from "../../table/UserColumns.jsx";
+import { users } from "../../data/users/users.js";
+import { RegisterButton } from "../../../../shared/index.js";
+import { DownloadReportButton } from "../../../../shared/index.js";
 
 export default function ListUserPage() {
     return (
         <div className="h-full p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <h2 className="text-h3 font-heading">
+                <h2 className="text-h3">
                     Listado de Usuarios
                 </h2>
 

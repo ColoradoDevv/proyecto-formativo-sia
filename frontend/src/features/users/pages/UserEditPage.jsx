@@ -1,4 +1,4 @@
-import UserRegisterForm  from "../components/create/UserRegisterForm"
+import UserEditForm  from "../components/edit/UserEditView"
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
 
@@ -12,7 +12,7 @@ export default function UserEditPage(){
                 <Sidebar />
 
                 <main className="flex-1 bg-background text-text-primary">
-                    {/* <UserRegisterForm />     */}
+                    <UserEditForm />    
                 </main>
 
             </div>
