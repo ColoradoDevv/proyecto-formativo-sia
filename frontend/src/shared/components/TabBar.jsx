@@ -1,5 +1,5 @@
 import { Tab } from '@headlessui/react';
-import TabGroup from './TabGroup';
+
 
 
 function classNames(...classes) {
@@ -35,7 +35,7 @@ export default function TabBar() {
         <Tab.Panels className="mt-6 px-6">
           <Tab.Panel>Contenido de Editar Perfil</Tab.Panel>
           <Tab.Panel>Contenido de Marcas</Tab.Panel>
-          <Tab.Panel> <TabGroup/></Tab.Panel>
+          <Tab.Panel> </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
     </div>
