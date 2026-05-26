@@ -21,6 +21,9 @@ import { RmHomePage, RmCreatePage } from "@/features/returnable-material";
 // Imports de Prestamos
 import { LoansHomePage, LoansCreatePage } from "@/features/loans";
 
+// Import de Marcas
+import TmHomePage from "@/features/trademarks/pages/TmHomePage";
+
 
 export default function AppRouter() {
     return (
@@ -49,6 +52,10 @@ export default function AppRouter() {
             {/* Rutas (CRUD) de Prestamos */}
             <Route path="/prestamos" element={<LoansHomePage />} />
             <Route path="/prestamos/crear" element={<LoansCreatePage/>} />
+
+            {/* {marcas} */}
+            <Route path="/marcas" element={<TmHomePage />} />
+
         </Routes>
     );
 }

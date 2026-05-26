@@ -23,14 +23,21 @@ export const materialColumns = [
   // Columna Email
   {
     accessorKey: "email",
-    header: "Email",
+    header: "Marca",
   },
 
   // Columna Dirección
   {
     accessorKey: "addres",
-    header: "Dirección",
+    header: "Estado",
   },
+
+  {
+    accessorKey: "quantity",
+    header: "Cantidad",
+  },
+
+
 
   // Columna Estado (activo / inactivo)
   {
