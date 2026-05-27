@@ -1,35 +1,37 @@
-// Este archivo contiene funciones para interactuar con el backend y obtener o enviar datos relacionados con los usuarios.
+const HTTP_ERROR_MESSAGES = {
+    400: "Solicitud inválida. Verifica los datos enviados.",
+    401: "No autenticado. Por favor, inicia sesión.",
+    403: "No tienes permisos para realizar esta acción.",
+    404: "El recurso solicitado no fue encontrado.",
+    409: "Conflicto: ya existe un registro con esos datos.",
+    422: "Los datos enviados no son procesables por el servidor.",
+    429: "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
+    500: "Error interno del servidor. Intenta más tarde.",
+    502: "El servidor no está disponible (Bad Gateway).",
+    503: "Servicio temporalmente no disponible. Intenta más tarde.",
+};
+
+function handleHttpError(response) {
+    const message =
+        HTTP_ERROR_MESSAGES[response.status] ??
+        `Error inesperado del servidor (código ${response.status}).`;
+    const error = new Error(message);
+    error.status = response.status;
+    throw error;
+}
 
 // METODO GET (obtener lista de usuarios)
 export async function getUsers() {
-  // enviamos una peticion GET al endpoint /api/users/ para obetner los usuarios registrados
-  const response = await fetch("/api/users/");
-
-  // Si la respuesta no es un OK nos arroja un error
-  if (!response.ok) {
-    throw new Error(
-      "¡Houston, tenemos un problema! El servidor se fue a tomar café.",
-    );
-  }
-
-  // Convertimos la respuesta del servidor desde formato JSON a un objeto de JavaScript
-  const data = await response.json();
-
-  // Si todo sale bien, devolvemos los datos obtenidos del servidor
-  return data;
+    const response = await fetch("/api/users/");
+    if (!response.ok) handleHttpError(response);
+    return response.json();
 }
 
 // METODO GET (obtener un usuario por su ID)
 export async function getUserById(id) {
-  const response = await fetch(`/api/users/${id}/`);
-
-  if (!response.ok) {
-    throw new Error(
-      "¡Houston, tenemos un problema! El servidor se fue a tomar café.",
-    );
-  }
-  const data = await response.json();
-  return data;
+    const response = await fetch(`/api/users/${id}/`);
+    if (!response.ok) handleHttpError(response);
+    return response.json();
 }
 
 // METODO POST (crear un nuevo usuario)
@@ -56,24 +58,11 @@ export async function createUser(userData) {
     if (userData.userProfile?.[0])
         formData.append("profile_picture", userData.userProfile[0]);
 
-    // Enviamos una petición POST al endpoint /api/users/
-    // con la información del usuario que queremos registrar
     const response = await fetch("/api/users/", {
         method: "POST",
-        body: formData,   // sin headers, sin JSON.stringify
+        body: formData,
     });
 
-    // Si la respuesta no es un OK, lanzamos un error
-    if (!response.ok) {
-        throw new Error(
-        "¡Houston, tenemos un problema! El servidor se fue a tomar café.",
-        );
-    }
-
-    // Convertimos la respuesta del servidor desde formato JSON
-    // a un objeto de JavaScript
-    const data = await response.json();
-
-    // Si todo sale bien, devolvemos los datos del usuario creado
-    return data;
+    if (!response.ok) handleHttpError(response);
+    return response.json();
 }
