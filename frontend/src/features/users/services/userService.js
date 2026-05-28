@@ -1,14 +1,15 @@
+// Utilidad para menejar errores HTTP de manera consistente en los servicios de usuario
 const HTTP_ERROR_MESSAGES = {
-    400: "Solicitud inválida. Verifica los datos enviados.",
-    401: "No autenticado. Por favor, inicia sesión.",
-    403: "No tienes permisos para realizar esta acción.",
-    404: "El recurso solicitado no fue encontrado.",
-    409: "Conflicto: ya existe un registro con esos datos.",
-    422: "Los datos enviados no son procesables por el servidor.",
-    429: "Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
-    500: "Error interno del servidor. Intenta más tarde.",
-    502: "El servidor no está disponible (Bad Gateway).",
-    503: "Servicio temporalmente no disponible. Intenta más tarde.",
+    400: "400 Solicitud inválida. Verifica los datos enviados.",
+    401: "401 No autenticado. Por favor, inicia sesión.",
+    403: "403 No tienes permisos para realizar esta acción.",
+    404: "404 El recurso solicitado no fue encontrado.",
+    409: "409 Conflicto: ya existe un registro con esos datos.",
+    422: "422 Los datos enviados no son procesables por el servidor.",
+    429: "429 Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
+    500: "500 Error interno del servidor. Intenta más tarde.",
+    502: "502 El servidor no está disponible (Bad Gateway).",
+    503: "503 Servicio temporalmente no disponible. Intenta más tarde.",
 };
 
 function handleHttpError(response) {

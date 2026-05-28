@@ -56,6 +56,7 @@ class User(models.Model):
 
     # --- Contacto ---
     email = models.EmailField(unique=True, max_length=254)
+    institutional_email = models.EmailField(unique=True, max_length=254, null=True, blank=True)  # Opcional segun diccionario
 
     # CharField porque el diccionario define telefono como Alfanumérico (puede tener +57, etc)
     phone_number = models.CharField(max_length=15, unique=True)
@@ -68,7 +69,7 @@ class User(models.Model):
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)  # Opcional
 
     # --- Acceso al sistema ---
-    password = models.CharField(max_length=255, blank=True)  # En un sistema real, esto debería ser un hash seguro
+    password = models.CharField(max_length=255, blank=True)  # En   un sistema real, esto debería ser un hash seguro
 
     # Cuentadante: persona responsable de responder por los materiales
     accountable = models.CharField(max_length=100, null=True, blank=True)  # Opcional segun diccionario

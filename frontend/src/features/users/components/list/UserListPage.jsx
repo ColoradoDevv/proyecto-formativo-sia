@@ -21,7 +21,7 @@ export default function ListUserPage() {
 
     if (error) return (
         <div className="h-full flex items-center justify-center">
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-lg px-6 py-4 max-w-md">
+            <div className="flex items-center gap-3 bg-text-secondary  border border-text-secondary text-text-inverse rounded-lg px-6 py-4 max-w-md">
                 <span className="text-2xl"><CloudAlert/></span>
                 <div>
                     <p className="font-semibold">Error al cargar Usuarios</p>
