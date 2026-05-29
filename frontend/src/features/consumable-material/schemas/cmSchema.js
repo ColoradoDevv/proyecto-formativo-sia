@@ -24,23 +24,24 @@ export const cmSchema = z.object({
     cmSenaPlate: z
         .string()
         .trim()
-        .min(3, "La placa SENA debe tener minimo 3 caracteres")
-        .max(20, "La placa SENA es demasiado larga"),
+        .max(20, "La placa SENA es demasiado larga")
+        .refine(val => val === "" || val.length >= 3, {
+            message: "La placa SENA debe tener minimo 3 caracteres"
+        })
+        .optional(),
 
     cmQuantity: z
         .string()
         .trim()
-        .min(1, "Debe ingresar la cantidad del material")
-        .regex(/^\d+$/, "La cantidad debe ser un numero entero")
-        .refine((value) => Number(value) > 0, {
-            message: "La cantidad debe ser mayor a 0",
-        }),
+        .optional(),
 
     cmLocation: z
         .string()
         .trim()
         .min(3, "La ubicacion debe tener minimo 3 caracteres")
-        .max(100, "La ubicacion es demasiado larga"),
+        .max(100, "La ubicacion es demasiado larga")
+        .optional()
+        ,
 
     cmBrand: z
         .string()
@@ -71,17 +72,53 @@ export const cmSchema = z.object({
         .refine((value) => Number(value) > 0, {
             message: "El valor total debe ser mayor a 0",
         }),
-    cmTechnicalSheet: z
-        .array(z.instanceof(File))
-        .optional(),
+    cmUser: z
+        .string()
+        .min(1, "Debe seleccionar un cuentadante"),
+    cmPurchaseDate: z   
+        .string()
+        .min(1, "Debe ingresar la fecha de compra"),
 
     cmPhoto: z
         .array(z.instanceof(File))
-        .optional(),
-}).refine(
-    (data) => toCents(data.cmUnitValue) * Number(data.cmQuantity) === toCents(data.cmTotalValue),
-    {
-        message: "El valor total debe ser igual a cantidad por valor unitario",
-        path: ["cmTotalValue"],
+        .min(1, "Debe subir una imagen")
+        .refine(
+            (files) => ["image/jpeg", "image/png", "image/svg+xml"].includes(files[0]?.type),
+            { message: "La imagen debe ser JPG, PNG o SVG" }
+        )
+        .refine(
+            (files) => files[0]?.size <= 2 * 1024 * 1024,
+            { message: "La imagen no puede superar 2MB" }
+        ),
+}).superRefine((data, ctx) => {
+
+    // Cantidad obligatoria si no hay placa SENA
+    if (!data.cmSenaPlate || data.cmSenaPlate.trim() === "") {
+        if (!data.cmQuantity || data.cmQuantity.trim() === "") {
+            ctx.addIssue({
+                path: ["cmQuantity"],
+                message: "La cantidad es obligatoria si no hay placa SENA",
+                code: z.ZodIssueCode.custom,
+            });
+            return; // no seguir validando si falta la cantidad
+        }
+        if (Number(data.cmQuantity) <= 0) {
+            ctx.addIssue({
+                path: ["cmQuantity"],
+                message: "La cantidad debe ser mayor a 0",
+                code: z.ZodIssueCode.custom,
+            });
+        }
     }
-);
+
+    // Validación total = cantidad × valor unitario (solo si hay cantidad)
+    if (data.cmQuantity && data.cmUnitValue && data.cmTotalValue) {
+        if (toCents(data.cmUnitValue) * Number(data.cmQuantity) !== toCents(data.cmTotalValue)) {
+            ctx.addIssue({
+                path: ["cmTotalValue"],
+                message: "El valor total debe ser igual a cantidad por valor unitario",
+                code: z.ZodIssueCode.custom,
+            });
+        }
+    }
+});

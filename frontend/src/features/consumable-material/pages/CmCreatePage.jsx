@@ -1,4 +1,4 @@
-import CmRegisterForm  from "../components/CmRegisterForm"
+import CmRegisterForm  from "../components/create/CmRegisterForm"
 import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
 

@@ -13,7 +13,7 @@ import { HomePage } from "@/features/home";
 import { UserHomePage, UserCreatePage, UserDetailPage, UserEditPage} from "@/features/users";
 
 // Imports Material de Consumo
-import { CmHomePage, CmCreatePage, CmDetailPage } from "@/features/consumable-material";
+import { CmHomePage, CmCreatePage, CmDetailPage, CmEditPage } from "@/features/consumable-material";
 
 // Imports Material Devolutivo
 import { RmHomePage, RmCreatePage, RmDetailPage } from "@/features/returnable-material";
@@ -46,6 +46,7 @@ export default function AppRouter() {
             <Route path="/consumibles" element={<CmHomePage />} />
             <Route path="/consumibles/crear" element={<CmCreatePage />} />
             <Route path="/consumibles/visualizar/:id" element={<CmDetailPage />} />
+            <Route path="/consumibles/editar/:id" element={<CmEditPage />} />
 
             {/* Rutas (CRUD) de Materiales Devolutivos */}
             <Route path="/devolutivos" element={<RmHomePage />} />

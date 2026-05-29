@@ -16,6 +16,7 @@ export { default as SearchField } from "./components/SearchField"
 export { default as ConfirmCancelModal } from "./components/ConfirmCancelModal"
 export { default as TabBar } from "./components/TabBar"
 export { default as ReportModal } from "./components/ReportModal"
+export { default as ActiveSwitch } from "./components/ActiveSwitch"
 
 export {  DropdownTrigger } from "./components/Dropdown"
 export {  DropdownItem } from "./components/Dropdown"

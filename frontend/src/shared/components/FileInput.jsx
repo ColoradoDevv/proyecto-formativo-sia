@@ -11,6 +11,7 @@ export default function FileInput({
     className = "w-24 h-24",
     multiple = false,
     error,
+    required,
     accept = "image/*,application/pdf",
 }) {
     const inputRef = useRef();
@@ -63,7 +64,10 @@ export default function FileInput({
                         text-medium
                         mb-1
                         ${error ? "text-error" : "text-text-primary"}
-                    `}>{label}</label>
+                    `}>
+                        {label}
+                        {required && <span className="text-error ml-1">*</span>}
+                </label>
             )}
 
             <div className="flex items-center gap-2">
@@ -71,6 +75,7 @@ export default function FileInput({
                     <div
                         key={i}
                         draggable
+                        required={required}
                         onDragStart={() => setDragIndex(i)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={() => reorder(dragIndex, i)}

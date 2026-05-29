@@ -1,84 +1,102 @@
-import { useParams } from "react-router-dom";
-import { materials } from "../../data/materials/materials";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button, IconButton } from "@/shared";
 import DetailCard from "./DetailCard";
 import DetailField from "./DetailField";
-import { FileText, ImageOff } from "lucide-react";
+import useCm from "../../hooks/useCm";
+import { TailChase } from 'ldrs/react';
+import 'ldrs/react/TailChase.css';
+import { Undo2, ImageOff } from "lucide-react";
 
 export default function CmDetailView() {
+    const navigate = useNavigate();
     const { id } = useParams();
-    const material = materials.find((m) => String(m.id) === String(id)) ?? materials[0];
+
+    const { CM, loading, error } = useCm(id);
+
+    if (loading)
+        return (
+            <div className="h-full flex items-center justify-center">
+                <TailChase size="40" speed="1.75" color="black"/>
+            </div>
+        );
+
+    if (error) return <p>Error al cargar material: {error.message}</p>;
 
     const formatCurrency = (value) =>
-        value != null ? `$${Number(value).toLocaleString("es-CO")}` : null;
+        value != null ? `$${Number(value).toLocaleString("es-CO")}` : "-";
 
     return (
-        <div className="h-full p-6 text-text-primary flex flex-col gap-6">
-            <div className="flex flex-col gap-1">
+    <div className="h-full p-6 text-text-primary flex flex-col gap-6">
+
+        {/* Encabezado */}
+        <div className="flex items-center gap-3">
+            <IconButton onClick={() => navigate(-1)} variant="ghost">
+                <Undo2/>
+            </IconButton>
+            <div>
                 <h2 className="text-h3">Visualizar Material de Consumo</h2>
                 <p className="text-sm text-text-muted">Información completa en modo solo lectura.</p>
             </div>
+        </div>
 
-            <div className="flex gap-6 items-start">
-                {/* Columna izquierda: foto + ficha técnica */}
-                <div className="flex flex-col gap-4 w-64 shrink-0">
-                    <div className="flex flex-col gap-3 p-4 rounded-2xl border border-border bg-surface-hover">
-                        <p className="text-xs text-text-primary uppercase tracking-wide font-semibold">Foto del Producto</p>
-                        <div className="w-full aspect-square rounded-xl overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                            {material.cm_photo
-                                ? <img src={material.cm_photo} alt={material.cm_name} className="w-full h-full object-cover" />
-                                : <div className="flex flex-col items-center gap-2 text-text-muted">
-                                    <ImageOff size={40} />
-                                    <span className="text-xs">Sin foto</span>
-                                </div>
-                            }
-                        </div>
-                        <span className={`w-fit px-3 py-0.5 rounded-full text-xs font-medium ${material.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                            {material.is_active ? "Activo" : "Inactivo"}
-                        </span>
-                    </div>
+        <div className="flex flex-col gap-6">
 
-                    <div className="flex flex-col gap-3 p-4 rounded-2xl border border-border bg-surface-hover">
-                        <p className="text-xs text-text-primary uppercase tracking-wide font-semibold">Ficha Técnica</p>
-                        {material.cm_technical_sheet
-                            ? <a
-                                href={
-                                    typeof material.cm_technical_sheet === "string"
-                                        ? material.cm_technical_sheet
-                                        : URL.createObjectURL(material.cm_technical_sheet)
-                                }
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-2 text-brand text-sm hover:underline"
-                            >
-                                <FileText size={16} />
-                                Ver ficha técnica
-                            </a>
-                            : <span className="text-sm italic text-text-muted">No registrada</span>
+            {/* Card General con foto integrada */}
+            <DetailCard title="Información General" cols={3}>
+                <div className="flex flex-col gap-4">
+                    <DetailField label="Nombre"     value={CM.name} />
+                    <DetailField label="Placa SENA" value={CM.sena_plate ?? "Sin placa"} />
+                </div>
+                <div className="flex flex-col gap-4">
+                    <DetailField label="Marca"       value={CM.brand?.name ?? "Sin marca"} />
+                    <DetailField label="Cuentadante" value={CM.user ? `${CM.user.first_name} ${CM.user.last_name}` : "Sin cuentadante"} />
+                </div>
+
+                {/* Foto — ocupa col 3, fila 1 y 2 */}
+                <div className="row-span-2 flex items-center justify-center">
+                    <div className="w-40 aspect-square rounded-xl overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                        {CM.image
+                            ? <img src={CM.image} alt={CM.name} className="w-40 h-40 object-cover" />
+                            : <div className="flex flex-col items-center gap-2 text-text-muted">
+                                <ImageOff size={20} />
+                                <span className="text-xs">Sin foto</span>
+                            </div>
                         }
                     </div>
                 </div>
 
-                {/* Columna derecha: cards con campos */}
-                <div className="flex flex-col gap-4 flex-1">
-                    <DetailCard title="Información General">
-                        <DetailField label="Nombre" value={material.cm_name} />
-                        <DetailField label="Placa SENA" value={material.cm_sena_plate} />
-                        <DetailField label="Descripción" value={material.cm_description} fullWidth />
-                    </DetailCard>
-
-                    <DetailCard title="Inventario">
-                        <DetailField label="Cantidad" value={material.cm_quantity} />
-                        <DetailField label="Ubicación" value={material.cm_location} />
-                        <DetailField label="Marca" value={material.cm_brand} />
-                        <DetailField label="Estado del material" value={material.cm_state} />
-                    </DetailCard>
-
-                    <DetailCard title="Valores">
-                        <DetailField label="Valor Unitario" value={formatCurrency(material.cm_unit_value)} />
-                        <DetailField label="Valor Total" value={formatCurrency(material.cm_total_value)} />
-                    </DetailCard>
+                {/* Descripción — ocupa cols 1 y 2 en fila 2 */}
+                <div className="col-span-2">
+                    <DetailField label="Descripción" value={CM.description} fullWidth />
                 </div>
+            </DetailCard>
+
+            {/* Inventario y Valores lado a lado */}
+            <div className="grid grid-cols-2 gap-6">
+                <DetailCard title="Inventario" cols={2}>
+                    <DetailField label="Cantidad"        value={CM.quantity ?? "Sin cantidad"} />
+                    <DetailField label="Ubicación"       value={CM.location ?? "Sin ubicación"} />
+                    <DetailField label="Estado"          value={CM.state} />
+                    <DetailField label="Fecha de compra" value={CM.purchase_date} />
+                    <DetailField label="Activo"          value={CM.is_active ? "Activo" : "Inactivo"} />
+                </DetailCard>
+
+                <DetailCard title="Valores" cols={2}>
+                    <DetailField label="Valor Unitario" value={formatCurrency(CM.unit_price)} />
+                    <DetailField label="Valor Total"    value={formatCurrency(CM.total_price)} />
+                </DetailCard>
             </div>
         </div>
-    );
+
+        <div className="flex gap-4 justify-end">
+            <Button variant="secondary" size="md" onClick={() => navigate("/consumibles")}>
+                Volver al listado
+            </Button>
+            <Button variant="primary" size="md" onClick={() => navigate(`/consumibles/editar/${CM.id}`)}>
+                Editar
+            </Button>
+        </div>
+
+    </div>
+);
 }

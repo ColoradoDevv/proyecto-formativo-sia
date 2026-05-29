@@ -67,3 +67,14 @@ export async function createUser(userData) {
     if (!response.ok) handleHttpError(response);
     return response.json();
 }
+
+// METODO PATCH (activar o desactivar un material)
+export async function toggleUserActive(id, isActive) {
+  const response = await fetch(`/api/users/${id}/`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ is_active: isActive }),
+  });
+  if (!response.ok) handleHttpError(response);
+  return response.json();
+}
