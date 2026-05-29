@@ -1,10 +1,10 @@
 import DashboardLayout from "../../../shared/layouts/DashboardLayout";
-import UserDetailView from "../components/detail/UserDetailView";
+import CmEditView from "../components/edit/CmEditView";
 
-export default function UserDetailPage() {
+export default function CmEditPage() {
     return (
         <DashboardLayout>
-            <UserDetailView />
+            <CmEditView />
         </DashboardLayout>
     );
 }

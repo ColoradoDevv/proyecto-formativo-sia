@@ -116,7 +116,10 @@ export default function UserDetailView() {
                     </div>
                 </DetailCard>
             </div>
-            <div className="flex justify-end">
+            <div className="flex gap-4 justify-end">
+                <Button variant="secondary" size="md" onClick={() => navigate(`/usuarios`)}>
+                    Volver al inicio
+                </Button>
                 <Button variant="primary" size="md" onClick={() => navigate(`/usuarios/editar/${user.id}`)}>
                     Editar
                 </Button>

@@ -1,12 +1,15 @@
 import { createPortal } from "react-dom";
 
 export default function ConfirmCancelModal({ 
-        isOpen, 
-        onClose, 
-        onConfirm,     
-        className = "",
-        
-    }) {
+    isOpen, 
+    onClose, 
+    onConfirm,     
+    className = "",
+    title = "¿Cancelar el registro?",
+    message = <>Se perderán todos los datos ingresados.<br />¿Deseas continuar?</>,
+    confirmText = "Sí, cancelar",
+    cancelText = "Seguir aquí",
+}) {
     if (!isOpen) return null;
 
     return createPortal(
@@ -41,11 +44,10 @@ export default function ConfirmCancelModal({
                 {/* Text */}
                 <div className="text-center flex flex-col gap-1">
                     <h2 className="text-lg font-bold text-[#0C2D48]">
-                        ¿Cancelar el registro?
+                        {title}
                     </h2>
                     <p className="text-sm text-[#526B7B]">
-                        Se perderán todos los datos ingresados.<br />
-                        ¿Deseas continuar?
+                        {message}
                     </p>
                 </div>
 
@@ -55,18 +57,18 @@ export default function ConfirmCancelModal({
                 {/* Actions */}
                 <div className="flex gap-3 w-full">
                     <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex-1 cursor-pointer h-10 rounded-full border border-[#CAD5D3] bg-white/40 text-[#0C2D48] text-sm font-medium transition-colors duration-200 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 cursor-pointer h-10 rounded-full border border-[#CAD5D3] bg-white/40 text-[#0C2D48] text-sm font-medium transition-colors duration-200 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
                     >
-                        Seguir aquí
+                        {cancelText}
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
                         className="flex-1 cursor-pointer h-10 rounded-full bg-[#203F57] border border-[#203F57] text-white text-sm font-medium transition-colors duration-200 hover:bg-[#0C2D48] focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
                     >
-                        Sí, cancelar
+                        {confirmText}
                     </button>
                 </div>
             </div>

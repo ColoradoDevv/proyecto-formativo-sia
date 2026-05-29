@@ -9,7 +9,7 @@ export default function SelectInput({
     options = [],
 }){
     return(
-        <div className="w-[320px]">
+        <div className={className || "w-full"}>
             {label && (
                 <label
                     className={`

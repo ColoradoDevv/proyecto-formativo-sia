@@ -1,52 +1,47 @@
-import { Switch } from "@/shared";
+import { ActiveSwitch } from "@/shared";
+import { toggleCmActive } from "../services/consumableService";
 import UserRowActions from "../components/list/UserRowActions";
 
 export const materialColumns = [
     {
-        accessorKey: "id",
-        header: "Id",
+        accessorFn: (row) => row.user ? `${row.user.first_name} ${row.user.last_name}` : "Sin cuentadante",
+        id: "user",
+        header: "Cuentadante",
     },
     {
-        accessorKey: "cm_name",
-        header: "Nombre",
+        accessorKey: "name",
+        header: "Nombre del material",
     },
     {
-        accessorKey: "cm_brand",
-        header: "Marca",
-    },
-    {
-        accessorKey: "cm_state",
-        header: "Estado",
-    },
-    {
-        accessorKey: "cm_quantity",
+        accessorKey: "quantity",
         header: "Cantidad",
     },
     {
-        accessorKey: "cm_location",
+        accessorKey: "state",
+        header: "Disponibilidad",
+    },
+    {
+        accessorKey: "location",
         header: "Ubicación",
     },
     {
+        accessorKey: "purchase_date",
+        header: "Fecha de compra",
+    },
+    {
         accessorKey: "is_active",
-        header: "Activo",
-        cell: ({ row }) => {
-            const material = row.original;
-
-            const handleChange = (value) => {
-                console.log("Actualizar estado material:", material.id, value);
-            };
-
-            return (
-                <Switch
-                    checked={material.is_active}
-                    onChange={handleChange}
-                    className="inline-flex"
-                />
-            );
-        },
+        header: "Estado",
+        cell: ({ row }) => (
+            <ActiveSwitch
+                id={row.original.id}
+                isActive={row.original.is_active}
+                toggleFn={toggleCmActive}
+            />
+        ),
     },
     {
         id: "actions",
+        header: "Acciones",
         cell: ({ row }) => <UserRowActions user={row.original} />,
     },
 ];

@@ -5,6 +5,7 @@ import { usersReportConfig } from "../../reports/usersReportConfig.js";
 import useUsers from "../../hooks/useUsers.js";
 import { TailChase } from 'ldrs/react'
 import 'ldrs/react/TailChase.css'
+import { CloudAlert } from "lucide-react";
 
 export default function ListUserPage() {
 
@@ -18,7 +19,17 @@ export default function ListUserPage() {
             </div>
         )
 
-    if (error) return <p>Error al cargar Usuarios: {error.message}</p>
+    if (error) return (
+        <div className="h-full flex items-center justify-center">
+            <div className="flex items-center gap-3 bg-text-secondary  border border-text-secondary text-text-inverse rounded-lg px-6 py-4 max-w-md">
+                <span className="text-2xl"><CloudAlert/></span>
+                <div>
+                    <p className="font-semibold">Error al cargar Usuarios</p>
+                    <p className="text-sm">{error.message}</p>
+                </div>
+            </div>
+        </div>
+    )
 
     return (
         <div className="h-full p-6 text-text-primary">

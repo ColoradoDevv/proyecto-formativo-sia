@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getBrands, getStates } from "../services/selectServices";
+import { getBrands, getStates, getUsers } from "../../services/selectServices";
 
 import {Input, FileInput, Button, SelectInput, ConfirmCancelModal} from "@/shared";
-import { cmSchema } from "../schemas/cmSchema";
+import { cmSchema } from "../../schemas/cmSchema";
+import {createCm} from "../../services/consumableService";
+import Alert from '@mui/material/Alert';
+
 
 export default function CmRegisterForm(){
 
@@ -12,6 +15,9 @@ export default function CmRegisterForm(){
         const [showCancelModal, setShowCancelModal] = useState(false);
         const [brands, setBrands] = useState([]);
         const [states, setStates] = useState([]);
+        const [notification, setNotification] = useState(null);
+        const [errors, setErrors] = useState({});
+        const [users, setUsers] = useState([]);
         const [formData, setFormData] = useState({
             cmName: "",
             cmDescription: "",
@@ -19,13 +25,13 @@ export default function CmRegisterForm(){
             cmQuantity: "",
             cmLocation: "",
             cmBrand: "",
-            cmState: "",
+            cmState: "Disponible",
             cmUnitValue: "",
             cmTotalValue: "",
-            cmTechnicalSheet: [],
+            cmUser: "",
+            cmPurchaseDate: new Date().toISOString().split('T')[0],            
             cmPhoto: [],
         });
-        const [errors, setErrors] = useState({});
 
         useEffect (() => {
             getBrands().then(setBrands);
@@ -35,38 +41,60 @@ export default function CmRegisterForm(){
             getStates().then(setStates);
         }, []);
 
+        useEffect (() => {
+            getUsers().then(setUsers);
+        }, []);
+
         const handleChange = (e) => {
             const { name, value } = e.target;
 
-            setFormData((prev) => ({
-                ...prev,
-                [name]: value,
-            }));
+            setFormData((prev) => {
+                const updated = { ...prev, [name]: value };
+
+                // Calcular total automáticamente
+                const quantity  = name === "cmQuantity"  ? value : updated.cmQuantity;
+                const unitValue = name === "cmUnitValue" ? value : updated.cmUnitValue;
+
+                if (quantity && unitValue) {
+                    const total = (parseFloat(quantity) * parseFloat(unitValue)).toFixed(2);
+                    updated.cmTotalValue = isNaN(total) ? "" : total;
+                }
+
+                return updated;
+            });
         };
 
         const handleFileChange = (name) => (files) => {
             setFormData({ ...formData, [name]: files });
         };
 
-        const handleSubmit = (e) => {
+        async function handleSubmit(e) {
             e.preventDefault();
 
-            const result = cmSchema.safeParse(formData);
+            try {
+                const result = cmSchema.safeParse(formData);
 
-            if (!result.success) {
-                const fieldErrors = {};
+                if (!result.success) {
+                    const fieldErrors = {};
+                    result.error.issues.forEach((issue) => {
+                        const field = issue.path[0];
+                        fieldErrors[field] = issue.message;
+                    });
+                    setErrors(fieldErrors);
+                    return;
+                }
 
-                result.error.issues.forEach((issue) => {
-                    const field = issue.path[0];
-                    fieldErrors[field] = issue.message;
-                });
+                setErrors({});
 
-                setErrors(fieldErrors);
-                return;
+                await createCm(result.data);
+
+                setNotification({ message: "Material de consumo creado exitosamente", severity: "success" });
+                setTimeout(() => navigate("/consumibles"), 1500);
+
+            } catch (error) {
+                console.error("Error al crear material de consumo:", error);
+                setNotification({ message: "Error al crear material de consumo: " + error.message, severity: "error" });
             }
-
-            setErrors({});
-            console.log("Material consumible validado", result.data);
         };
 
     return (
@@ -85,6 +113,13 @@ export default function CmRegisterForm(){
                         </h1>    
                     </div>
             </div>
+
+                {notification && (
+                    <Alert severity={notification.severity} onClose={() => setNotification(null)}>
+                        {notification.message}
+                    </Alert>
+                )}
+
                     {/* Formulario */}
                     <form
                         noValidate
@@ -122,7 +157,7 @@ export default function CmRegisterForm(){
                                     value={formData.cmSenaPlate}
                                     onChange={handleChange}
                                     error={errors.cmSenaPlate}
-                                    required
+                                    
                                 />
 
                                 <Input
@@ -135,7 +170,7 @@ export default function CmRegisterForm(){
                                     value={formData.cmQuantity}
                                     onChange={handleChange}
                                     error={errors.cmQuantity}
-                                    required
+                                    
                                 />
 
                                 <Input
@@ -145,7 +180,6 @@ export default function CmRegisterForm(){
                                     value={formData.cmLocation}
                                     onChange={handleChange}
                                     error={errors.cmLocation}
-                                    required
                                 />
 
                                 <SelectInput
@@ -155,16 +189,6 @@ export default function CmRegisterForm(){
                                     value={formData.cmBrand}
                                     onChange={handleChange}
                                     error={errors.cmBrand}
-                                    required
-                                />
-
-                                <SelectInput
-                                    label = "Estado"
-                                    name="cmState"
-                                    options={states}
-                                    value={formData.cmState}
-                                    onChange={handleChange}
-                                    error={errors.cmState}
                                     required
                                 />
 
@@ -180,6 +204,17 @@ export default function CmRegisterForm(){
                                     error={errors.cmUnitValue}
                                     required
                                 />
+                                
+                                <SelectInput
+                                    label = "Estado"
+                                    name="cmState"
+                                    options={states}
+                                    value={formData.cmState}
+                                    onChange={handleChange}
+                                    error={errors.cmState}
+                                    required
+                                />
+
 
                                 <Input
                                     label = "Valor Total"
@@ -192,13 +227,33 @@ export default function CmRegisterForm(){
                                     onChange={handleChange}
                                     error={errors.cmTotalValue}
                                     required
+                                    readOnly
+                                />
+
+                                <SelectInput
+                                    label = "Cuentadante"
+                                    name="cmUser"
+                                    options={users}
+                                    value={formData.cmUser}
+                                    onChange={handleChange}
+                                    error={errors.cmUser}
+                                    required
                                 />
 
                             </div>
 
                             <div className="flex flex-col gap-4">
+                                                                <Input
+                                    label="Fecha de Compra"
+                                    name="cmPurchaseDate"
+                                    type="date"
+                                    value={formData.cmPurchaseDate}
+                                    onChange={handleChange}
+                                    error={errors.cmPurchaseDate}
+                                    required
+                                />
                                 <FileInput
-                                    label="Foto del Producto (Opcional)"
+                                    label="Foto del Material"
                                     name="cmPhoto"
                                     placeholder="Subir foto"
                                     value={formData.cmPhoto}
@@ -206,53 +261,10 @@ export default function CmRegisterForm(){
                                     error={errors.cmPhoto}
                                     accept="image/*"
                                     className="w-64 h-48"
-                                />
-                                <FileInput
-                                    label="Ficha Tecnica (Opcional)"
-                                    name="cmTechnicalSheet"
-                                    placeholder="Ingrese la Ficha Tecnica del Material"
-                                    value={formData.cmTechnicalSheet}
-                                    onChange={handleFileChange("cmTechnicalSheet")}
-                                    error={errors.cmTechnicalSheet}
-                                    accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                    className="w-64 h-40"
+
                                 />
                             </div>
                         </div>
-                        {/* Fotografia
-                            <div className='flex flex-col gap-4'>
-                                <h1 className="text-sm font-bold">
-                                    Subir fotografia
-                                </h1>  
-                                <div className="grid justify-items-center w-64 h-64 border-4 rounded-xl border-slate-200 gap-6">
-                                    
-                                    <div className="relative top-12 right-0">
-                                        
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-                                    stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-camera-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none" 
-                                    /><path d="M12 20h-7a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v3.5" 
-                                    /><path d="M16 19h6" /><path d="M19 16v6" /><path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
-                                    
-                                    </div>
-                                    <div className="text-xs text-center">
-                                        Haga click aqui para subir una fotografia
-                                    </div>
-                                </div>
-                                <Button
-                                variant="secondary"
-                                size="smm"  
-                                >
-                                Subir
-                                </Button>
-                                
-                                <Button
-                                variant="primary"
-                                size="smm"
-                                >
-                                Elegir otra
-                                </Button>
-                        </div>
-                         */}
                         <div className="flex gap-4">
                             <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>Cancelar</Button>
                             <Button type="submit"  variant="primary"   size="md">Crear</Button>

@@ -81,7 +81,7 @@ export default function DataTable({ data, columns }) {
         <select
           value={table.getState().pagination.pageSize}
           onChange={(e) => table.setPageSize(Number(e.target.value))}
-          className="border rounded px-2 py-2"
+          className="border rounded px-2 py-2 bg-white"
         >
           {[5, 10, 20, 30, 50].map((size) => (
             <option key={size} value={size}>

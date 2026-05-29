@@ -6,6 +6,8 @@
 from rest_framework import serializers
 
 from .models import Brand, Category, ConsumableMaterial, ReturnableMaterial
+from modules.users.models import User
+
 
 
 class BrandSerializer(serializers.ModelSerializer):
@@ -14,34 +16,69 @@ class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
         fields = "__all__"
-
-
+        
 class CategorySerializer(serializers.ModelSerializer):
-    # Serializer simple para categorias.
-
     class Meta:
         model = Category
         fields = "__all__"
 
+class UserMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name']
 
 class ConsumableMaterialSerializer(serializers.ModelSerializer):
-    # Serializer para materiales consumibles.
+    # Para leer
+    brand = BrandSerializer(read_only=True)
+    user = UserMinimalSerializer(read_only=True)
+    
+    # Para escribir
+    
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        source='user',
+        write_only=True
+    )
+
+    brand_id = serializers.PrimaryKeyRelatedField(
+        queryset=Brand.objects.all(),
+        source='brand',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    
+    def validate(self, data):
+        if 'sena_plate' in data or 'quantity' in data:
+            sena_plate = data.get('sena_plate')
+            quantity = data.get('quantity')
+            if not sena_plate and quantity is None:
+                raise serializers.ValidationError({"quantity": "La cantidad es obligatoria si no hay placa SENA."})
+        return data
 
     class Meta:
         model = ConsumableMaterial
         fields = "__all__"
         extra_kwargs = {
-            # Estos campos son opcionales segun el diccionario
-            "sena_plate":    {"required": False, "allow_null": True},
-            "quantity":      {"required": False, "allow_null": True},
-            # Los siguientes estaban como opcionales en el serializer anterior
-            # pero el diccionario los marca como obligatorios — se dejan
-            # sin extra_kwargs para que DRF los valide correctamente
+            "sena_plate": {"required": False, "allow_null": True},
+            "quantity":   {"required": False, "allow_null": True},
         }
 
 
 class ReturnableMaterialSerializer(serializers.ModelSerializer):
     # Serializer para materiales retornables.
+# Para leer
+    brand = BrandSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+
+    # Para escribir
+    brand_id = serializers.PrimaryKeyRelatedField(
+        queryset=Brand.objects.all(),
+        source='brand',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = ReturnableMaterial

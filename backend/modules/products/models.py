@@ -28,6 +28,7 @@ class ConsumableMaterial(models.Model):
         ('Disponible', 'Disponible'),
         ('No Disponible', 'No Disponible'),
         ('Mantenimiento', 'Mantenimiento'),
+        ('Traslado', 'Traslado'),
         ('En prestamo', 'En prestamo'),
         ('Baja', 'Baja'),
     ]
@@ -43,7 +44,8 @@ class ConsumableMaterial(models.Model):
     brand = models.ForeignKey(
         Brand,
         on_delete=models.RESTRICT,
-        null=False
+        null=False,
+        
     )
 
     # Placa SENA: unica, pero opcional (solo obligatoria si no es consumible puro)
@@ -64,6 +66,9 @@ class ConsumableMaterial(models.Model):
 
     # Estado obligatorio segun diccionario
     state = models.CharField(max_length=20, choices=STATE_CHOICES)
+    
+    is_active = models.BooleanField(default=True)  # Default 1 segun diccionario
+
 
     # Descripcion obligatoria segun diccionario
     description = models.CharField(max_length=255)
@@ -72,8 +77,8 @@ class ConsumableMaterial(models.Model):
     purchase_date = models.DateField()
 
     # Ubicacion obligatoria segun diccionario
-    location = models.CharField(max_length=100)
-
+    location = models.CharField(max_length=100, null=True, blank=True)
+    
     def __str__(self):
         return self.name
 

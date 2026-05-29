@@ -1,124 +1,276 @@
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/shared";
-
+import { Button, IconButton, Input, SelectInput, ConfirmCancelModal } from "@/shared";
 import EditCard from "./EditCard.jsx";
-import EditField from "./EditField";
+import { Undo2, Pencil, UserRound } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
-import { TailChase } from 'ldrs/react'
-import 'ldrs/react/TailChase.css'
+import { getDocumentTypes, getUserRoles } from "../../services/selectServices";
+import { TailChase } from "ldrs/react";
+import "ldrs/react/TailChase.css";
 
+const STATUS_OPTIONS = [
+    { id: "true",  label: "Activo"   },
+    { id: "false", label: "Inactivo" },
+];
+
+// Componente externo: maneja el fetch, loading y error
 export default function UserEditView() {
-    const navigate = useNavigate();
-    const { id }   = useParams();
-
-    // FETCH GET /api/users/{id}/
+    const { id } = useParams();
     const { user, loading, error } = useUser(id);
+
+    const [documentTypes, setDocumentTypes] = useState([]);
+    const [roles,         setRoles]         = useState([]);
+
+    useEffect(() => { getDocumentTypes().then(setDocumentTypes); }, []);
+    useEffect(() => { getUserRoles().then(setRoles);             }, []);
 
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
-                <TailChase size="40" speed="1.75" color="black"/>
+                <TailChase size="40" speed="1.75" color="black" />
             </div>
-        )
+        );
 
-    if (error) return <p>Error al cargar Usuarios: {error.message}</p>
+    if (error) return <p>Error al cargar usuario: {error.message}</p>;
 
+    return <UserEditForm user={user} documentTypes={documentTypes} roles={roles} />;
+}
+
+// Componente interno: recibe user ya cargado e inicializa el estado directamente
+function UserEditForm({ user, documentTypes, roles }) {
+    const navigate      = useNavigate();
+    const photoInputRef = useRef();
+
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [photoPreview,    setPhotoPreview]    = useState(user.profile_picture ?? null);
+
+    const [formData, setFormData] = useState({
+        firstName:          user.first_name          ?? "",
+        lastName:           user.last_name           ?? "",
+        email:              user.email               ?? "",
+        institutionalEmail: user.institutional_email ?? "",
+        phone:              user.phone_number        ?? "",
+        additionalPhone:    user.second_phone_number ?? "",
+        address:            user.address             ?? "",
+        documentType:       user.document_type?.id   != null ? String(user.document_type.id) : "",
+        documentNumber:     user.document_number     ?? "",
+        role:               user.role?.id            != null ? String(user.role.id)           : "",
+        isActive:           user.is_active           != null ? String(user.is_active)          : "true",
+        startDate:          user.start_date          ?? "",
+        endDate:            user.end_date            ?? "",
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) setPhotoPreview(URL.createObjectURL(file));
+    };
+
+    function handleSubmit(e) {
+        e.preventDefault();
+        navigate(-1);
+    }
+
+    const isActive = formData.isActive === "true";
 
     return (
-        <div className="h-full p-6 text-text-primary flex flex-col gap-6">
+        <div className="h-full p-4 text-text-primary flex flex-col gap-4">
+
             {/* Encabezado */}
-            <div className="flex flex-col gap-1">
-                <h2 className="text-h3">Editar Usuario</h2>
-                <p className="text-sm text-text-muted">Información editable del usuario.</p>
+            <div className="flex items-center gap-3">
+                <IconButton onClick={() => navigate(-1)} variant="ghost">
+                    <Undo2 />
+                </IconButton>
+                <div>
+                    <h2 className="text-h3">Editar Usuario</h2>
+                    <p className="text-sm text-text-muted">Modifica la información del usuario.</p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-                {/* foto + nombre + estado + botón */}
-                <div className="flex flex-col sm:flex-row items-center justify-sm:items-start gap-5 p-5 rounded-2xl border border-border bg-surface-hover">
+                {/* Información Personal — 3 columnas con foto integrada */}
+                <EditCard title="Información Personal" cols={3}>
 
-                    <div className="w-20 h-20 rounded-full overflow-hidden border border-border bg-surface-muted flex items-center justify-center shrink-0">
-                        {user.profilePicture
-                            ? <img src={user.profilePicture} alt={user.first_name} className="w-full h-full object-cover" />
-                            : <span className="text-xl font-semibold text-text-muted">{(user.first_name ?? "?")[0].toUpperCase()}</span>
-                        }
+                    {/* Col 1 */}
+                    <div className="flex flex-col gap-3">
+                        <Input
+                            label="Nombres"
+                            name="firstName"
+                            placeholder="Ingresa el nombre"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            label="Apellidos"
+                            name="lastName"
+                            placeholder="Ingresa los apellidos"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            required
+                        />
                     </div>
 
-                    <div className="flex flex-col gap-1 flex-1 text-center sm:text-left">
-                        <h3 className="text-lg font-bold">{user.first_name} {user.last_name}</h3>
-                        <span className="text-sm text-text-muted">{user.role?.name ?? "Sin rol"}</span>
-                        <span className={`mt-1 w-fit px-3 py-0.5 rounded-full text-xs font-medium ${user.is_active !== false ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                            {user.is_active !== false ? "Activo" : "Inactivo"}
+                    {/* Col 2 */}
+                    <div className="flex flex-col gap-3">
+                        <SelectInput
+                            label="Tipo de documento"
+                            name="documentType"
+                            options={documentTypes}
+                            value={formData.documentType}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            label="Número de documento"
+                            name="documentNumber"
+                            placeholder="Ingresa el número"
+                            value={formData.documentNumber}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    {/* Col 3 — foto ocupa fila 1 y 2 */}
+                    <div className="row-span-2 flex flex-col items-center justify-center gap-3">
+                        <div className="relative">
+                            <div className="size-32 rounded-xl overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                                {photoPreview
+                                    ? <img src={photoPreview} alt={formData.firstName} className="w-full h-full object-cover" />
+                                    : <UserRound size={48} className="text-text-muted" />
+                                }
+                            </div>
+                            <button
+                                type="button"
+                                aria-label="Cambiar foto de perfil"
+                                onClick={() => photoInputRef.current.click()}
+                                className="absolute bottom-2 right-2 size-7 bg-brand text-white rounded-full flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity"
+                            >
+                                <Pencil size={13} />
+                            </button>
+                            <input
+                                ref={photoInputRef}
+                                type="file"
+                                hidden
+                                aria-label="Subir foto de perfil"
+                                accept=".jpg,.jpeg,.png"
+                                onChange={handlePhotoChange}
+                            />
+                        </div>
+                        <span className={`px-3 py-0.5 rounded-full text-xs font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                            {isActive ? "Activo" : "Inactivo"}
                         </span>
                     </div>
 
-                    <Button variant="primary" size="md" onClick={() => navigate(`/usuarios/editar/${user.id}`)}>
-                        Editar
+                    {/* Dirección — ocupa cols 1 y 2 en fila 2 */}
+                    <div className="col-span-2">
+                        <Input
+                            label="Dirección"
+                            name="address"
+                            placeholder="Ingresa la dirección"
+                            value={formData.address}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                </EditCard>
+
+                {/* Contacto y Sistema lado a lado */}
+                <div className="grid grid-cols-2 gap-6">
+
+                    <EditCard title="Información de Contacto">
+                        <Input
+                            label="Correo electrónico"
+                            name="email"
+                            type="email"
+                            placeholder="correo@ejemplo.com"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            label="Correo institucional"
+                            name="institutionalEmail"
+                            type="email"
+                            placeholder="correo@sena.edu.co"
+                            value={formData.institutionalEmail}
+                            onChange={handleChange}
+                        />
+                        <Input
+                            label="Teléfono"
+                            name="phone"
+                            placeholder="Número de teléfono"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            label="Teléfono adicional"
+                            name="additionalPhone"
+                            placeholder="Número adicional (opcional)"
+                            value={formData.additionalPhone}
+                            onChange={handleChange}
+                        />
+                    </EditCard>
+
+                    <EditCard title="Información del Sistema">
+                        <SelectInput
+                            label="Tipo de usuario"
+                            name="role"
+                            options={roles}
+                            value={formData.role}
+                            onChange={handleChange}
+                            required
+                        />
+                        <SelectInput
+                            label="Estado"
+                            name="isActive"
+                            options={STATUS_OPTIONS}
+                            value={formData.isActive}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            label="Fecha de inicio"
+                            name="startDate"
+                            type="date"
+                            value={formData.startDate}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Input
+                            label="Fecha de finalización"
+                            name="endDate"
+                            type="date"
+                            value={formData.endDate}
+                            onChange={handleChange}
+                        />
+                    </EditCard>
+
+                </div>
+
+                <div className="flex gap-4 justify-end">
+                    <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" variant="primary" size="md">
+                        Guardar cambios
                     </Button>
                 </div>
-                
-                {/* Card de información personal */}
-                <EditCard title="Información Personal">
-                    <EditField    
-                        label="Nombre completo"     
-                        value={user.first_name + " " + user.last_name} 
-                    />
-                    <EditField    
-                        label="Tipo de documento"   
-                        value={user.document_type?.name ?? "Sin tipo de documento"}   
-                    />
-                    <EditField    
-                        label="Número de documento"     
-                        value={user.document_number}     
-                    />
-                </EditCard>
 
-                {/* Card de información de contacto */}
-                <EditCard title="Información de Contacto">
-                    <EditField    
-                        label="Correo electrónico"  
-                        value={user.email}  
-                    />
-                    <EditField    
-                        label="Correo institucional"    
-                        value={user.institutional_email}     
-                    />
-                    <EditField    
-                        label="Teléfono"    
-                        value={user.phone_number}  
-                    />
-                    <EditField    
-                        label="Teléfono adicional"  
-                        value={user.second_phone_number ?? "Sin teléfono adicional"}    
-                    />
-                    <EditField    
-                        label="Dirección"   
-                        value={user.address}     
-                        fullWidth   
-                    />
-                </EditCard>
+            </form>
 
-                {/* Card de información del sistema */}
-                <EditCard title="Información del Sistema">
-                    <EditField    
-                        label="Tipo de usuario"         
-                        value={user.role?.name ?? "Sin rol"}   
-                    />
-                    <EditField    
-                        label="Estado"                  
-                        value={user.is_active !== false ? "Activo" : "Inactivo"}    
-                    />
-                    <EditField    
-                        label="Fecha de inicio"         
-                        value={user.start_date}  
-                    />
-                    <EditField    
-                        label="Fecha de finalización"   
-                        value={user.end_date ?? "No definida"}    
-                    />
-                </EditCard>
-            </div>
-            
+            <ConfirmCancelModal
+                isOpen={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                onConfirm={() => navigate(-1)}
+            />
 
         </div>
     );

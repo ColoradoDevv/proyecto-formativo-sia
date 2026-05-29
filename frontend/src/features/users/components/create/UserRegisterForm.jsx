@@ -6,6 +6,7 @@ import UserTaskModal from "./UserTaskModal";
 import { userSchema } from "../../schemas/userSchema";
 import { createUser } from "../../services/userService";
 import { Plus } from "lucide-react";
+import Alert from '@mui/material/Alert';
 
 export default function UserRegisterForm(){
 
@@ -33,7 +34,8 @@ export default function UserRegisterForm(){
     
     const [errors, setErrors] = useState({});
     const [showAdditionalPhone, setShowAdditionalPhone] = useState(false);
-    
+    const [notification, setNotification] = useState(null);
+
     const [documentTypes, setDocumentTypes] = useState([]);
     useEffect(() => {
         getDocumentTypes().then(setDocumentTypes);
@@ -80,12 +82,12 @@ export default function UserRegisterForm(){
 
             await createUser(result.data);
 
-            alert("Usuario creado exitosamente");
+            setNotification({ message: "Usuario creado exitosamente", severity: "success" });
             navigate("/usuarios");
 
         } catch (error) {
             console.error("Error al crear usuario:", error);
-            alert(error.message);
+            setNotification({ message: "Error al crear usuario: " + error.message, severity: "error" });
         }
     };
 
@@ -103,6 +105,12 @@ export default function UserRegisterForm(){
                         </h1>
                     </div>
                 </div>
+
+                {notification && (
+                    <Alert severity={notification.severity} onClose={() => setNotification(null)}>
+                        {notification.message}
+                    </Alert>
+                )}
 
                 <form
                     noValidate

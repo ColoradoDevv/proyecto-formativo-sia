@@ -7,7 +7,7 @@ import {
 } from "@/shared";
 
 // Iconos usados en los botones de acciones
-import { EllipsisVertical, Eye } from "lucide-react";
+import { EllipsisVertical, Eye, Pencil, PencilLine } from "lucide-react";
 
 // Hook de React Router para navegar programáticamente entre rutas
 import { useNavigate } from "react-router-dom";
@@ -40,7 +40,16 @@ export default function UserRowActions({ user }) {
   return (
     // Contenedor de los botones de acciones
     <div className="flex gap-2">
-      {/* Botón editar */}
+      {/* Botón visualizar */}
+      <IconButton
+        onClick={handleEdit}
+        variant="ghost"
+        hitSize={32}
+        iconSize={16}
+      >
+        <Pencil size={16} />
+      </IconButton>
+      {/* Botón visualizar */}
       <IconButton
         onClick={handleVisualizer}
         variant="ghost"

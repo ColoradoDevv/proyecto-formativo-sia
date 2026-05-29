@@ -2,7 +2,7 @@ export default function Input({
     label,
     type = "text",
     required,
-    className = "w-[320px]",
+    className = "w-full",
     error,
     ...props
 }){
