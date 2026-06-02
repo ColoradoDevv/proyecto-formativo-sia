@@ -16,7 +16,8 @@ dependencies = [
     "legacy-cgi (>=2.6.4,<3.0.0)",
     "pillow (>=12.1.1,<13.0.0)",
     "python-dotenv (>=1.2.2,<2.0.0)",
-    "psycopg2-binary (>=2.9.11,<3.0.0)"
+    "psycopg2-binary (>=2.9.11,<3.0.0)",
+    "pyjwt (>=2.13.0,<3.0.0)"
 ]
 
 [tool.poetry]

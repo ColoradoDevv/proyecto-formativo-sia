@@ -4,7 +4,7 @@
 import { Routes, Route } from "react-router-dom";
 
 // Imports Auth
-import { LoginPage } from "@/features/auth"
+import { LoginPage, ProtectedRoute } from "@/features/auth"
 
 // Imports Inicio
 import { HomePage } from "@/features/home";
@@ -29,39 +29,43 @@ import { ConfigLayout } from "@/shared";
 export default function AppRouter() {
     return (
         <Routes>
-            {/* Ruta de Inicio - Home */}
-            <Route path="/" element={<HomePage />} />
-
-            {/* Ruta Auth */}
+            {/* ───────── Rutas PUBLICAS ───────── */}
             <Route path="/iniciar-sesion" element={<LoginPage />} />
 
-            {/* Rutas (CRUD) de Usuario */}
-            <Route path="/usuarios" element={<UserHomePage />} />
-            <Route path="/usuarios/crear" element={<UserCreatePage />} />
-            <Route path="/usuarios/visualizar/:id" element={<UserDetailPage />} />
-            <Route path="/usuarios/editar/:id" element={<UserEditPage />} />
+            {/* ───────── Rutas PRIVADAS (requieren sesion) ───────── */}
+            <Route element={<ProtectedRoute />}>
 
-            
-            {/* Rutas (CRUD) de Materiales Consumibles */}
-            <Route path="/consumibles" element={<CmHomePage />} />
-            <Route path="/consumibles/crear" element={<CmCreatePage />} />
-            <Route path="/consumibles/visualizar/:id" element={<CmDetailPage />} />
-            <Route path="/consumibles/editar/:id" element={<CmEditPage />} />
+                {/* Inicio - Home */}
+                <Route path="/" element={<HomePage />} />
 
-            {/* Rutas (CRUD) de Materiales Devolutivos */}
-            <Route path="/devolutivos" element={<RmHomePage />} />
-            <Route path="/devolutivos/crear" element={<RmCreatePage />} />
-            <Route path="/devolutivos/visualizar/:id" element={<RmDetailPage />} />
+                {/* CRUD de Usuario */}
+                <Route path="/usuarios" element={<UserHomePage />} />
+                <Route path="/usuarios/crear" element={<UserCreatePage />} />
+                <Route path="/usuarios/visualizar/:id" element={<UserDetailPage />} />
+                <Route path="/usuarios/editar/:id" element={<UserEditPage />} />
 
-            {/* Rutas (CRUD) de Prestamos */}
-            <Route path="/prestamos" element={<LoansHomePage />} />
-            <Route path="/prestamos/crear" element={<LoansCreatePage/>} />
+                {/* CRUD de Materiales Consumibles */}
+                <Route path="/consumibles" element={<CmHomePage />} />
+                <Route path="/consumibles/crear" element={<CmCreatePage />} />
+                <Route path="/consumibles/visualizar/:id" element={<CmDetailPage />} />
+                <Route path="/consumibles/editar/:id" element={<CmEditPage />} />
 
-            {/* {marcas} */}
-            <Route path="/marcas" element={<TmHomePage />} />
+                {/* CRUD de Materiales Devolutivos */}
+                <Route path="/devolutivos" element={<RmHomePage />} />
+                <Route path="/devolutivos/crear" element={<RmCreatePage />} />
+                <Route path="/devolutivos/visualizar/:id" element={<RmDetailPage />} />
 
-            <Route path="/configuracion" element={<ConfigLayout />} />
+                {/* CRUD de Prestamos */}
+                <Route path="/prestamos" element={<LoansHomePage />} />
+                <Route path="/prestamos/crear" element={<LoansCreatePage/>} />
 
+                {/* Marcas */}
+                <Route path="/marcas" element={<TmHomePage />} />
+
+                {/* Configuracion */}
+                <Route path="/configuracion" element={<ConfigLayout />} />
+
+            </Route>
         </Routes>
     );
 }

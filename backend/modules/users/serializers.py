@@ -45,12 +45,35 @@ class UserSerializer(serializers.ModelSerializer):
         allow_null=True
     )
 
+    # La contraseña SOLO entra (write_only): se puede enviar, pero nunca se devuelve
+    password = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = User
-        fields = "__all__"
+        # Ocultamos los campos internos de Django que no deben salir
+        exclude = ["is_superuser", "groups", "user_permissions", "last_login"]
         extra_kwargs = {
             "is_active": {"required": False, "default": True},
             "second_phone_number": {"required": False, "allow_null": True},
             "institutional_email": {"required": False, "allow_null": True},
             "profile_picture": {"required": False, "allow_null": True},
         }
+
+    def create(self, validated_data):
+        # Al crear: sacamos la contraseña y la guardamos HASHEADA
+        password = validated_data.pop("password", None)
+        user = User(**validated_data)
+        if password:
+            user.set_password(password)   # hashea
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        # Al actualizar: si viene contraseña, también se hashea
+        password = validated_data.pop("password", None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance

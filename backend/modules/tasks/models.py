@@ -1,7 +1,7 @@
 # Modelo del modulo tasks (Tareas).
 
 from django.db import models
-from modules.users.models import User
+from django.conf import settings
 
 
 class Task(models.Model):
@@ -18,7 +18,7 @@ class Task(models.Model):
 
     # FK al usuario al que le pertenece la tarea — obligatorio segun diccionario
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.RESTRICT,  # No se puede borrar usuario si tiene tareas
         null=False
     )

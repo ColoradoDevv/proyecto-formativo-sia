@@ -1,7 +1,7 @@
 # Modelos de inventario (productos).
 
 from django.db import models
-from modules.users.models import User
+from django.conf import settings   # para referenciar el modelo de usuario personalizado definido en settings.py
 
 
 class Brand(models.Model):
@@ -35,7 +35,7 @@ class ConsumableMaterial(models.Model):
 
     # FK al usuario responsable - obligatorio segun diccionario
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.RESTRICT,
         null=False
     )

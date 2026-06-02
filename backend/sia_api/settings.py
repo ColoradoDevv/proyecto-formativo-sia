@@ -10,6 +10,7 @@
 import os
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -65,6 +66,8 @@ INSTALLED_APPS = [
     'modules.returns',
     'modules.tasks',
 ]
+
+AUTH_USER_MODEL = "users.User"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -134,9 +137,17 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 REST_FRAMEWORK={
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
-    'DEFAULT_AUTHENTICATION_CLASSES': [],
-    'DEFAULT_PERMISSION_CLASSES': [],
+        'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+
+        # Quien valida el token en cada peticion 
+        'DEFAULT_AUTHENTICATION_CLASSES': [
+            'modules.users.authentication.JWTAuthentication',
+        ],
+
+        # Por defecto, TODAS las rutas exigen estar autenticado
+        'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.IsAuthenticated',
+        ],
 
 }
 
@@ -145,6 +156,7 @@ REST_FRAMEWORK={
 CORS_ALLOWED_ORIGINS = _split_env_list(
     os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
 )
+
 # Origenes confiables para CSRF en formularios y POST.
 # Si faltan, Django puede responder 403.
 CSRF_TRUSTED_ORIGINS = _split_env_list(
