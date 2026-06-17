@@ -36,7 +36,10 @@ export default function TabBar() {
         </Tab.List>
 
         <Tab.Panels className="mt-6 px-6">
-          <Tab.Panel>Contenido de Editar Perfil</Tab.Panel>
+          <Tab.Panel>
+            Contenido de Editar Perfil
+            
+              </Tab.Panel>
           <Tab.Panel>
             <TmHomePage/>
           </Tab.Panel>
