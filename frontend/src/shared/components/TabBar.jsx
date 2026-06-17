@@ -1,5 +1,6 @@
 import { Tab } from '@headlessui/react';
 import  TmHomePage  from "../../features/trademarks/pages/TmHomePage";
+import {AccessPage} from "@/features/access"
 
 
 
@@ -42,7 +43,7 @@ export default function TabBar() {
 
 
 
-          <Tab.Panel> </Tab.Panel>
+          <Tab.Panel> <AccessPage/> </Tab.Panel>
         </Tab.Panels> 
       </Tab.Group>
     </div>
