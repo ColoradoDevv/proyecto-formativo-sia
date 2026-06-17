@@ -31,7 +31,7 @@ export default function UserDetailView() {
 
                     <div className="flex flex-col gap-1 flex-1 text-center sm:text-left">
                         <h3 className="text-lg font-bold">{user.name}</h3>
-                        <span className="text-sm text-text-muted">{user.role ?? "Sin rol"}</span>
+                        <span className="text-sm text-text-muted">{user.groups && user.groups.length > 0 ? user.groups.map(g => g.name).join(", ") : "Sin grupo"}</span>
                         <span className={`mt-1 w-fit px-3 py-0.5 rounded-full text-xs font-medium ${user.is_active !== false ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
                             {user.is_active !== false ? "Activo" : "Inactivo"}
                         </span>
@@ -85,9 +85,9 @@ export default function UserDetailView() {
 
                 {/* Card de información del sistema */}
                 <DetailCard title="Información del Sistema">
-                    <DetailField    
-                        label="Tipo de usuario"         
-                        value={user.role}   
+                    <DetailField
+                        label="Tipo de usuario"
+                        value={user.groups && user.groups.length > 0 ? user.groups.map(g => g.name).join(", ") : "Sin grupo"}
                     />
                     <DetailField    
                         label="Estado"                  

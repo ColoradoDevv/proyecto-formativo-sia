@@ -65,13 +65,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     )
     document_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
 
-    role = models.ForeignKey(
-        Role,
-        on_delete=models.SET_NULL,   # si se borra el rol, el usuario no se borra
-        null=True,
-        blank=True
-    )
-
     # --- Fechas de vinculacion ---
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)

@@ -98,7 +98,9 @@ export default function UserDetailView() {
                 <DetailCard title="Información del Sistema">
                     <DetailField
                         label="Tipo de usuario"
-                        value={user.role?.name ?? "Sin rol"}
+                        value={user.groups && user.groups.length > 0
+                            ? user.groups.map(g => g.name).join(", ")
+                            : "Sin grupo asignado"}
                         />
                     <DetailField
                         label="Estado"

@@ -4,7 +4,7 @@ import { Button, IconButton, Input, SelectInput, ConfirmCancelModal } from "@/sh
 import EditCard from "./EditCard.jsx";
 import { Undo2, Pencil, UserRound } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
-import { getDocumentTypes, getUserRoles } from "../../services/selectServices";
+import { getDocumentTypes, getUserGroups } from "../../services/selectServices";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -19,10 +19,10 @@ export default function UserEditView() {
     const { user, loading, error } = useUser(id);
 
     const [documentTypes, setDocumentTypes] = useState([]);
-    const [roles,         setRoles]         = useState([]);
+    const [groups,        setGroups]        = useState([]);
 
     useEffect(() => { getDocumentTypes().then(setDocumentTypes); }, []);
-    useEffect(() => { getUserRoles().then(setRoles);             }, []);
+    useEffect(() => { getUserGroups().then(setGroups);           }, []);
 
     if (loading)
         return (
@@ -33,11 +33,11 @@ export default function UserEditView() {
 
     if (error) return <p>Error al cargar usuario: {error.message}</p>;
 
-    return <UserEditForm user={user} documentTypes={documentTypes} roles={roles} />;
+    return <UserEditForm user={user} documentTypes={documentTypes} groups={groups} />;
 }
 
 // Componente interno: recibe user ya cargado e inicializa el estado directamente
-function UserEditForm({ user, documentTypes, roles }) {
+function UserEditForm({ user, documentTypes, groups }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
@@ -54,7 +54,7 @@ function UserEditForm({ user, documentTypes, roles }) {
         address:            user.address             ?? "",
         documentType:       user.document_type?.id   != null ? String(user.document_type.id) : "",
         documentNumber:     user.document_number     ?? "",
-        role:               user.role?.id            != null ? String(user.role.id)           : "",
+        groups:             user.groups && user.groups.length > 0 ? user.groups.map(g => String(g.id)) : [],
         isActive:           user.is_active           != null ? String(user.is_active)          : "true",
         startDate:          user.start_date          ?? "",
         endDate:            user.end_date            ?? "",
@@ -222,11 +222,12 @@ function UserEditForm({ user, documentTypes, roles }) {
                     <EditCard title="Información del Sistema">
                         <SelectInput
                             label="Tipo de usuario"
-                            name="role"
-                            options={roles}
-                            value={formData.role}
+                            name="groups"
+                            options={groups}
+                            value={formData.groups}
                             onChange={handleChange}
                             required
+                            multiple
                         />
                         <SelectInput
                             label="Estado"

@@ -8,6 +8,7 @@ from rest_framework import serializers
 from .models import User
 from .models import Role
 from .models import DocumentType
+from modules.permissions.models import Group
 
 class RoleSerializer(serializers.ModelSerializer):
     # Serializer para el modelo Role.
@@ -24,10 +25,17 @@ class DocumentTypeSerializer(serializers.ModelSerializer):
             "description": {"required": False, "allow_null": True},
         }        
 
+class UserGroupSerializer(serializers.Serializer):
+    """Serializer para mostrar los grupos de un usuario"""
+    id = serializers.IntegerField(source='group.id')
+    name = serializers.CharField(source='group.name')
+
+
 class UserSerializer(serializers.ModelSerializer):
     # Para leer - devuelve el objeto completo en GET
     role = RoleSerializer(read_only=True)
     document_type = DocumentTypeSerializer(read_only=True)
+    groups = UserGroupSerializer(source='user_groups', many=True, read_only=True)
 
     # Para escribir - acepta solo el ID en POST
     role_id = serializers.PrimaryKeyRelatedField(

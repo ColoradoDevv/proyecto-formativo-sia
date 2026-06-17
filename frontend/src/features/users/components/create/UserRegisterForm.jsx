@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDocumentTypes, getUserRoles} from "../../services/selectServices";
+import { getDocumentTypes, getUserGroups} from "../../services/selectServices";
 import {Input, Button, SelectInput, ProfileFileInput, ConfirmCancelModal} from "@/shared";
 import UserTaskModal from "./UserTaskModal";
 import { userSchema } from "../../schemas/userSchema";
@@ -22,7 +22,7 @@ export default function UserRegisterForm(){
         userInstitutionalEmail: "",
         userProfile: [],
         userDocumentType: "",
-        userRole: "",
+        userGroups: [],
         userDocumentNumber: "",
         userStartDate: "",
         userEndDate: "",
@@ -41,9 +41,9 @@ export default function UserRegisterForm(){
         getDocumentTypes().then(setDocumentTypes);
     }, []);
 
-    const [userRoles, setUserRoles] = useState([]);
+    const [userGroups, setUserGroups] = useState([]);
     useEffect(() => {
-        getUserRoles().then(setUserRoles);
+        getUserGroups().then(setUserGroups);
     }, []);
 
     const handleChange = (e) => {
@@ -143,12 +143,13 @@ export default function UserRegisterForm(){
                             />
                             <SelectInput
                                 label="Tipo de Usuario"
-                                name="userRole"
-                                options={userRoles}
-                                value={formData.userRole}
+                                name="userGroups"
+                                options={userGroups}
+                                value={formData.userGroups}
                                 onChange={handleChange}
-                                error={errors.userRole}
+                                error={errors.userGroups}
                                 required
+                                multiple
                             />
 
                             <Input

@@ -25,6 +25,7 @@ urlpatterns = [
     path('docs/', include_docs_urls(title="SIA API")),
     path("", include("modules.home.urls")),
     path("api/users/", include("modules.users.urls")),
+    path("api/permissions/", include("modules.permissions.urls")),
     path("api/products/", include("modules.products.urls")),
     path("api/loans/", include("modules.loans.urls")),
     path("api/returns/", include("modules.returns.urls")),
