@@ -1,10 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, IconButton } from "@/shared";
-import DetailCard from "../components/detail/DetailCard";
-import DetailField from "../components/detail/DetailField";
+import DetailCard from "../../components/detail/DetailCard";
+import DetailField from "../../components/detail/DetailField";
 import { Undo2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getBrandById } from "../services/brandService";
+import { getBrandById } from "../../services/brandService";
 import { TailChase } from "ldrs/react";
 
 export default function BrandDetailPage() {
