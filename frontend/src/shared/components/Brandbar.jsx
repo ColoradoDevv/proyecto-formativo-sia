@@ -19,7 +19,7 @@ export default function Brandbar({
     border-2
     bg-background
     px-10 text-medium
-    font-medium text-text-primary transition-colors duration-200 
+    font-medium text-text-primary transition-colors duration-[var(--duration-base)]
     hover:bg-surface-muted
     focus:outline-none active:outline-none
     

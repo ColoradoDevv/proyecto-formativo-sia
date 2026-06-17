@@ -20,17 +20,17 @@ export default function ConfirmCancelModal({
             />
 
             {/* Glass card */}
-            <div className="relative z-10 w-full max-w-sm mx-4 bg-white/30 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-5">
+            <div className="relative z-10 w-full max-w-sm mx-4 bg-white/30 backdrop-blur-2xl border border-white/50 rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-8 flex flex-col items-center gap-5">
 
                 {/* Icon ring */}
-                <div className="w-16 h-16 rounded-full bg-white/30 border border-white/50 flex items-center justify-center shadow-inner">
+                <div className="w-16 h-16 rounded-[var(--radius-full)] bg-white/30 border border-white/50 flex items-center justify-center shadow-inner text-text-primary">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="32"
                         height="32"
                         viewBox="0 0 24 24"
                         fill="none"
-                        stroke="#0C2D48"
+                        stroke="currentColor"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -43,10 +43,10 @@ export default function ConfirmCancelModal({
 
                 {/* Text */}
                 <div className="text-center flex flex-col gap-1">
-                    <h2 className="text-lg font-bold text-[#0C2D48]">
+                    <h2 className="text-h3 font-heading text-text-primary">
                         {title}
                     </h2>
-                    <p className="text-sm text-[#526B7B]">
+                    <p className="text-small text-text-secondary">
                         {message}
                     </p>
                 </div>
@@ -59,14 +59,14 @@ export default function ConfirmCancelModal({
                     <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 cursor-pointer h-10 rounded-full border border-[#CAD5D3] bg-white/40 text-[#0C2D48] text-sm font-medium transition-colors duration-200 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
+                    className="flex-1 cursor-pointer h-[var(--size-control-md)] rounded-[var(--radius-full)] border border-border bg-white/40 text-text-primary text-small font-medium transition-colors duration-[var(--duration-base)] hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-focus-ring"
                     >
                         {cancelText}
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
-                        className="flex-1 cursor-pointer h-10 rounded-full bg-[#203F57] border border-[#203F57] text-white text-sm font-medium transition-colors duration-200 hover:bg-[#0C2D48] focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
+                        className="flex-1 cursor-pointer h-[var(--size-control-md)] rounded-[var(--radius-full)] bg-brand border border-brand text-text-inverse text-small font-medium transition-colors duration-[var(--duration-base)] hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-focus-ring"
                     >
                         {confirmText}
                     </button>

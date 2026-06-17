@@ -15,17 +15,17 @@ export default function ListUserPage() {
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
-                <TailChase size="40" speed="1.75" color="black"/>
+                <TailChase size="40" speed="1.75" color="var(--semantic-text-primary)"/>
             </div>
         )
 
     if (error) return (
         <div className="h-full flex items-center justify-center">
             <div className="flex items-center gap-3 bg-text-secondary  border border-text-secondary text-text-inverse rounded-lg px-6 py-4 max-w-md">
-                <span className="text-2xl"><CloudAlert/></span>
+                <span className="text-h1"><CloudAlert/></span>
                 <div>
-                    <p className="font-semibold">Error al cargar Usuarios</p>
-                    <p className="text-sm">{error.message}</p>
+                    <p className="font-heading">Error al cargar Usuarios</p>
+                    <p className="text-small">{error.message}</p>
                 </div>
             </div>
         </div>

@@ -16,7 +16,7 @@ export default function Checkbox({
                 flex
                 items-center
                 gap-2
-                text-sm
+                text-small
                 cursor-pointer
                 ${disable ? "opacity-50 cursor-not-allowed" : ""}
                 ${className}

@@ -45,7 +45,7 @@ export default function AccessSidebar({
   return (
     <aside className="w-[350px] space-y-12">
       <section>
-        <h2 className="text-lg font-semibold mb-6">Grupos usuarios</h2>
+        <h2 className="text-h3 font-heading mb-6">Grupos usuarios</h2>
 
 
         <Select
@@ -73,7 +73,7 @@ export default function AccessSidebar({
 
 
       <section>
-        <h2 className="text-lg font-semibold mb-6">Usuario individual</h2>
+        <h2 className="text-h3 font-heading mb-6">Usuario individual</h2>
 
 
         <Select

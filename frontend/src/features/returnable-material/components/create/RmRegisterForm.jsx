@@ -79,15 +79,15 @@ export default function RmRegisterForm() {
             <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
                 <div className="grid grid-cols-3 justify-items-left">
                     <div className="grid gap-2 justify-items-left">
-                        <h1 className="text-xl">Crear Material Devolutivo</h1>
-                        <h1 className="text-sm text-text-muted">
+                        <h1 className="text-h2">Crear Material Devolutivo</h1>
+                        <h1 className="text-small text-text-muted">
                             Acá podrás crear un material devolutivo con los datos correspondientes
                         </h1>
                     </div>
                 </div>
 
                 {serverError && (
-                    <p className="text-red-500 text-sm mt-2">{serverError}</p>
+                    <p className="text-error text-small mt-2">{serverError}</p>
                 )}
 
                 <form noValidate onSubmit={handleSubmit} className="flex flex-col items-center gap-6">
@@ -212,7 +212,7 @@ export default function RmRegisterForm() {
                                 onChange={handleFileChange("rmPhoto")}
                                 error={errors.rmPhoto}
                                 accept="image/*"
-                                className="w-64 h-48"
+                                className="w-[var(--size-field-sm)] h-[var(--size-preview-md)]"
                             />
                             <FileInput
                                 label="Ficha Técnica (Opcional)"
@@ -222,7 +222,7 @@ export default function RmRegisterForm() {
                                 onChange={handleFileChange("rmTechnicalSheet")}
                                 error={errors.rmTechnicalSheet}
                                 accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                className="w-64 h-40"
+                                className="w-[var(--size-field-sm)] h-[var(--size-preview-sm)]"
                             />
                         </div>
                     </div>

@@ -31,7 +31,7 @@ export default function TagInput({
     };
 
     return (
-        <div className="w-[320px]">
+        <div className="w-[var(--size-field-md)]">
             {label && (
                 <label
                     className={`
@@ -47,7 +47,7 @@ export default function TagInput({
                 </label>
             )}
 
-            <div className="flex gap-2 h-14">
+            <div className="flex gap-2 h-[var(--size-control-xl)]">
                 <input
                     type="text"
                     value={inputValue}
@@ -56,24 +56,24 @@ export default function TagInput({
                     placeholder={placeholder}
                     className={`
                         flex-1
-                        h-14
-                        rounded-md
+                        h-[var(--size-control-xl)]
+                        rounded-[var(--radius-md)]
                         border
                         px-4
-                        text-base
+                        text-body
                         bg-surface-hover
                         placeholder:text-text-muted
                         focus:outline-none
                         focus:ring-2
                         focus:ring-focus-ring
                         focus:border-focus-border
-                        ${error ? "border-red-500" : "border-border"}
+                        ${error ? "border-error" : "border-border"}
                     `}
                 />
                 <button
                     type="button"
                     onClick={add}
-                    className="h-14 px-4 rounded-md bg-brand text-white text-medium hover:opacity-90 transition-opacity"
+                    className="h-[var(--size-control-xl)] px-4 rounded-[var(--radius-md)] bg-brand text-text-inverse text-medium hover:opacity-90 transition-opacity"
                 >
                     Agregar
                 </button>

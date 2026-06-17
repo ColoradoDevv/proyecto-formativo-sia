@@ -14,11 +14,11 @@ export default function Button({
     };
 
     const sizes = {
-        sm:  `h-8 px-4 text-small font-medium gap-1
+        sm:  `h-[var(--size-control-xs)] px-4 text-small font-medium gap-1
               before:absolute before:content-['']
               before:-inset-y-[6px] before:-inset-x-[0px]`,
-        md:  `h-10 px-6 text-medium font-medium gap-2 rounded-full`,
-        smm: `h-8 w-64 px-2 text-small
+        md:  `h-[var(--size-control-md)] px-6 text-medium font-medium gap-2 rounded-[var(--radius-full)]`,
+        smm: `h-[var(--size-control-xs)] w-[var(--size-field-sm)] px-2 text-small
               before:absolute before:content-['']
               before:-inset-y-[5px] before:-inset-x-[0px]`,
     };
@@ -30,8 +30,8 @@ export default function Button({
                 relative
                 cursor-pointer
                 inline-flex items-center justify-center
-                rounded-full
-                transition-colors duration-200
+                rounded-[var(--radius-full)]
+                transition-colors duration-[var(--duration-base)]
                 focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2
                 disabled:cursor-not-allowed disabled:opacity-60
                 ${variants[variant]}

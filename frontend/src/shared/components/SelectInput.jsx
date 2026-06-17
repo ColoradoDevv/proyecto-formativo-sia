@@ -33,15 +33,15 @@ export default function SelectInput({
                 className={`
                     relative
                     w-full
-                    h-14
-                    rounded-md
+                    h-[var(--size-control-xl)]
+                    rounded-[var(--radius-md)]
                     border
                     px-8
                     bg-surface-hover
                     focus:outline-none
                     focus:ring-2
                     focus:border-focus-border
-                    ${error ? "border-red-500" : "border-border"}
+                    ${error ? "border-error" : "border-border"}
                     ${!value ? "text-text-muted" : "text-text-primary"}
                 `}
             >

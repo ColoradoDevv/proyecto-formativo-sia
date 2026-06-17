@@ -81,19 +81,19 @@ export default function ReportModal({
             />
 
             {/* Glass card */}
-            <div className="relative z-10 w-full max-w-lg bg-white/30 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-8 flex flex-col gap-6">
+            <div className="relative z-10 w-full max-w-lg bg-white/30 backdrop-blur-2xl border border-white/50 rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-8 flex flex-col gap-6">
 
                 {/* Header */}
                 <div>
-                    <h2 className="text-lg font-bold text-[#0C2D48]">Generar Reporte</h2>
-                    <p className="text-sm text-[#526B7B] mt-0.5">{reportTitle}</p>
+                    <h2 className="text-h3 font-heading text-text-primary">Generar Reporte</h2>
+                    <p className="text-small text-text-secondary mt-0.5">{reportTitle}</p>
                 </div>
 
                 <div className="w-full h-px bg-white/40" />
 
                 {/* Format selector */}
                 <div>
-                    <p className="text-sm font-semibold text-[#0C2D48] mb-3">
+                    <p className="text-small font-semibold text-text-primary mb-3">
                         Formato de exportación
                     </p>
                     <div className="flex gap-3">
@@ -102,10 +102,10 @@ export default function ReportModal({
                                 key={value}
                                 type="button"
                                 onClick={() => setFormat(value)}
-                                className={`flex-1 inline-flex items-center justify-center gap-2 h-10 rounded-full text-sm font-medium border transition-colors duration-200 cursor-pointer
+                                className={`flex-1 inline-flex items-center justify-center gap-2 h-[var(--size-control-md)] rounded-[var(--radius-full)] text-small font-medium border transition-colors duration-[var(--duration-base)] cursor-pointer
                                     ${format === value
-                                        ? "bg-[#203F57] border-[#203F57] text-white"
-                                        : "bg-white/40 border-[#CAD5D3] text-[#0C2D48] hover:bg-white/60"
+                                        ? "bg-brand border-brand text-text-inverse"
+                                        : "bg-white/40 border-border text-text-primary hover:bg-white/60"
                                     }`}
                             >
                                 <Icon size={15} />
@@ -117,9 +117,9 @@ export default function ReportModal({
 
                 {/* Field selection */}
                 <div>
-                    <p className="text-sm font-semibold text-[#0C2D48] mb-3">
+                    <p className="text-small font-semibold text-text-primary mb-3">
                         Campos a incluir{" "}
-                        <span className="font-normal text-[#526B7B]">
+                        <span className="font-body text-text-secondary">
                             ({selectedFields.length} de {fields.length})
                         </span>
                     </p>
@@ -129,13 +129,13 @@ export default function ReportModal({
                             return (
                                 <label
                                     key={field.key}
-                                    className="flex items-center gap-2 text-sm text-[#0C2D48] cursor-pointer select-none"
+                                    className="flex items-center gap-2 text-small text-text-primary cursor-pointer select-none"
                                 >
                                     <input
                                         type="checkbox"
                                         checked={checked}
                                         onChange={() => handleToggleField(field)}
-                                        className="w-4 h-4 rounded accent-[#203F57]"
+                                        className="w-4 h-4 rounded accent-brand"
                                     />
                                     {field.label}
                                 </label>
@@ -146,7 +146,7 @@ export default function ReportModal({
 
                 {/* Scope filter */}
                 <div>
-                    <p className="text-sm font-semibold text-[#0C2D48] mb-3">Registros</p>
+                    <p className="text-small font-semibold text-text-primary mb-3">Registros</p>
                     <div className="flex gap-3 mb-3">
                         {[
                             { value: "all",    label: "Todos" },
@@ -156,10 +156,10 @@ export default function ReportModal({
                                 key={value}
                                 type="button"
                                 onClick={() => setScope(value)}
-                                className={`flex-1 h-9 rounded-full text-sm font-medium border transition-colors duration-200 cursor-pointer
+                                className={`flex-1 h-[var(--size-control-sm)] rounded-[var(--radius-full)] text-small font-medium border transition-colors duration-[var(--duration-base)] cursor-pointer
                                     ${scope === value
-                                        ? "bg-[#203F57] border-[#203F57] text-white"
-                                        : "bg-white/40 border-[#CAD5D3] text-[#0C2D48] hover:bg-white/60"
+                                        ? "bg-brand border-brand text-text-inverse"
+                                        : "bg-white/40 border-border text-text-primary hover:bg-white/60"
                                     }`}
                             >
                                 {label}
@@ -173,7 +173,7 @@ export default function ReportModal({
                             value={filterValue}
                             onChange={(e) => setFilterValue(e.target.value)}
                             placeholder="Texto a buscar en los registros…"
-                            className="w-full h-10 rounded-full border border-[#CAD5D3] bg-white/40 px-4 text-sm text-[#0C2D48] placeholder-[#AFBCBF] focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
+                            className="w-full h-[var(--size-control-md)] rounded-[var(--radius-full)] border border-border bg-white/40 px-4 text-small text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-focus-ring"
                         />
                     )}
                 </div>
@@ -185,7 +185,7 @@ export default function ReportModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex-1 cursor-pointer h-10 rounded-full border border-[#CAD5D3] bg-white/40 text-[#0C2D48] text-sm font-medium transition-colors duration-200 hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-[#AFBCBF]"
+                        className="flex-1 cursor-pointer h-[var(--size-control-md)] rounded-[var(--radius-full)] border border-border bg-white/40 text-text-primary text-small font-medium transition-colors duration-[var(--duration-base)] hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-focus-ring"
                     >
                         Cancelar
                     </button>
@@ -193,7 +193,7 @@ export default function ReportModal({
                         type="button"
                         onClick={handleGenerate}
                         disabled={selectedFields.length === 0}
-                        className="flex-1 cursor-pointer h-10 rounded-full bg-[#203F57] border border-[#203F57] text-white text-sm font-medium transition-colors duration-200 hover:bg-[#0C2D48] focus:outline-none focus:ring-2 focus:ring-[#AFBCBF] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 cursor-pointer h-[var(--size-control-md)] rounded-[var(--radius-full)] bg-brand border border-brand text-text-inverse text-small font-medium transition-colors duration-[var(--duration-base)] hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Generar reporte
                     </button>

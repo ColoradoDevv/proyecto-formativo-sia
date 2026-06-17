@@ -18,7 +18,7 @@ export default function UserDetailView() {
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
-                <TailChase size="40" speed="1.75" color="black"/>
+                <TailChase size="40" speed="1.75" color="var(--semantic-text-primary)"/>
             </div>
         )
 
@@ -34,7 +34,7 @@ export default function UserDetailView() {
                 </IconButton>
                 <div>
                     <h2 className="text-h3">Visualizar Usuario</h2>
-                    <p className="text-sm text-text-muted">Información completa en modo solo lectura.</p>
+                    <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
                 </div>
             </div>
 
@@ -60,10 +60,10 @@ export default function UserDetailView() {
                     />
                     {/* Col 3: foto de perfil */}
                     <div className="flex items-center justify-center">
-                        <div className="w-20 h-20 rounded-full overflow-hidden border border-border bg-surface-muted flex items-center justify-center shrink-0">
+                        <div className="w-20 h-20 rounded-[var(--radius-full)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center shrink-0">
                             {user.profilePicture
                                 ? <img src={user.profilePicture} alt={user.first_name} className="w-full h-full object-cover" />
-                                : <span className="text-xl font-semibold text-text-muted">{(user.first_name ?? "?")[0].toUpperCase()}</span>
+                                : <span className="text-h2 font-heading text-text-muted">{(user.first_name ?? "?")[0].toUpperCase()}</span>
                             }
                         </div>
                     </div>

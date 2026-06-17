@@ -5,9 +5,9 @@ export default function DetailCard({ title }) {
   return (
     <div
       className="grid grid-cols-2 gap-1
-         p-4 rounded-2xl border border-border bg-surface-hover justify-items items-end"
+         p-4 rounded-[var(--radius-2xl)] border border-border bg-surface-hover justify-items items-end"
     >
-      <h3 className="text-sm font-semibold ">{title}</h3>
+      <h3 className="text-small font-heading ">{title}</h3>
 
       <div className="flex gap-4 justify-self-end">  
         <Pencil size={18} />

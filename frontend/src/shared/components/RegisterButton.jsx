@@ -9,9 +9,9 @@ export default function RegisterButton({
     ...props
 }) {
     const baseClassName = `
-        inline-flex h-10 items-center gap-2 rounded-full
+        inline-flex h-[var(--size-control-md)] items-center gap-2 rounded-[var(--radius-full)]
         bg-brand-soft px-6 text-medium font-medium text-text-primary
-        transition-colors duration-200 hover:bg-brand-soft-hover
+        transition-colors duration-[var(--duration-base)] hover:bg-brand-soft-hover
         focus:outline-none active:outline-none
         ${className}
     `.trim();

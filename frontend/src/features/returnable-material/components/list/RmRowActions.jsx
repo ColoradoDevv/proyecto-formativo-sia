@@ -23,7 +23,7 @@ export default function RmRowActions({ Rm }) {
             </IconButton>
 
             <Dropdown>
-                <DropdownTrigger className="inline-flex justify-center items-center w-8 h-8 rounded-full text-text-secondary hover:bg-surface-muted transition-colors duration-200">
+                <DropdownTrigger className="inline-flex justify-center items-center w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] rounded-[var(--radius-full)] text-text-secondary hover:bg-surface-muted transition-colors duration-[var(--duration-base)]">
                     <EllipsisVertical size={16} />
                 </DropdownTrigger>
 

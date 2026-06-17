@@ -2,12 +2,12 @@ import { forwardRef } from "react";
 import { Search, X, LoaderCircle } from "lucide-react";
 import clsx from "clsx";
 
-const baseStyles = "search flex items-center rounded-full px-4 transition-all border";
+const baseStyles = "search flex items-center rounded-[var(--radius-full)] px-4 transition-all border";
 
 const sizeStyles = {
-    sm: "h-9 text-small",
-    md: "h-14 text-body",
-    lg: "h-16 text-body",
+    sm: "h-[var(--size-control-sm)] text-small",
+    md: "h-[var(--size-control-xl)] text-body",
+    lg: "h-[var(--size-control-2xl)] text-body",
 };
 
 const variantStyles = {
@@ -60,7 +60,7 @@ const SearchField = forwardRef(
                     fullWidth && "w-full",
                     disabled && "opacity-60 pointer-events-none",
                     error
-                        ? "border-red-500 focus-within:ring-2 focus-within:ring-red-500"
+                        ? "border-error focus-within:ring-2 focus-within:ring-error"
                         : "focus-within:ring-2 focus-within:ring-focus-ring",
                     className,
                 )}

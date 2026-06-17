@@ -1,23 +1,24 @@
 export default function Card ( { product } ){
     const { tittle, price, description, image } = product;
     return (
+
         <div className="
-            w-80
+            w-[var(--size-field-md)]
             text-text-inverse
-            dark:bg-neutral-950/80 
+            dark:bg-background-inverse
             border border-border
-            backdrop-blur-[2px] 
-            shadow-lg 
-            rounded-2xl 
-            overflow-hidden 
-            hover:shadow-black 
-            transition-shadow 
-            duration-700 
+            backdrop-blur-[2px]
+            shadow-[var(--shadow-elevation-3)]
+            rounded-[var(--radius-2xl)]
+            overflow-hidden
+            hover:shadow-[var(--shadow-elevation-4)]
+            transition-shadow
+            duration-[var(--duration-lazy)]
         ">
-            <img 
-                src={image} 
+            <img
+                src={image}
                 alt={tittle}
-                className="w-full h-48 object-contain" 
+                className="w-full h-48 object-contain"
             />
 
             <div className="p-5">
