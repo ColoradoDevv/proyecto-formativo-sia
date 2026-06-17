@@ -1,3 +1,8 @@
+import { useNavigate } from "react-router-dom";
+import { Button, SearchField } from '@/shared';
+import DetailCard from '../components/detail/DetailCard';
+import { Funnel, Plus, ArrowLeft, ArrowRight } from "lucide-react";
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, SearchField, IconButton } from '@/shared';
@@ -7,46 +12,7 @@ import { TailChase } from 'ldrs/react';
 import { CloudAlert } from 'lucide-react';
 
 export default function TmHomePage() {
-  const { brands, loading, error } = useBrands();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(0);
-  const itemsPerPage = 8;
-
-  if (loading)
-    return (
-      <div className="h-full flex items-center justify-center">
-        <TailChase size="40" speed="1.75" color="var(--semantic-text-primary)" />
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="flex items-center gap-3 bg-text-secondary border border-text-secondary text-text-inverse rounded-lg px-6 py-4 max-w-md">
-          <span className="text-h1"><CloudAlert /></span>
-          <div>
-            <p className="font-heading">Error al cargar Marcas</p>
-            <p className="text-small">{error.message}</p>
-          </div>
-        </div>
-      </div>
-    );
-
-  const filteredBrands = brands.filter(brand =>
-    brand.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredBrands.length / itemsPerPage);
-  const startIdx = currentPage * itemsPerPage;
-  const paginatedBrands = filteredBrands.slice(startIdx, startIdx + itemsPerPage);
-
-  const handlePrevPage = () => {
-    if (currentPage > 0) setCurrentPage(currentPage - 1);
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages - 1) setCurrentPage(currentPage + 1);
-  };
+  const navigate = useNavigate();
 
   return (
     <div className="h-full p-6 text-text-primary flex flex-col gap-6">
@@ -58,13 +24,22 @@ export default function TmHomePage() {
           <SearchField
             placeholder="Buscar marca..."
             variant="outlined"
-            value={searchTerm}
-            onChange={setSearchTerm}
-            className="flex-1"
-          />
-          <Link to="/marcas/registrar-marca">
-            <Button className="flex gap-2">
-              <Plus size={18} />
+            
+          />          
+          <div className="space-x-2 justify-self-end">
+            <Button
+              // to="/devolutivos/crear"
+              className="self-start md:self-auto"
+            >
+              Filtrar
+              {/* <Funnerl/> */}
+              <Funnel size={18}/>
+            </Button>
+            <Button
+              // data={Rm}
+              // reportConfig={returnablesReportConfig}
+              className="self-start md:self-auto"
+            >
               Registrar Marca
             </Button>
           </Link>

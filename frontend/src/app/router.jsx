@@ -1,7 +1,7 @@
 // Imports
 
 // Rutas
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 // Imports Auth
 import { LoginPage, ProtectedRoute } from "@/features/auth"
@@ -21,8 +21,7 @@ import { RmHomePage, RmCreatePage, RmDetailPage, RmEditPage } from "@/features/r
 // Imports de Prestamos
 import { LoansHomePage, LoansCreatePage } from "@/features/loans";
 
-// Import de Marcas
-import TmHomePage from "@/features/trademarks/pages/TmHomePage";
+import TmCreatePage from "@/features/trademarks/pages/create/TmCreatePage";
 import { ConfigLayout, MainLayout } from "@/shared";
 
 
@@ -71,7 +70,11 @@ export default function AppRouter() {
                 </Route>
 
                 {/* Marcas */}
-                <Route path="/marcas" element={<TmHomePage />} />
+                <Route path="/marcas" element={<MainLayout />}>
+                    <Route index element={<Navigate to="/configuracion" replace />} />
+                    <Route path="registrar-marca" element={<TmCreatePage />} />
+                </Route>
+
 
                 {/* Configuracion */}
                 <Route path="/configuracion" element={<ConfigLayout />} />

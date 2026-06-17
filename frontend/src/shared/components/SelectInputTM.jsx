@@ -1,4 +1,4 @@
-export default function SelectInput({
+export default function SelectInputTM({
     label,
     name,
     error,
@@ -33,15 +33,15 @@ export default function SelectInput({
                 className={`
                     relative
                     w-full
-                    h-[var(--size-control-xl)]
-                    rounded-[var(--radius-md)]
+                    h-14
+                    rounded-md
                     border
                     px-8
                     bg-surface-hover
                     focus:outline-none
                     focus:ring-2
                     focus:border-focus-border
-                    ${error ? "border-error" : "border-border"}
+                    ${error ? "border-red-500" : "border-border"}
                     ${!value ? "text-text-muted" : "text-text-primary"}
                 `}
             >
