@@ -23,25 +23,25 @@ export default function Input({
                 </label>
             )}
 
-            <div className="relative h-14 flex items-center">
+            <div className="relative h-[var(--size-control-xl)] flex items-center">
                 <input
                     type={type}
                     required={required}
                     className={`
                         relative
                         w-full
-                        h-14
-                        rounded-md
+                        h-[var(--size-control-xl)]
+                        rounded-[var(--radius-md)]
                         border
                         px-4
-                        text-base
+                        text-body
                         bg-surface-hover
                         placeholder:text-text-muted
                         focus:outline-none
                         focus:ring-2
                         focus:ring-focus-ring
                         focus:border-focus-border
-                        ${error ? "border-red-500" : "border-border"}
+                        ${error ? "border-error" : "border-border"}
                     `}
                     {...props}
                 />

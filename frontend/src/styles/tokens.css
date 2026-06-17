@@ -53,6 +53,7 @@
 
     /* Error color */
     --color-error: #E53935;
+    --color-error-soft: #FDE7E7;   /* fondo suave para estados de error/inactivo */
 
     /* Base/Basic color */
     --color-white: #fff;
@@ -69,6 +70,56 @@
     --color-gray-900: #E9E9E9;
     --color-gray-950: #F6F6F6;
 
+
+    /* ===== SHAPE (border-radius) ===== */
+    --radius-none: 0px;
+    --radius-xs:   2px;
+    --radius-sm:   4px;
+    --radius-md:   6px;
+    --radius-lg:   12px;
+    --radius-xl:   16px;
+    --radius-2xl:  20px;
+    --radius-3xl:  24px;
+    --radius-full: 9999px;
+
+    /* ===== CONTROL HEIGHTS ===== */
+    --size-control-xs:  32px;   /* h-8  — botón pequeño */
+    --size-control-sm:  36px;   /* h-9  — search pequeño */
+    --size-control-md:  40px;   /* h-10 — botón mediano */
+    --size-control-lg:  48px;   /* h-12 — input compacto */
+    --size-control-xl:  56px;   /* h-14 — input estándar */
+    --size-control-2xl: 64px;   /* h-16 — search grande */
+
+    /* ===== SWITCH ===== */
+    --size-switch-sm-h: 20px;  --size-switch-sm-w: 36px;  --size-switch-sm-knob: 16px;
+    --size-switch-md-h: 24px;  --size-switch-md-w: 44px;  --size-switch-md-knob: 20px;
+    --size-switch-lg-h: 28px;  --size-switch-lg-w: 56px;  --size-switch-lg-knob: 24px;
+
+    /* ===== ICON BUTTON ===== */
+    --size-icon-sm:  32px;   /* zona de toque pequeña */
+    --size-icon-md:  40px;   /* zona de toque mediana */
+    --size-icon-lg:  48px;   /* zona de toque estándar */
+
+    /* ===== FILE PREVIEW ===== */
+    --size-preview-sm: 160px;  /* h-40 — ficha técnica */
+    --size-preview-md: 192px;  /* h-48 — foto de producto */
+
+    /* ===== FIXED WIDTHS ===== */
+    --size-field-sm:  256px;  /* w-64 — campo/botón estrecho */
+    --size-field-md:  320px;  /* w-80 / w-[320px] — campo estándar */
+
+    /* ===== SHADOW (elevation) ===== */
+    --shadow-1: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-2: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-3: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-4: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-5: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+    /* ===== DURATION ===== */
+    --duration-fast:  150ms;
+    --duration-base:  200ms;
+    --duration-slow:  300ms;
+    --duration-lazy:  700ms;
 
     /* Typography */
     --main-font: 'Work Sans', Helvetica, Arial;

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 export default function Navbar({ onToggleSidebar }) {
     return (
-        <div className="bg-surface-hover px-4 sm:px-6 border-b border-border flex items-center text-text-primary h-16 shrink-0">
+        <div className="bg-surface-hover px-4 sm:px-6 border-b border-border flex items-center text-text-primary h-[var(--size-control-2xl)] shrink-0">
 
             {/* Hamburger — solo visible en móvil/tablet */}
             {onToggleSidebar && (
@@ -19,7 +19,7 @@ export default function Navbar({ onToggleSidebar }) {
             )}
 
             {/* Título */}
-            <h1 className="text-h2 font-heading font-semibold flex-1 truncate">
+            <h1 className="text-h2 font-heading flex-1 truncate">
                 SIA - Inventario Teleínformatica
             </h1>
 

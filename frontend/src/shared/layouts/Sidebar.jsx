@@ -61,17 +61,17 @@ export default function Sidebar({ isOpen = false, onClose }) {
                 {/* Backdrop */}
                 <div
                     role="presentation"
-                    className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isOpen ? "opacity-100" : "opacity-0"}`}
+                    className={`absolute inset-0 bg-black/40 transition-opacity duration-[var(--duration-slow)] ${isOpen ? "opacity-100" : "opacity-0"}`}
                     onClick={onClose}
                 />
 
                 {/* Panel deslizante */}
                 <aside
                     className={`
-                        absolute left-0 top-0 h-full w-64
+                        absolute left-0 top-0 h-full w-[var(--size-field-sm)]
                         bg-surface-hover border-r border-border text-text-primary
                         p-5 flex flex-col justify-between
-                        transition-transform duration-300 ease-in-out
+                        transition-transform duration-[var(--duration-slow)] ease-in-out
                         ${isOpen ? "translate-x-0" : "-translate-x-full"}
                     `}
                 >
@@ -92,7 +92,7 @@ export default function Sidebar({ isOpen = false, onClose }) {
             </div>
 
             {/* ── Desktop: sidebar estático ── */}
-            <aside className="hidden lg:flex w-64 bg-surface-hover border-r border-border text-text-primary p-5 flex-col justify-between shrink-0">
+            <aside className="hidden lg:flex w-[var(--size-field-sm)] bg-surface-hover border-r border-border text-text-primary p-5 flex-col justify-between shrink-0">
                 <NavLinks />
             </aside>
         </>

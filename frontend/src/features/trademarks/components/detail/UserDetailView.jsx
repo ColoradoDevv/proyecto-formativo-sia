@@ -13,26 +13,26 @@ export default function UserDetailView() {
         <div className="h-full p-6 text-text-primary flex flex-col gap-6">
             {/* Encabezado */}
             <div className="flex flex-col gap-1">
-                <h2 className="text-h3 font-bold">Visualizar Usuario</h2>
-                <p className="text-sm text-text-muted">Información completa en modo solo lectura.</p>
+                <h2 className="text-h3 font-heading">Visualizar Usuario</h2>
+                <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
 
                 {/* foto + nombre + estado + botón */}
-                <div className="flex flex-col sm:flex-row items-center justify-sm:items-start gap-5 p-5 rounded-2xl border border-border bg-surface-hover">
+                <div className="flex flex-col sm:flex-row items-center justify-sm:items-start gap-5 p-5 rounded-[var(--radius-2xl)] border border-border bg-surface-hover">
 
-                    <div className="w-20 h-20 rounded-full overflow-hidden border border-border bg-surface-muted flex items-center justify-center shrink-0">
+                    <div className="w-20 h-20 rounded-[var(--radius-full)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center shrink-0">
                         {user.profilePicture
                             ? <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
-                            : <span className="text-xl font-semibold text-text-muted">{(user.name ?? "?")[0].toUpperCase()}</span>
+                            : <span className="text-h2 font-heading text-text-muted">{(user.name ?? "?")[0].toUpperCase()}</span>
                         }
                     </div>
 
                     <div className="flex flex-col gap-1 flex-1 text-center sm:text-left">
-                        <h3 className="text-lg font-bold">{user.name}</h3>
-                        <span className="text-sm text-text-muted">{user.groups && user.groups.length > 0 ? user.groups.map(g => g.name).join(", ") : "Sin grupo"}</span>
-                        <span className={`mt-1 w-fit px-3 py-0.5 rounded-full text-xs font-medium ${user.is_active !== false ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        <h3 className="text-h3 font-heading">{user.name}</h3>
+                        <span className="text-small text-text-muted">{user.groups && user.groups.length > 0 ? user.groups.map(g => g.name).join(", ") : "Sin grupo"}</span>
+                        <span className={`mt-1 w-fit px-3 py-0.5 rounded-[var(--radius-full)] text-caption font-medium ${user.is_active !== false ? "bg-success-soft text-success" : "bg-error-soft text-error"}`}>
                             {user.is_active !== false ? "Activo" : "Inactivo"}
                         </span>
                     </div>

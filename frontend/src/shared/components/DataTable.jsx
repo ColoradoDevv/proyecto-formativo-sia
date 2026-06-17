@@ -81,7 +81,7 @@ export default function DataTable({ data, columns }) {
         <select
           value={table.getState().pagination.pageSize}
           onChange={(e) => table.setPageSize(Number(e.target.value))}
-          className="border rounded px-2 py-2 bg-white"
+          className="border border-border rounded px-2 py-2 bg-surface-hover"
         >
           {[5, 10, 20, 30, 50].map((size) => (
             <option key={size} value={size}>
@@ -202,7 +202,7 @@ export default function DataTable({ data, columns }) {
 
         {/* ================== IR A PÁGINA ================== */}
         {/* Permite navegar directamente a una página específica */}
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-small">
           <span>Ir a página:</span>
 
           <input

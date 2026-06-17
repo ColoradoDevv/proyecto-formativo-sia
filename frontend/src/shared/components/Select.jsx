@@ -9,7 +9,7 @@ export default function Select({
     return(
         <div
             className="
-                w-80
+                w-[var(--size-field-md)]
             "
         >
             {label && (
@@ -29,7 +29,7 @@ export default function Select({
                 name={name}
                 className="
                     w-full
-                    h-14
+                    h-[var(--size-control-xl)]
                     border
                     border-border
                     px-4

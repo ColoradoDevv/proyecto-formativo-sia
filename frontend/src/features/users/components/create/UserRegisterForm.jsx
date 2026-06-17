@@ -100,7 +100,7 @@ export default function UserRegisterForm(){
                         <h1 className="text-h3">
                             Registro de Usuarios
                         </h1>
-                        <h1 className="text-sm text-text-muted">
+                        <h1 className="text-small text-text-muted">
                             Aca podras registrar a un usuario con los datos correspondientes
                         </h1>
                     </div>
@@ -298,7 +298,7 @@ export default function UserRegisterForm(){
 
                                 {/* Lista de tareas añadidas */}
                                 {formData.userTasks.map((task, i) => (
-                                    <span key={i} className="text-sm text-text-primary bg-surface-muted border border-border rounded-full px-3 py-1 w-fit">
+                                    <span key={i} className="text-small text-text-primary bg-surface-muted border border-border rounded-[var(--radius-full)] px-3 py-1 w-fit">
                                         {task.taskName}
                                     </span>
                                 ))}

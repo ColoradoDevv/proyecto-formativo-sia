@@ -23,7 +23,7 @@ export default function AccessPage() {
 
 
       <div className="flex-1">
-        <h1 className="text-xl font-semibold mb-6">Gestión de permisos</h1>
+        <h1 className="text-h2 font-heading mb-6">Gestión de permisos</h1>
 
 
         <PermissionModule

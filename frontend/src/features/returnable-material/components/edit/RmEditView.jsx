@@ -24,7 +24,7 @@ export default function RmEditView() {
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
-                <TailChase size="40" speed="1.75" color="black" />
+                <TailChase size="40" speed="1.75" color="var(--semantic-text-primary)" />
             </div>
         );
 
@@ -92,7 +92,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                 </IconButton>
                 <div>
                     <h2 className="text-h3">Editar Material Devolutivo</h2>
-                    <p className="text-sm text-text-muted">Modifica la información del material.</p>
+                    <p className="text-small text-text-muted">Modifica la información del material.</p>
                 </div>
             </div>
 
@@ -152,7 +152,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                     {/* Col 3 — foto ocupa fila 1 y 2 */}
                     <div className="row-span-2 flex flex-col items-center justify-center gap-3">
                         <div className="relative">
-                            <div className="size-32 rounded-xl overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                            <div className="size-32 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                                 {photoPreview
                                     ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-cover" />
                                     : <ImageOff size={48} className="text-text-muted" />
@@ -162,7 +162,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 type="button"
                                 aria-label="Cambiar foto del material"
                                 onClick={() => photoInputRef.current.click()}
-                                className="absolute bottom-2 right-2 size-7 bg-brand text-white rounded-full flex items-center justify-center shadow-sm hover:opacity-90 transition-opacity"
+                                className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
                             >
                                 <Pencil size={13} />
                             </button>
@@ -174,7 +174,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 onChange={handlePhotoChange}
                             />
                         </div>
-                        <span className={`px-3 py-0.5 rounded-full text-xs font-medium ${isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                        <span className={`px-3 py-0.5 rounded-[var(--radius-full)] text-caption font-medium ${isActive ? "bg-success-soft text-success" : "bg-error-soft text-error"}`}>
                             {isActive ? "Activo" : "Inactivo"}
                         </span>
                     </div>

@@ -139,12 +139,12 @@ export function DropdownContent({ children, className = "", align = "right" }) {
                 p-2
                 bg-surface-hover/80
                 backdrop-blur-[10px]
-                shadow-lg
-                rounded-sm
+                shadow-[var(--shadow-elevation-3)]
+                rounded-[var(--radius-sm)]
                 overflow-hidden
-                hover:shadow-black/50
+                hover:shadow-[var(--shadow-elevation-4)]
                 transition-shadow
-                duration-700
+                duration-[var(--duration-lazy)]
                 ${className}
             `}
         >

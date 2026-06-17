@@ -72,18 +72,18 @@ export default function LoanRegisterForm() {
             <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
                 <div className="grid grid-cols-3 justify-items-left">
                     <div className="grid gap-2 justify-items-left">
-                        <h1 className="text-xl font-bold">
+                        <h1 className="text-h2 font-heading">
                             Crear Prestamo
                         </h1>
 
-                        <h1 className="text-sm">
+                        <h1 className="text-small">
                             Aca podras crear un prestamo con los datos correspondientes
                         </h1>
                     </div>
                 </div>
 
                 {serverError && (
-                    <p className="text-red-500 text-sm mt-2">{serverError}</p>
+                    <p className="text-error text-small mt-2">{serverError}</p>
                 )}
 
                 <form
