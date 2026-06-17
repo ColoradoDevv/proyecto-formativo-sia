@@ -1,14 +1,8 @@
 import Navbar from '../../../shared/layouts/Navbar';
-import Sidebar from '../../../shared/layouts/Sidebar';
-import Brandbar from '../../../shared/components/Brandbar';
 import { Switch, Button, SearchField } from '@/shared';
 import DetailCard from '../components/detail/DetailCard';
-import DetailField from '../components/detail/DetailField';
 import { Funnel, Plus, ArrowLeft, ArrowRight } from "lucide-react";
-// import { RegisterButton, DownloadReportButton } from "@/shared";
 
-
-// import ListCmPage from "./CmListPage";
 
 export default function TmHomePage() {
   return (

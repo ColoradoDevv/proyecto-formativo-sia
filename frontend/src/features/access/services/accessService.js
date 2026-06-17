@@ -1,9 +1,13 @@
-const API_URL = "http://localhost:4000/api/access";
+
+
+
+
+import { apiFetch } from "@/shared/services/api";
 
 export async function hasPermission(permissionCode) {
     const token = sessionStorage.getItem("token");
 
-    const response = await fetch(`${API_URL}/check/${permissionCode}`, {
+    const response = await fetch(`${apiFetch}/check/${permissionCode}`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
