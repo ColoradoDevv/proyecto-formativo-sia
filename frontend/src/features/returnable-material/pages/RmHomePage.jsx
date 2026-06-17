@@ -1,21 +1,5 @@
-import Navbar from "../../../shared/layouts/Navbar";
-import Sidebar from "../../../shared/layouts/Sidebar";
-import RmListPage from "./RmListPage";
+import RmListPage from "./list/RmListPage";
 
 export default function RmHomePage(){
-    return (
-        <div className="h-screen flex flex-col">
-            <Navbar />
-
-            <div className="flex flex-1">
-                <Sidebar />
-
-                <main className="flex-1 bg-background">
-                    <RmListPage />
-                </main>
-
-            </div>
-
-        </div>
-    );
+    return <RmListPage />;
 }

@@ -1,3 +1,5 @@
+import { apiFetch } from "@/shared/services/api";
+
 // Utilidad para menejar errores HTTP de manera consistente en los servicios de usuario
 const HTTP_ERROR_MESSAGES = {
     400: "400 Solicitud inválida. Verifica los datos enviados.",
@@ -23,14 +25,14 @@ function handleHttpError(response) {
 
 // METODO GET (obtener lista de usuarios)
 export async function getUsers() {
-    const response = await fetch("/api/users/");
+    const response = await apiFetch("/api/users/");
     if (!response.ok) handleHttpError(response);
     return response.json();
 }
 
 // METODO GET (obtener un usuario por su ID)
 export async function getUserById(id) {
-    const response = await fetch(`/api/users/${id}/`);
+    const response = await apiFetch(`/api/users/${id}/`);
     if (!response.ok) handleHttpError(response);
     return response.json();
 }
@@ -59,7 +61,7 @@ export async function createUser(userData) {
     if (userData.userProfile?.[0])
         formData.append("profile_picture", userData.userProfile[0]);
 
-    const response = await fetch("/api/users/", {
+    const response = await apiFetch("/api/users/", {
         method: "POST",
         body: formData,
     });
@@ -70,7 +72,7 @@ export async function createUser(userData) {
 
 // METODO PATCH (activar o desactivar un material)
 export async function toggleUserActive(id, isActive) {
-  const response = await fetch(`/api/users/${id}/`, {
+  const response = await apiFetch(`/api/users/${id}/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ is_active: isActive }),

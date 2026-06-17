@@ -3,6 +3,7 @@ node_modules/
 
 # Claude Code worktrees and internal files
 .claude/
+.vscode/
 .mcp.json
 .CLAUDE.md
 

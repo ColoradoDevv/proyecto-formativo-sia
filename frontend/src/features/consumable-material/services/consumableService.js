@@ -1,4 +1,5 @@
 // Handlers
+import { apiFetch } from "@/shared/services/api";
 
 const HTTP_ERROR_MESSAGES = {
   400: "400 Solicitud inválida. Verifica los datos enviados.",
@@ -26,14 +27,14 @@ function handleHttpError(response) {
 
 // METODO GET (obtener lista de products)
 export async function getCM() {
-  const response = await fetch("/api/products/consumables/");
+  const response = await apiFetch("/api/products/consumables/");
   if (!response.ok) handleHttpError(response);
   return response.json();
 }
 
 // METODO GET (obtener un products por su ID)
 export async function getCMById(id) {
-  const response = await fetch(`/api/products/consumables/${id}/`);
+  const response = await apiFetch(`/api/products/consumables/${id}/`);
   if (!response.ok) handleHttpError(response);
   return response.json();
 }
@@ -61,7 +62,7 @@ export async function createCm(cmData) {
   if (cmData.cmPhoto?.[0])
     formData.append("image", cmData.cmPhoto[0]);
 
-  const response = await fetch("/api/products/consumables/", {
+  const response = await apiFetch("/api/products/consumables/", {
     method: "POST",
     body: formData,
   });
@@ -72,7 +73,7 @@ export async function createCm(cmData) {
 
 // METODO PATCH (activar o desactivar un material)
 export async function toggleCmActive(id, isActive) {
-  const response = await fetch(`/api/products/consumables/${id}/`, {
+  const response = await apiFetch(`/api/products/consumables/${id}/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ is_active: isActive }),

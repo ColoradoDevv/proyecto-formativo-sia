@@ -1,7 +1,7 @@
 # Modelos de inventario (productos).
 
 from django.db import models
-from modules.users.models import User
+from django.conf import settings   # para referenciar el modelo de usuario personalizado definido en settings.py
 
 
 class Brand(models.Model):
@@ -35,7 +35,7 @@ class ConsumableMaterial(models.Model):
 
     # FK al usuario responsable - obligatorio segun diccionario
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.RESTRICT,
         null=False
     )
@@ -54,8 +54,7 @@ class ConsumableMaterial(models.Model):
     # Nombre obligatorio segun diccionario
     name = models.CharField(max_length=100)
 
-    # Imagen obligatoria segun diccionario
-    image = models.ImageField(upload_to='materials/')
+    image = models.ImageField(upload_to='materials/', blank=True, default='')
 
     # Cantidad: obligatoria solo si el material no tiene placa
     quantity = models.IntegerField(null=True)
@@ -107,8 +106,7 @@ class ReturnableMaterial(models.Model):
     # Unico y obligatorio segun diccionario
     serial = models.CharField(max_length=20, unique=True)
 
-    # Ficha tecnica obligatoria segun diccionario
-    technical_sheet = models.FileField(upload_to='specs/')
+    technical_sheet = models.FileField(upload_to='specs/', blank=True, default='')
 
     # Dimensiones: opcional segun diccionario (obligatorio: No)
     dimensions = models.CharField(max_length=100, null=True)

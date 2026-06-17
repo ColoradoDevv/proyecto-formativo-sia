@@ -2,11 +2,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Asterisk } from "lucide-react";
 import { useState } from "react";
 import { loginSchemas } from "../schemas/loginSchemas";
+import { login } from "../services/authService";
 
 export default function LoginForm() {
     const navigate = useNavigate();
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [serverError, setServerError] = useState("");
 
     const [formData, setFormData] = useState({
         userEmail: "",
@@ -21,35 +24,42 @@ export default function LoginForm() {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const result = loginSchemas.safeParse(formData);
+        setServerError("");
 
+        // 1. Validar el formulario con zod
+        const result = loginSchemas.safeParse(formData);
         if (!result.success) {
             const fieldErrors = {};
             result.error.issues.forEach((issue) => {
-                const field = issue.path[0];
-                fieldErrors[field] = issue.message;
+                fieldErrors[issue.path[0]] = issue.message;
             });
             setErrors(fieldErrors);
             return;
         }
-
         setErrors({});
-        navigate("/");
+
+        // 2. Llamar al backend
+        try {
+            setLoading(true);
+            await login(formData.userEmail, formData.userPassword);
+            navigate("/");   // exito -> al inicio
+        } catch (err) {
+            setServerError(err.message);   // ej. "Credenciales inválidas"
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl px-8 py-10 w-[320px]">
-
             <h1 className="text-center text-xl font-semibold mb-7"
-                style={{ color: "var(--color-quaternary-700)" }}
-            >
+                style={{ color: "var(--color-quaternary-700)" }}>
                 Iniciar Sesión
             </h1>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
                 {/* Correo */}
                 <div>
                     <div className="relative">
@@ -59,19 +69,9 @@ export default function LoginForm() {
                             placeholder="Correo Electrónico"
                             value={formData.userEmail}
                             onChange={handleChange}
-                            className={`
-                                w-full h-12 rounded-xl border px-4 pr-10
-                                text-sm text-gray-500 bg-white
-                                focus:outline-none focus:ring-2
-                                focus:ring-[var(--color-quaternary-600)]/40
-                                placeholder:text-gray-400
-                                ${errors.userEmail ? "border-red-400" : "border-gray-200"}
-                            `}
+                            className={`w-full h-12 rounded-xl border px-4 pr-10 text-sm text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-quaternary-600)]/40 placeholder:text-gray-400 ${errors.userEmail ? "border-red-400" : "border-gray-200"}`}
                         />
-                        <Asterisk
-                            size={16}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                        />
+                        <Asterisk size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     </div>
                     {errors.userEmail && (
                         <p className="text-red-500 text-xs mt-1 pl-1">{errors.userEmail}</p>
@@ -87,14 +87,7 @@ export default function LoginForm() {
                             placeholder="Contraseña"
                             value={formData.userPassword}
                             onChange={handleChange}
-                            className={`
-                                w-full h-12 rounded-xl border px-4 pr-10
-                                text-sm text-gray-500 bg-white
-                                focus:outline-none focus:ring-2
-                                focus:ring-[var(--color-quaternary-600)]/40
-                                placeholder:text-gray-400
-                                ${errors.userPassword ? "border-red-400" : "border-gray-200"}
-                            `}
+                            className={`w-full h-12 rounded-xl border px-4 pr-10 text-sm text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-quaternary-600)]/40 placeholder:text-gray-400 ${errors.userPassword ? "border-red-400" : "border-gray-200"}`}
                         />
                         <button
                             type="button"
@@ -109,12 +102,14 @@ export default function LoginForm() {
                     )}
                 </div>
 
+                {/* Error del servidor */}
+                {serverError && (
+                    <p className="text-red-500 text-sm text-center">{serverError}</p>
+                )}
+
                 {/* Olvidó contraseña */}
                 <div className="text-center -mt-1">
-                    <Link
-                        to="/forgot-password"
-                        className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
-                    >
+                    <Link to="/forgot-password" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
                         ¿Olvidó su contraseña?
                     </Link>
                 </div>
@@ -122,19 +117,12 @@ export default function LoginForm() {
                 {/* Botón */}
                 <button
                     type="submit"
-                    className="
-                        w-full h-12 rounded-xl mt-1
-                        text-white font-semibold text-sm
-                        hover:opacity-90 active:scale-[0.98]
-                        transition-all duration-150 shadow-md cursor-pointer
-                    "
-                    style={{
-                        background: `linear-gradient(to right, var(--color-quaternary-600), var(--color-quaternary-950))`
-                    }}
+                    disabled={loading}
+                    className="w-full h-12 rounded-xl mt-1 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 shadow-md cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{ background: `linear-gradient(to right, var(--color-quaternary-600), var(--color-quaternary-950))` }}
                 >
-                    Entrar
+                    {loading ? "Entrando..." : "Entrar"}
                 </button>
-
             </form>
         </div>
     );

@@ -1,7 +1,7 @@
 # Modelos del modulo loans (Prestamos).
 
 from django.db import models
-from modules.users.models import User
+from django.conf import settings # para referenciar el modelo de usuario personalizado definido en settings.py
 from modules.products.models import ConsumableMaterial  # FK a materiales de consumo Y devolutivos
 
 
@@ -12,7 +12,7 @@ class Loans(models.Model):
 
     # id_usuario: FK a tabla Usuario, obligatorio, sin valor por defecto
     id_user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL, # referencia al modelo de usuario definido en settings.py 
         on_delete=models.RESTRICT,
         db_column='id_usuario',
         null=False

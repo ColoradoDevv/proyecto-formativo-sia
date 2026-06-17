@@ -66,24 +66,31 @@ class ConsumableMaterialSerializer(serializers.ModelSerializer):
 
 
 class ReturnableMaterialSerializer(serializers.ModelSerializer):
-    # Serializer para materiales retornables.
-# Para leer
-    brand = BrandSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
-
-    # Para escribir
-    brand_id = serializers.PrimaryKeyRelatedField(
-        queryset=Brand.objects.all(),
-        source='brand',
-        write_only=True,
-        required=False,
-        allow_null=True
-    )
 
     class Meta:
         model = ReturnableMaterial
-        fields = "__all__"
+        fields = ['consumable', 'category', 'model', 'serial', 'technical_sheet', 'dimensions']
         extra_kwargs = {
-            # Solo dimensiones es opcional segun el diccionario
             "dimensions": {"required": False, "allow_null": True},
+            "technical_sheet": {"required": False, "allow_blank": True},
         }
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        c = instance.consumable
+        rep['consumable_id'] = c.id
+        rep['name'] = c.name
+        rep['sena_plate'] = c.sena_plate
+        rep['state'] = c.state
+        rep['quantity'] = c.quantity
+        rep['unit_price'] = str(c.unit_price)
+        rep['total_price'] = str(c.total_price)
+        rep['is_active'] = c.is_active
+        rep['image'] = c.image.url if c.image else None
+        rep['purchase_date'] = str(c.purchase_date) if c.purchase_date else None
+        rep['location'] = c.location
+        rep['description'] = c.description
+        rep['brand'] = BrandSerializer(c.brand).data if c.brand else None
+        rep['user'] = UserMinimalSerializer(c.user).data if c.user else None
+        return rep

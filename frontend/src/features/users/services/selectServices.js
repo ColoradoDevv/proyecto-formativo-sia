@@ -1,5 +1,7 @@
+import { apiFetch } from "@/shared/services/api";
+
 export async function getDocumentTypes(){
-    const response = await fetch("/api/users/document-types/");
+    const response = await apiFetch("/api/users/document-types/");
 
     if (!response.ok) {
         throw new Error(
@@ -18,7 +20,7 @@ export async function getDocumentTypes(){
 }
 
 export async function getUserRoles(){
-    const response = await fetch("/api/users/roles/");
+    const response = await apiFetch("/api/users/roles/");
 
     if (!response.ok) {
         throw new Error(
