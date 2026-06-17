@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
-import { Button, ConfirmCancelModal, Input, } from "@/shared";
+import { Button, ConfirmCancelModal, Input, SelectInputTM, SelectInput } from "@/shared";
 import { apiFetch } from "@/shared/services/api";
 
 export default function TmRegisterForm(){
@@ -75,15 +75,62 @@ export default function TmRegisterForm(){
                     onSubmit={handleSubmit}
                     className="flex flex-col items-center gap-6 mt-4 w-full max-w-xl"
                 >
-                    <Input
-                        label="Nombre de la marca"
-                        name="name"
-                        placeholder="Ingrese el nombre de la marca"
-                        value={formData.name}
-                        onChange={handleChange}
-                        error={errors.name}
-                        required
-                    />
+
+                <div className="grid grid-cols-2 gap-x-16 w-full">
+                        <Input
+                            label="Nombre de la marca"
+                            name="name"
+                            placeholder="Ej: Asus, Hp, Dell"
+                            value={formData.name}
+                            onChange={handleChange}
+                            error={errors.name}
+                            required
+                        />
+
+                        <SelectInputTM
+                                    label="Categoria"
+                                    name="rmState"
+                                    // options={states}
+                                    value={formData.rmState}
+                                    onChange={handleChange}
+                                    error={errors.rmState}
+                                    required
+                                />
+
+                        <SelectInputTM
+                                    label="Modulo"
+                                    name="rmState"
+                                    // options={states}
+                                    value={formData.rmState}
+                                    onChange={handleChange}
+                                    error={errors.rmState}
+                                    required
+                                />
+
+                        <SelectInputTM
+                                    label="Estado"
+                                    name="rmState"
+                                    // options={states}
+                                    value={formData.rmState}
+                                    onChange={handleChange}
+                                    error={errors.rmState}
+                                    required
+                                />
+                        </div>
+                        
+                        <div className="grid grid-col justify-items-stretch">
+                        <Input
+                            label="Uso o descripcion"
+                            name="name"
+                            placeholder="Ej: Portatiles y equipos de computo"
+                            value={formData.name}
+                            onChange={handleChange}
+                            error={errors.name}
+                            required
+                        />
+                    </div>
+
+
 
                     <div className="flex gap-4">
                         <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>
