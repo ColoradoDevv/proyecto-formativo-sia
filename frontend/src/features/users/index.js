@@ -1,4 +1,4 @@
-export { default as UserCreatePage } from "./pages/UserCreatePage"
+export { default as UserCreatePage } from "./pages/create/UserCreatePage"
 export { default as UserHomePage } from "./pages/UserHomePage"
-export { default as UserDetailPage } from "./pages/UserDetailPage"
-export { default as UserEditPage } from "./pages/UserEditPage"
+export { default as UserDetailPage } from "./pages/detail/UserDetailPage"
+export { default as UserEditPage } from "./pages/edit/UserEditPage"

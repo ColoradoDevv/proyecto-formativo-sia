@@ -1,26 +1,5 @@
-// import DataTable from "@/shared/components/DataTable";
-// import { materialColumns } from "../table/materialColumns.jsx";
-// import { materials } from "../data/materials/materials.js";
-import Navbar from "../../../shared/layouts/Navbar";
-import Sidebar from "../../../shared/layouts/Sidebar";
-import ListCmPage from "./CmListPage";
-
+import ListCmPage from "./list/CmListPage";
 
 export default function CmHomePage(){
-    return (
-        <div className="h-screen flex flex-col">
-            <Navbar />
-
-            <div className="flex flex-1">
-                <Sidebar />
-
-                <main className="flex-1 bg-background">
-                    <ListCmPage />
-                </main>
-
-            </div>
-            
-
-        </div>
-    );
+    return <ListCmPage />;
 }
