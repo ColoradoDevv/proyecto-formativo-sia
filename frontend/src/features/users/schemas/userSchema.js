@@ -26,9 +26,9 @@ export const userSchema = z.object({
         .min(5, "Número de documento inválido")
         .max(15, "Número de documento demasiado largo"),
 
-    userRole: z
-        .string()
-        .min(1, "Debe seleccionar un tipo de usuario"),
+    userGroups: z
+        .array(z.string())
+        .min(1, "Debe seleccionar al menos un grupo"),
 
     userStartDate: z
         .string()

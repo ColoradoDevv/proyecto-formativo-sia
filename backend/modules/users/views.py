@@ -33,7 +33,7 @@ class LoginView(APIView):
 
         # 2. Buscar el usuario por email
         try:
-            user = User.objects.select_related("role").get(email=email)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response(
                 {"error": "Credenciales inválidas"},
@@ -66,6 +66,14 @@ class LoginView(APIView):
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
         # 7. Devolver el token y algunos datos utiles para el frontend
+        # Obtener el primer grupo del usuario (si tiene)
+        user_groups = user.user_groups.all()
+        primary_group = user_groups.first().group.name if user_groups.exists() else None
+
+        # Si es superusuario, asignarlo al grupo SADMIN
+        if user.is_superuser and not primary_group:
+            primary_group = "SADMIN"
+
         return Response({
             "token": token,
             "user": {
@@ -73,7 +81,8 @@ class LoginView(APIView):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "role": user.role.name if user.role else None,
+                "role": primary_group,  # Devuelve el nombre del grupo principal
+                "groups": [g.group.name for g in user_groups],  # Lista todos los grupos
             },
         })
 

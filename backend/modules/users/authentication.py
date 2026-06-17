@@ -31,7 +31,7 @@ class JWTAuthentication(BaseAuthentication):
 
         # 4. Buscar al usuario que dice el token
         try:
-            user = User.objects.select_related("role").get(id=payload["user_id"])
+            user = User.objects.get(id=payload["user_id"])
         except User.DoesNotExist:
             raise AuthenticationFailed("Usuario no encontrado")
 

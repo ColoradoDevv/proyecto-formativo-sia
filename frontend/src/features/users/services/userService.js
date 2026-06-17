@@ -50,7 +50,6 @@ export async function createUser(userData) {
     formData.append("address", userData.userAddress);
     formData.append("start_date", userData.userStartDate);
     formData.append("end_date", userData.userEndDate);
-    formData.append("role_id", userData.userRole);
 
     if (userData.userAdditionalPhone)
         formData.append("second_phone_number", userData.userAdditionalPhone);
@@ -67,10 +66,17 @@ export async function createUser(userData) {
     });
 
     if (!response.ok) handleHttpError(response);
-    return response.json();
+    const user = await response.json();
+
+    // Si se especificaron grupos, asignarlos al usuario recién creado
+    if (userData.userGroups && userData.userGroups.length > 0) {
+        await assignUserGroups(user.id, userData.userGroups);
+    }
+
+    return user;
 }
 
-// METODO PATCH (activar o desactivar un material)
+// METODO PATCH (activar o desactivar un usuario)
 export async function toggleUserActive(id, isActive) {
   const response = await apiFetch(`/api/users/${id}/`, {
     method: "PATCH",
@@ -79,4 +85,70 @@ export async function toggleUserActive(id, isActive) {
   });
   if (!response.ok) handleHttpError(response);
   return response.json();
+}
+
+// METODO GET (obtener grupos de un usuario)
+export async function getUserGroups(userId) {
+  const response = await apiFetch(`/api/users/${userId}/groups/`);
+  if (!response.ok) handleHttpError(response);
+  return response.json();
+}
+
+// METODO POST (asignar un grupo a un usuario)
+export async function assignUserGroups(userId, groupIds) {
+  // groupIds es un array de IDs de grupos
+  // Necesitamos hacer un POST por cada grupo
+  const assignments = groupIds.map(async (groupId) => {
+    // Primero obtenemos el nombre del grupo
+    const groupResponse = await apiFetch(`/api/permissions/groups/${groupId}/`);
+    if (!groupResponse.ok) handleHttpError(groupResponse);
+    const group = await groupResponse.json();
+
+    // Luego asignamos el usuario al grupo
+    const response = await apiFetch(`/api/users/${userId}/groups/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ group_name: group.name }),
+    });
+    if (!response.ok) handleHttpError(response);
+    return response.json();
+  });
+
+  return Promise.all(assignments);
+}
+
+// METODO DELETE (remover un usuario de un grupo)
+export async function removeUserFromGroup(userId, groupId) {
+  // Obtenemos el nombre del grupo
+  const groupResponse = await apiFetch(`/api/permissions/groups/${groupId}/`);
+  if (!groupResponse.ok) handleHttpError(groupResponse);
+  const group = await groupResponse.json();
+
+  // Removemos el usuario del grupo
+  const response = await apiFetch(`/api/users/${userId}/groups/`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ group_name: group.name }),
+  });
+  if (!response.ok) handleHttpError(response);
+  return response.json();
+}
+
+// METODO PUT (actualizar grupos de un usuario - reemplaza todos)
+export async function updateUserGroups(userId, groupIds) {
+  // Primero obtenemos los grupos actuales
+  const currentGroups = await getUserGroups(userId);
+  const currentGroupIds = currentGroups.map(g => g.id);
+
+  // Removemos los grupos que ya no están en la lista
+  const toRemove = currentGroupIds.filter(id => !groupIds.includes(id));
+  for (const groupId of toRemove) {
+    await removeUserFromGroup(userId, groupId);
+  }
+
+  // Agregamos los grupos nuevos
+  const toAdd = groupIds.filter(id => !currentGroupIds.includes(id));
+  if (toAdd.length > 0) {
+    await assignUserGroups(userId, toAdd);
+  }
 }

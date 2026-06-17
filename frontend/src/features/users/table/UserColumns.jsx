@@ -13,9 +13,11 @@ export const userColumns = [
         header: "Nombre",
     },
     {
-        accessorFn: (row) => row.role?.name ?? "Sin rol",
-        id: "role",
-        header: "Rol",
+        accessorFn: (row) => row.groups && row.groups.length > 0
+            ? row.groups.map(g => g.name).join(", ")
+            : "Sin grupo",
+        id: "groups",
+        header: "Grupo",
     },
     {
         accessorFn: (row) => row.document_type?.name ?? "Sin tipo de documento",

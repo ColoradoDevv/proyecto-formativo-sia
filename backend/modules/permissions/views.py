@@ -1,0 +1,315 @@
+#
+# Vistas para administración de permisos y grupos.
+#
+
+from rest_framework import viewsets, status, generics
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+from modules.users.models import User
+from .models import Permission, Group, UserPermission, UserGroup
+from .serializers import (
+    PermissionSerializer,
+    GroupListSerializer,
+    GroupDetailSerializer,
+    UserPermissionSerializer,
+    UserGroupSerializer,
+    AssignPermissionSerializer,
+    AssignGroupSerializer,
+)
+from .services import PermissionService
+from .permissions_drf import IsSuperUser, HasPermission
+
+
+class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet para visualizar permisos del sistema.
+    Solo superusuarios pueden ver todos los permisos.
+    """
+
+    queryset = Permission.objects.all()
+    serializer_class = PermissionSerializer
+    permission_classes = [IsAuthenticated]
+    filterset_fields = ["codename", "name"]
+    search_fields = ["codename", "name", "description"]
+    ordering_fields = ["codename", "created_at"]
+    ordering = ["codename"]
+
+    def get_queryset(self):
+        """Solo superusuarios ven todos los permisos"""
+        if self.request.user.is_superuser:
+            return Permission.objects.all()
+        # Usuarios normales solo ven permisos que tienen asignados
+        return PermissionService.get_user_permissions(self.request.user)
+
+    @action(detail=False, methods=["get"])
+    def my_permissions(self, request):
+        """Endpoint que retorna los permisos del usuario actual"""
+        permissions = PermissionService.get_user_permissions(request.user)
+        serializer = self.get_serializer(permissions, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def my_permission_codes(self, request):
+        """Endpoint que retorna solo los códigos de permiso del usuario actual"""
+        codes = PermissionService.get_user_permission_codes(request.user)
+        return Response({"permissions": codes})
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para administrar grupos y sus permisos.
+    Solo superusuarios pueden crear/modificar/eliminar grupos.
+    """
+
+    queryset = Group.objects.all()
+    permission_classes = [IsAuthenticated, IsSuperUser]
+
+    def get_serializer_class(self):
+        """Usa serializers diferentes según la acción"""
+        if self.action == "list":
+            return GroupListSerializer
+        return GroupDetailSerializer
+
+    @action(detail=True, methods=["post"])
+    def assign_permission(self, request, pk=None):
+        """
+        Asigna un permiso a un grupo.
+        POST /groups/{id}/assign_permission/
+        Body: {"permission_codename": "list_users"}
+        """
+        group = self.get_object()
+        serializer = AssignPermissionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            permission = Permission.objects.get(
+                codename=serializer.validated_data["permission_codename"]
+            )
+        except Permission.DoesNotExist:
+            return Response(
+                {"error": "Permiso no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Agregar permiso al grupo
+        group.permissions.add(permission)
+
+        return Response(
+            {
+                "message": f"Permiso '{permission.codename}' asignado al grupo '{group.name}'",
+                "permission": PermissionSerializer(permission).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"])
+    def remove_permission(self, request, pk=None):
+        """
+        Remueve un permiso de un grupo.
+        POST /groups/{id}/remove_permission/
+        Body: {"permission_codename": "list_users"}
+        """
+        group = self.get_object()
+        serializer = AssignPermissionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            permission = Permission.objects.get(
+                codename=serializer.validated_data["permission_codename"]
+            )
+        except Permission.DoesNotExist:
+            return Response(
+                {"error": "Permiso no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Remover permiso del grupo
+        group.permissions.remove(permission)
+
+        # Invalidar caché de usuarios en este grupo
+        for user_group in group.user_groups.all():
+            PermissionService.invalidate_user_cache(user_group.user.id)
+
+        return Response(
+            {
+                "message": f"Permiso '{permission.codename}' removido del grupo '{group.name}'",
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class UserPermissionView(generics.GenericAPIView):
+    """
+    Vista para gestionar permisos de usuarios específicos.
+    Solo superusuarios pueden modificar.
+    """
+
+    permission_classes = [IsAuthenticated, IsSuperUser]
+    serializer_class = UserPermissionSerializer
+
+    def get_user(self, user_id):
+        """Obtiene un usuario y lanza error si no existe"""
+        try:
+            return User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise Response(
+                {"error": "Usuario no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def get(self, request, user_id):
+        """Obtiene todos los permisos de un usuario"""
+        user = self.get_user(user_id)
+        permissions = PermissionService.get_user_permissions(user)
+        serializer = PermissionSerializer(permissions, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, user_id):
+        """Asigna un permiso a un usuario"""
+        user = self.get_user(user_id)
+        serializer = AssignPermissionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            permission = Permission.objects.get(
+                codename=serializer.validated_data["permission_codename"]
+            )
+        except Permission.DoesNotExist:
+            return Response(
+                {"error": "Permiso no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user_perm, created = UserPermission.objects.get_or_create(
+            user=user,
+            permission=permission,
+            defaults={"reason": serializer.validated_data.get("reason", "")},
+        )
+
+        PermissionService.invalidate_user_cache(user.id)
+
+        return Response(
+            {
+                "message": f"Permiso '{permission.codename}' asignado a {user.email}",
+                "created": created,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request, user_id):
+        """Remueve un permiso de un usuario"""
+        user = self.get_user(user_id)
+        serializer = AssignPermissionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            permission = Permission.objects.get(
+                codename=serializer.validated_data["permission_codename"]
+            )
+        except Permission.DoesNotExist:
+            return Response(
+                {"error": "Permiso no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        deleted, _ = UserPermission.objects.filter(
+            user=user, permission=permission
+        ).delete()
+
+        PermissionService.invalidate_user_cache(user.id)
+
+        if deleted:
+            return Response(
+                {
+                    "message": f"Permiso '{permission.codename}' removido de {user.email}"
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"error": "Permiso no asignado al usuario"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class UserGroupView(generics.GenericAPIView):
+    """
+    Vista para gestionar membresía de usuarios en grupos.
+    Solo superusuarios pueden modificar.
+    """
+
+    permission_classes = [IsAuthenticated, IsSuperUser]
+    serializer_class = UserGroupSerializer
+
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise Response(
+                {"error": "Usuario no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    def get(self, request, user_id):
+        """Obtiene todos los grupos de un usuario"""
+        user = self.get_user(user_id)
+        groups = PermissionService.get_user_groups(user)
+        serializer = GroupListSerializer(groups, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, user_id):
+        """Agrega un usuario a un grupo"""
+        user = self.get_user(user_id)
+        serializer = AssignGroupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            group = Group.objects.get(name=serializer.validated_data["group_name"])
+        except Group.DoesNotExist:
+            return Response(
+                {"error": "Grupo no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user_group, created = UserGroup.objects.get_or_create(user=user, group=group)
+
+        PermissionService.invalidate_user_cache(user.id)
+
+        return Response(
+            {
+                "message": f"{user.email} agregado al grupo '{group.name}'",
+                "created": created,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    def delete(self, request, user_id):
+        """Remueve un usuario de un grupo"""
+        user = self.get_user(user_id)
+        serializer = AssignGroupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            group = Group.objects.get(name=serializer.validated_data["group_name"])
+        except Group.DoesNotExist:
+            return Response(
+                {"error": "Grupo no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        deleted, _ = UserGroup.objects.filter(user=user, group=group).delete()
+
+        PermissionService.invalidate_user_cache(user.id)
+
+        if deleted:
+            return Response(
+                {"message": f"{user.email} removido del grupo '{group.name}'"},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"error": "Usuario no pertenece a este grupo"},
+                status=status.HTTP_404_NOT_FOUND,
+            )

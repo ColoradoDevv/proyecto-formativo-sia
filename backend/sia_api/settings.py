@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     #Apps de django
     'modules.home',
     'modules.users',
+    'modules.permissions',
     'modules.products',
     'modules.loans',
     'modules.returns',
