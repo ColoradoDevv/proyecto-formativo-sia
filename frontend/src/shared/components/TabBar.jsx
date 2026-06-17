@@ -1,4 +1,6 @@
 import { Tab } from '@headlessui/react';
+import  TmHomePage  from "../../features/trademarks/pages/TmHomePage";
+
 
 
 
@@ -34,9 +36,14 @@ export default function TabBar() {
 
         <Tab.Panels className="mt-6 px-6">
           <Tab.Panel>Contenido de Editar Perfil</Tab.Panel>
-          <Tab.Panel>Contenido de Marcas</Tab.Panel>
+          <Tab.Panel>
+            <TmHomePage/>
+          </Tab.Panel>
+
+
+
           <Tab.Panel> </Tab.Panel>
-        </Tab.Panels>
+        </Tab.Panels> 
       </Tab.Group>
     </div>
   );
