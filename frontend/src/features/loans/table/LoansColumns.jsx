@@ -1,9 +1,9 @@
 import { Switch } from "@/shared";
-import LoansRowActions from "../components/LoansRowActions";
+import LoansRowActions from "../components/list/LoansRowActions";
 
 export const loansColumns = [
     {
-        accessorKey: "id",
+        accessorKey: "id_loan",
         header: "Id",
     },
     {
@@ -15,35 +15,23 @@ export const loansColumns = [
         header: "Material",
     },
     {
-        accessorKey: "cantidad",
+        accessorKey: "amount_lent",
         header: "Cantidad",
     },
     {
-        accessorKey: "fecha_prestamo",
+        accessorKey: "loan_date",
         header: "Fecha Préstamo",
     },
     {
-        accessorKey: "fecha_devolucion",
+        accessorKey: "return_date",
         header: "Fecha Devolución",
     },
     {
         accessorKey: "is_active",
         header: "Estado",
-        cell: ({ row }) => {
-            const loan = row.original;
-
-            const handleChange = (value) => {
-                console.log("Actualizar estado préstamo:", loan.id, value);
-            };
-
-            return (
-                <Switch
-                    checked={loan.is_active}
-                    onChange={handleChange}
-                    className="inline-flex"
-                />
-            );
-        },
+        cell: ({ row }) => (
+            <Switch checked={row.original.is_active} disabled className="inline-flex" />
+        ),
     },
     {
         id: "actions",

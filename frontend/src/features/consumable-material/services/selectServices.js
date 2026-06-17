@@ -1,5 +1,7 @@
+import { apiFetch } from "@/shared/services/api";
+
 export async function getBrands() {
-    const response = await fetch("/api/products/brands/")
+    const response = await apiFetch("/api/products/brands/")
     const data = await response.json()
     return data.map((brand) => ({ id: brand.id, label: brand.name }))
 }
@@ -16,13 +18,13 @@ export function getStates() {
 }
 
 export async function getUsers() {
-    const response = await fetch("/api/users/")
+    const response = await apiFetch("/api/users/")
     const data = await response.json()
     return data.map((user) => ({ id: user.id, label: `${user.first_name} ${user.last_name}` }))
 }
 
 export async function getCategories() {
-    const response = await fetch("/api/products/categories/")
+    const response = await apiFetch("/api/products/categories/")
     const data = await response.json()
     return data.map((cat) => ({ id: cat.id, label: cat.name }))
 }

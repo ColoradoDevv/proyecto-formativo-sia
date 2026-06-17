@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { House, Users, Wrench, Truck, Scroll, Settings, LogOut, X } from "lucide-react";
+import { logout } from "@/features/auth/services/authService";
 
 function NavLinks({ onLinkClick }) {
+    const navigate = useNavigate();
+
     const topLinks = [
         { to: "/",            icon: <House size={18} />,  label: "Inicio" },
         { to: "/usuarios",    icon: <Users size={18} />,  label: "Gestión de Usuarios" },
@@ -9,12 +12,14 @@ function NavLinks({ onLinkClick }) {
         { to: "/devolutivos", icon: <Scroll size={18} />, label: "Materiales Devolutivos" },
         { to: "/prestamos",   icon: <Truck size={18} />,  label: "Préstamos" },
     ];
-    const bottomLinks = [
-        { to: "/configuracion",  icon: <Settings size={18} />, label: "Configuración" },
-        { to: "/iniciar-sesion", icon: <LogOut size={18} />,   label: "Cerrar sesión" },
-    ];
 
     const linkClass = "flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors";
+
+    const handleLogout = () => {
+        logout();                      // borra el token de la sesion
+        if (onLinkClick) onLinkClick(); // cierra el drawer en movil
+        navigate("/iniciar-sesion");   // vuelve al login
+    };
 
     return (
         <>
@@ -27,14 +32,21 @@ function NavLinks({ onLinkClick }) {
                     </li>
                 ))}
             </ul>
+
             <ul className="flex flex-col gap-4">
-                {bottomLinks.map(({ to, icon, label }) => (
-                    <li key={to}>
-                        <Link to={to} onClick={onLinkClick} className={linkClass}>
-                            {icon} {label}
-                        </Link>
-                    </li>
-                ))}
+                {/* Configuracion: navegacion normal */}
+                <li>
+                    <Link to="/configuracion" onClick={onLinkClick} className={linkClass}>
+                        <Settings size={18} /> Configuración
+                    </Link>
+                </li>
+
+                {/* Cerrar sesion: es una ACCION, no un enlace */}
+                <li>
+                    <button type="button" onClick={handleLogout} className={`${linkClass} w-full text-left cursor-pointer`}>
+                        <LogOut size={18} /> Cerrar sesión
+                    </button>
+                </li>
             </ul>
         </>
     );

@@ -10,6 +10,14 @@ function getTodayDateString() {
 }
 
 export const loanSchema = z.object({
+    loanUser: z
+        .string()
+        .min(1, "Debe seleccionar un usuario"),
+
+    loanMaterial: z
+        .string()
+        .min(1, "Debe seleccionar un material"),
+
     loanAmount: z
         .string()
         .trim()
