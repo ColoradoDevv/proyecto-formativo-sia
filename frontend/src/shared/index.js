@@ -17,6 +17,8 @@ export { default as ConfirmCancelModal } from "./components/ConfirmCancelModal"
 export { default as TabBar } from "./components/TabBar"
 export { default as ReportModal } from "./components/ReportModal"
 export { default as ActiveSwitch } from "./components/ActiveSwitch"
+// export { default as TmHomePage } from "./components/"
+
 
 export {  DropdownTrigger } from "./components/Dropdown"
 export {  DropdownItem } from "./components/Dropdown"

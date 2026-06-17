@@ -3,7 +3,7 @@ import Navbar  from "../../../shared/layouts/Navbar"
 import Sidebar  from "../../../shared/layouts/Sidebar"
 
 
-export default function LoansCreatePage(){
+export default function LoansCreatePage() {
     return(
         <div className="h-screen flex flex-col">
             <Navbar />
@@ -18,6 +18,6 @@ export default function LoansCreatePage(){
             </div>
 
         </div>
-    )
+    );
 }
 
