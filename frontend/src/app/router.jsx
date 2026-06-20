@@ -21,7 +21,7 @@ import { RmHomePage, RmCreatePage, RmDetailPage, RmEditPage } from "@/features/r
 // Imports de Prestamos
 import { LoansHomePage, LoansCreatePage } from "@/features/loans";
 
-import TmCreatePage from "@/features/trademarks/pages/create/TmCreatePage";
+import { TmCreatePage, BrandDetailPage, BrandEditPage } from "@/features/trademarks";
 import { ConfigLayout, MainLayout } from "@/shared";
 
 
@@ -72,7 +72,9 @@ export default function AppRouter() {
                 {/* Marcas */}
                 <Route path="/marcas" element={<MainLayout />}>
                     <Route index element={<Navigate to="/configuracion" replace />} />
-                    <Route path="registrar-marca" element={<TmCreatePage />} />
+                    <Route path="crear" element={<TmCreatePage />} />
+                    <Route path="visualizar/:id" element={<BrandDetailPage />} />
+                    <Route path="editar/:id" element={<BrandEditPage />} />
                 </Route>
 
 

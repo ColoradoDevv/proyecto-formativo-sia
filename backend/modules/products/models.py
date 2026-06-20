@@ -7,6 +7,7 @@ from django.conf import settings   # para referenciar el modelo de usuario perso
 class Brand(models.Model):
     # Marca simple para agrupar materiales.
     name = models.CharField(max_length=100, unique=True)  # UNICO segun diccionario
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

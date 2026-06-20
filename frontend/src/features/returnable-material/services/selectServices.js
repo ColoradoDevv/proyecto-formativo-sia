@@ -3,7 +3,7 @@ import { apiFetch } from "@/shared/services/api";
 export async function getBrands() {
     const response = await apiFetch("/api/products/brands/");
     const data = await response.json();
-    return data.map((brand) => ({ id: brand.id, label: brand.name }));
+    return data.filter((brand) => brand.is_active).map((brand) => ({ id: brand.id, label: brand.name }));
 }
 
 export async function getCategories() {

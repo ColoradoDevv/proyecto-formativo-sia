@@ -22,9 +22,8 @@ function handleHttpError(response) {
     throw error;
 }
 
-
 export const getBrands = async () => {
-    const response = await apiFetch(`/api/products/brands`);
+    const response = await apiFetch("/api/products/brands/");
     if (!response.ok) handleHttpError(response);
     return response.json();
 };
@@ -36,14 +35,38 @@ export const getBrandById = async (id) => {
 };
 
 export const createBrand = async (brandData) => {
-    const response = await apiFetch(`/api/products/brands/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(brandData),
+    const response = await apiFetch("/api/products/brands/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: brandData.brandName }),
     });
     if (!response.ok) handleHttpError(response);
     return response.json();
 };
 
+export const updateBrand = async (id, brandData) => {
+    const response = await apiFetch(`/api/products/brands/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: brandData.brandName }),
+    });
+    if (!response.ok) handleHttpError(response);
+    return response.json();
+};
+
+export const toggleBrandActive = async (id, isActive) => {
+    const response = await apiFetch(`/api/products/brands/${id}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: isActive }),
+    });
+    if (!response.ok) handleHttpError(response);
+    return response.json();
+};
+
+export const deleteBrand = async (id) => {
+    const response = await apiFetch(`/api/products/brands/${id}/`, {
+        method: "DELETE",
+    });
+    if (!response.ok) handleHttpError(response);
+};
