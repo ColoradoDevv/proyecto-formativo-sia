@@ -1,14 +1,34 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button, Input, ConfirmCancelModal } from "@/shared";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button, IconButton, Input, ConfirmCancelModal } from "@/shared";
+import { Undo2 } from "lucide-react";
+import { TailChase } from "ldrs/react";
+import useBrand from "../../hooks/useBrand";
 import { brandSchema } from "../../schemas/brandSchema";
-import { createBrand } from "../../services/brandService";
+import { updateBrand } from "../../services/brandService";
 import Alert from "@mui/material/Alert";
 
-export default function TmRegisterForm() {
+export default function BrandEditView() {
+    const { id } = useParams();
+    const { brand, loading, error } = useBrand(id);
+
+    if (loading)
+        return (
+            <div className="h-full flex items-center justify-center">
+                <TailChase size="40" speed="1.75" color="var(--semantic-text-primary)" />
+            </div>
+        );
+
+    if (error)
+        return <p className="text-error text-center p-6">Error al cargar marca: {error.message}</p>;
+
+    return <BrandEditForm brand={brand} />;
+}
+
+function BrandEditForm({ brand }) {
     const navigate = useNavigate();
     const [showCancelModal, setShowCancelModal] = useState(false);
-    const [formData, setFormData] = useState({ brandName: "" });
+    const [formData, setFormData] = useState({ brandName: brand.name ?? "" });
     const [errors, setErrors] = useState({});
     const [notification, setNotification] = useState(null);
 
@@ -34,8 +54,8 @@ export default function TmRegisterForm() {
         setErrors({});
 
         try {
-            await createBrand(result.data);
-            setNotification({ message: "Marca registrada exitosamente", severity: "success" });
+            await updateBrand(brand.id, result.data);
+            setNotification({ message: "Marca actualizada exitosamente", severity: "success" });
             setTimeout(() => navigate("/marcas"), 1500);
         } catch (error) {
             setNotification({ message: error.message, severity: "error" });
@@ -44,12 +64,15 @@ export default function TmRegisterForm() {
 
     return (
         <>
-            <div className="grid grid-cols-1 my-2 mx-2 sm:mx-4 justify-items-center p-2 sm:p-4">
-                <div className="grid gap-2 justify-items-left mb-4 w-full">
-                    <h1 className="text-h3">Registro de Marcas</h1>
-                    <p className="text-sm text-text-muted">
-                        Registra una nueva marca para asociarla a los materiales.
-                    </p>
+            <div className="h-full p-6 text-text-primary flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                    <IconButton onClick={() => navigate(-1)} variant="ghost">
+                        <Undo2 />
+                    </IconButton>
+                    <div>
+                        <h2 className="text-h3">Editar Marca</h2>
+                        <p className="text-small text-text-muted">Modifica el nombre de la marca.</p>
+                    </div>
                 </div>
 
                 {notification && (
@@ -61,7 +84,7 @@ export default function TmRegisterForm() {
                 <form
                     noValidate
                     onSubmit={handleSubmit}
-                    className="flex flex-col items-center gap-6 mt-4 w-full max-w-sm"
+                    className="flex flex-col gap-6 max-w-sm"
                 >
                     <Input
                         label="Nombre de la marca"
@@ -83,7 +106,7 @@ export default function TmRegisterForm() {
                             Cancelar
                         </Button>
                         <Button type="submit" variant="primary" size="md">
-                            Crear
+                            Guardar cambios
                         </Button>
                     </div>
                 </form>

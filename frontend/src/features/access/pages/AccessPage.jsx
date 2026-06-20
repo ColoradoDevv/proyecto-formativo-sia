@@ -3,7 +3,7 @@
 
 
 import { useState } from "react";
-import AccessSidebar from "../components/AccessSidebar";
+import AccessSidebar from "../components/AccessSideBar.jsx";
 import PermissionModule from "../components/PermissionModule";
 
 
