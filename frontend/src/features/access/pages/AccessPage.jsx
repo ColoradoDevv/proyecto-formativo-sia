@@ -14,7 +14,9 @@ export default function AccessPage() {
 
   return (
     <div className="p-6 flex gap-10">
+      
       <AccessSidebar
+      
         selectedGroup={selectedGroup}
         setSelectedGroup={setSelectedGroup}
         groupPermissions={groupPermissions}
