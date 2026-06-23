@@ -4,9 +4,6 @@ function isValidMoney(value) {
     return /^\d+(\.\d{1,2})?$/.test(value);
 }
 
-function toCents(value) {
-    return Math.round(Number(value) * 100);
-}
 
 export const cmSchema = z.object({
     cmName: z
@@ -38,10 +35,11 @@ export const cmSchema = z.object({
     cmLocation: z
         .string()
         .trim()
-        .min(3, "La ubicacion debe tener minimo 3 caracteres")
         .max(100, "La ubicacion es demasiado larga")
-        .optional()
-        ,
+        .refine(val => val === "" || val.length >= 3, {
+            message: "La ubicacion debe tener minimo 3 caracteres"
+        })
+        .optional(),
 
     cmBrand: z
         .string()
@@ -72,12 +70,15 @@ export const cmSchema = z.object({
         .refine((value) => Number(value) > 0, {
             message: "El valor total debe ser mayor a 0",
         }),
+
     cmUser: z
         .string()
         .min(1, "Debe seleccionar un cuentadante"),
-    cmPurchaseDate: z   
+
+    cmPurchaseDate: z
         .string()
         .min(1, "Debe ingresar la fecha de compra"),
+
 
     cmPhoto: z
         .array(z.instanceof(File))
@@ -92,8 +93,20 @@ export const cmSchema = z.object({
         ),
 }).superRefine((data, ctx) => {
 
-    // Cantidad obligatoria si no hay placa SENA
-    if (!data.cmSenaPlate || data.cmSenaPlate.trim() === "") {
+    const hasSenaPlate = data.cmSenaPlate && data.cmSenaPlate.trim() !== "";
+
+    if (hasSenaPlate) {
+        // Si hay placa SENA, la cantidad debe ser exactamente 1
+        if (data.cmQuantity !== "1") {
+            ctx.addIssue({
+                path: ["cmQuantity"],
+                message: "La cantidad debe ser 1 cuando el material tiene placa SENA",
+                code: z.ZodIssueCode.custom,
+            });
+            return;
+        }
+    } else {
+        // Cantidad obligatoria si no hay placa SENA
         if (!data.cmQuantity || data.cmQuantity.trim() === "") {
             ctx.addIssue({
                 path: ["cmQuantity"],
@@ -106,17 +119,6 @@ export const cmSchema = z.object({
             ctx.addIssue({
                 path: ["cmQuantity"],
                 message: "La cantidad debe ser mayor a 0",
-                code: z.ZodIssueCode.custom,
-            });
-        }
-    }
-
-    // Validación total = cantidad × valor unitario (solo si hay cantidad)
-    if (data.cmQuantity && data.cmUnitValue && data.cmTotalValue) {
-        if (toCents(data.cmUnitValue) * Number(data.cmQuantity) !== toCents(data.cmTotalValue)) {
-            ctx.addIssue({
-                path: ["cmTotalValue"],
-                message: "El valor total debe ser igual a cantidad por valor unitario",
                 code: z.ZodIssueCode.custom,
             });
         }

@@ -27,7 +27,7 @@ export default function Select({
 
             <select
                 name={name}
-                className="
+                className={`
                     w-full
                     h-[var(--size-control-xl)]
                     border
@@ -35,7 +35,8 @@ export default function Select({
                     px-4
                     bg-surface-hover
                     text-text-primary
-                "
+                    ${className}
+                `}
             >
                 <option
                     value=""

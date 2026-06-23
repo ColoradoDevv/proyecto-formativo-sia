@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, ConfirmCancelModal } from "@/shared";
+import { Button, IconButton, Input, SelectInput, ConfirmCancelModal, TextArea } from "@/shared";
 import EditCard from "./EditCard.jsx";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useCm from "../../hooks/useCm";
 import { getBrands, getUsers } from "../../services/selectServices";
+import { updateCm } from "../../services/consumableService";
+import Alert from '@mui/material/Alert';
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -37,16 +39,18 @@ export default function CmEditView() {
 
     if (error) return <p>Error al cargar material: {error.message}</p>;
 
-    return <CmEditForm CM={CM} brands={brands} users={users} />;
+    return <CmEditForm id={id} CM={CM} brands={brands} users={users} />;
 }
 
 // Componente interno: recibe CM ya cargado e inicializa el estado directamente
-function CmEditForm({ CM, brands, users }) {
+function CmEditForm({ id, CM, brands, users }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [photoPreview,    setPhotoPreview]    = useState(CM.image ?? null);
+    const [photoFile,       setPhotoFile]       = useState(null);
+    const [notification,    setNotification]    = useState(null);
 
     const [formData, setFormData] = useState({
         name:         CM.name ?? "",
@@ -66,6 +70,12 @@ function CmEditForm({ CM, brands, users }) {
         const { name, value } = e.target;
         setFormData((prev) => {
             const updated = { ...prev, [name]: value };
+
+            // Si se ingresa placa SENA, la cantidad siempre es 1 y no es editable
+            if (name === "senaPlate") {
+                updated.quantity = value.trim() !== "" ? "1" : "";
+            }
+
             const quantity  = name === "quantity"  ? value : updated.quantity;
             const unitPrice = name === "unitPrice"  ? value : updated.unitPrice;
             if (quantity && unitPrice) {
@@ -76,14 +86,26 @@ function CmEditForm({ CM, brands, users }) {
         });
     };
 
+    const hasSenaPlate = formData.senaPlate.trim() !== "";
+
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) setPhotoPreview(URL.createObjectURL(file));
+        if (file) {
+            setPhotoFile(file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
     };
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        navigate(-1);
+
+        try {
+            await updateCm(id, { ...formData, photo: photoFile });
+            setNotification({ message: "Material de consumo actualizado exitosamente", severity: "success" });
+            setTimeout(() => navigate(-1), 1500);
+        } catch (error) {
+            setNotification({ message: "Error al actualizar material de consumo: " + error.message, severity: "error" });
+        }
     }
 
     const isActive = CM.is_active;
@@ -101,6 +123,12 @@ function CmEditForm({ CM, brands, users }) {
                     <p className="text-small text-text-muted">Modifica la información del material.</p>
                 </div>
             </div>
+
+            {notification && (
+                <Alert severity={notification.severity} onClose={() => setNotification(null)}>
+                    {notification.message}
+                </Alert>
+            )}
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
 
@@ -178,7 +206,7 @@ function CmEditForm({ CM, brands, users }) {
 
                     {/* Descripción — ocupa cols 1 y 2 en fila 2 */}
                     <div className="col-span-2">
-                        <Input
+                        <TextArea
                             label="Descripción"
                             name="description"
                             placeholder="Descripción del material"
@@ -203,6 +231,8 @@ function CmEditForm({ CM, brands, users }) {
                             placeholder="Cantidad"
                             value={formData.quantity}
                             onChange={handleChange}
+                            disabled={hasSenaPlate}
+                            hint={hasSenaPlate ? "La cantidad es 1 porque el material tiene placa SENA, no es editable." : undefined}
                         />
                         <Input
                             label="Ubicación"

@@ -186,3 +186,9 @@ export function DropdownItem({
         </button>
     )
 }
+
+// ─── DropdownSeparator ─────────────────────────────────────────────────────────
+
+export function DropdownSeparator({ className = "" }) {
+    return <div className={`my-1 h-px bg-border ${className}`} />
+}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Input, SelectInput, Button, ConfirmCancelModal } from "@/shared";
+import { Input, SelectInput, Button, ConfirmCancelModal, TextArea, successAlert, errorAlert } from "@/shared";
 import { loanSchema } from "../../schemas/loanSchema";
 import { createLoan } from "../../services/loanService";
 import { getUsers, getMaterials } from "../../services/selectServices";
@@ -11,7 +11,6 @@ export default function LoanRegisterForm() {
     const [users, setUsers] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [submitting, setSubmitting] = useState(false);
-    const [serverError, setServerError] = useState(null);
 
     const [formData, setFormData] = useState({
         loanUser: "",
@@ -55,13 +54,14 @@ export default function LoanRegisterForm() {
 
         setErrors({});
         setSubmitting(true);
-        setServerError(null);
 
         try {
             await createLoan(result.data);
+            await successAlert({ title: "Prestamo creado exitosamente" });
             navigate("/prestamos");
         } catch (err) {
-            setServerError(err.message);
+            if (err.fieldErrors) setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
+            errorAlert({ title: "Error al crear el prestamo", text: err.message });
         } finally {
             setSubmitting(false);
         }
@@ -69,9 +69,9 @@ export default function LoanRegisterForm() {
 
     return (
         <>
-            <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
-                <div className="grid grid-cols-3 justify-items-left">
-                    <div className="grid gap-2 justify-items-left">
+            <div className="grid grid-cols-1  justify-items-center p-4">
+                <div className="grid grid-col justify-self-start mb-2">
+                    <div className="grid gap-2 justify-items-start">
                         <h1 className="text-h2 font-heading">
                             Crear Prestamo
                         </h1>
@@ -82,16 +82,12 @@ export default function LoanRegisterForm() {
                     </div>
                 </div>
 
-                {serverError && (
-                    <p className="text-error text-small mt-2">{serverError}</p>
-                )}
-
                 <form
                     noValidate
                     onSubmit={handleSubmit}
                     className="flex flex-col items-center gap-6"
                 >
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <SelectInput
                             label="Usuario"
                             name="loanUser"
@@ -131,7 +127,7 @@ export default function LoanRegisterForm() {
                             error={errors.loanGroup}
                             required
                         />
-                        <Input
+                        <TextArea
                             label="Justificacion de Uso"
                             name="loanJustification"
                             placeholder="Ingrese la justificacion de uso"

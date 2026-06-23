@@ -1,5 +1,5 @@
 import { ChevronDown, Menu } from "lucide-react";
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from "@/shared";
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator } from "@/shared";
 import { Link, useNavigate } from "react-router-dom";
 import { getStoredUser } from "@/shared/services/api"
 import { logout } from "@/features/auth/services/authService";
@@ -44,6 +44,7 @@ export default function Navbar({ onToggleSidebar }) {
                     <DropdownItem>
                         <Link to="/configuracion" className="block w-full">Ver Perfil</Link>
                     </DropdownItem>
+                          <DropdownSeparator />
                     <DropdownItem>
                         <Link to="/iniciar-sesion"className="block w-full" onClick={handleLogout}>Cerrar Sesion</Link>
                     </DropdownItem>

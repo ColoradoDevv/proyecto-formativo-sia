@@ -36,6 +36,7 @@ export default function Button({
                 disabled:cursor-not-allowed disabled:opacity-60
                 ${variants[variant]}
                 ${sizes[size]}
+                ${className}
             `}
             {...props}
         >

@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { getBrands, getStates, getUsers } from "../../services/selectServices";
+import { getBrands, getUsers } from "../../services/selectServices";
 
-import {Input, FileInput, Button, SelectInput, ConfirmCancelModal} from "@/shared";
+import {Input, FileInput, Button, SelectInput, ConfirmCancelModal, TextArea, successAlert, errorAlert} from "@/shared";
 import { cmSchema } from "../../schemas/cmSchema";
 import {createCm} from "../../services/consumableService";
-import Alert from '@mui/material/Alert';
 
 
 export default function CmRegisterForm(){
@@ -14,8 +13,6 @@ export default function CmRegisterForm(){
         const navigate = useNavigate();
         const [showCancelModal, setShowCancelModal] = useState(false);
         const [brands, setBrands] = useState([]);
-        const [states, setStates] = useState([]);
-        const [notification, setNotification] = useState(null);
         const [errors, setErrors] = useState({});
         const [users, setUsers] = useState([]);
         const [formData, setFormData] = useState({
@@ -38,10 +35,6 @@ export default function CmRegisterForm(){
         }, []);
         
         useEffect (() => {
-            getStates().then(setStates);
-        }, []);
-
-        useEffect (() => {
             getUsers().then(setUsers);
         }, []);
 
@@ -50,6 +43,11 @@ export default function CmRegisterForm(){
 
             setFormData((prev) => {
                 const updated = { ...prev, [name]: value };
+
+                // Si se ingresa placa SENA, la cantidad siempre es 1 y no es editable
+                if (name === "cmSenaPlate") {
+                    updated.cmQuantity = value.trim() !== "" ? "1" : "";
+                }
 
                 // Calcular total automáticamente
                 const quantity  = name === "cmQuantity"  ? value : updated.cmQuantity;
@@ -63,6 +61,8 @@ export default function CmRegisterForm(){
                 return updated;
             });
         };
+
+        const hasSenaPlate = formData.cmSenaPlate.trim() !== "";
 
         const handleFileChange = (name) => (files) => {
             setFormData({ ...formData, [name]: files });
@@ -88,12 +88,13 @@ export default function CmRegisterForm(){
 
                 await createCm(result.data);
 
-                setNotification({ message: "Material de consumo creado exitosamente", severity: "success" });
-                setTimeout(() => navigate("/consumibles"), 1500);
+                await successAlert({ title: "Material de consumo creado exitosamente" });
+                navigate("/consumibles");
 
             } catch (error) {
                 console.error("Error al crear material de consumo:", error);
-                setNotification({ message: "Error al crear material de consumo: " + error.message, severity: "error" });
+                if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+                errorAlert({ title: "Error al crear material de consumo", text: error.message });
             }
         };
 
@@ -113,12 +114,6 @@ export default function CmRegisterForm(){
                         </h1>    
                     </div>
             </div>
-
-                {notification && (
-                    <Alert severity={notification.severity} onClose={() => setNotification(null)}>
-                        {notification.message}
-                    </Alert>
-                )}
 
                     {/* Formulario */}
                     <form
@@ -140,7 +135,18 @@ export default function CmRegisterForm(){
                                     required
                                 />
 
+
                                 <Input
+                                    label = "Placa Sena (Opcional)"
+                                    name="cmSenaPlate"
+                                    placeholder = "Ingrese la Placa Sena del Material"
+                                    value={formData.cmSenaPlate}
+                                    onChange={handleChange}
+                                    error={errors.cmSenaPlate}
+                                    
+                                />
+
+                                <TextArea
                                     label = "Descripcion"
                                     name="cmDescription"
                                     placeholder = "Ingrese la descripcion del Material"
@@ -148,16 +154,6 @@ export default function CmRegisterForm(){
                                     onChange={handleChange}
                                     error={errors.cmDescription}
                                     required
-                                />
-
-                                <Input
-                                    label = "Placa Sena"
-                                    name="cmSenaPlate"
-                                    placeholder = "Ingrese la Placa Sena del Material"
-                                    value={formData.cmSenaPlate}
-                                    onChange={handleChange}
-                                    error={errors.cmSenaPlate}
-                                    
                                 />
 
                                 <Input
@@ -170,16 +166,9 @@ export default function CmRegisterForm(){
                                     value={formData.cmQuantity}
                                     onChange={handleChange}
                                     error={errors.cmQuantity}
-                                    
-                                />
-
-                                <Input
-                                    label = "Ubicacion"
-                                    name="cmLocation"
-                                    placeholder = "Ingrese la ubicacion del Material"
-                                    value={formData.cmLocation}
-                                    onChange={handleChange}
-                                    error={errors.cmLocation}
+                                    disabled={hasSenaPlate}
+                                    required
+                                    hint={hasSenaPlate ? "La cantidad es 1 porque el material tiene placa SENA, no es editable." : undefined}
                                 />
 
                                 <SelectInput
@@ -204,32 +193,6 @@ export default function CmRegisterForm(){
                                     error={errors.cmUnitValue}
                                     required
                                 />
-                                
-                                <SelectInput
-                                    label = "Estado"
-                                    name="cmState"
-                                    options={states}
-                                    value={formData.cmState}
-                                    onChange={handleChange}
-                                    error={errors.cmState}
-                                    required
-                                />
-
-
-                                <Input
-                                    label = "Valor Total"
-                                    name="cmTotalValue"
-                                    type="number"
-                                    placeholder = "Ingrese el valor Total del Material"
-                                    min="0"
-                                    step="0.01"
-                                    value={formData.cmTotalValue}
-                                    onChange={handleChange}
-                                    error={errors.cmTotalValue}
-                                    required
-                                    readOnly
-                                />
-
                                 <SelectInput
                                     label = "Cuentadante"
                                     name="cmUser"
@@ -239,19 +202,20 @@ export default function CmRegisterForm(){
                                     error={errors.cmUser}
                                     required
                                 />
+                                <Input
+                                    label = "Ubicacion (Opcional)"
+                                    name="cmLocation"
+                                    placeholder = "Ingrese la ubicacion del Material"
+                                    value={formData.cmLocation}
+                                    onChange={handleChange}
+                                    error={errors.cmLocation}
+                                />
+
+                                
 
                             </div>
 
                             <div className="flex flex-col gap-4">
-                                                                <Input
-                                    label="Fecha de Compra"
-                                    name="cmPurchaseDate"
-                                    type="date"
-                                    value={formData.cmPurchaseDate}
-                                    onChange={handleChange}
-                                    error={errors.cmPurchaseDate}
-                                    required
-                                />
                                 <FileInput
                                     label="Foto del Material"
                                     name="cmPhoto"
@@ -260,6 +224,7 @@ export default function CmRegisterForm(){
                                     onChange={handleFileChange("cmPhoto")}
                                     error={errors.cmPhoto}
                                     accept="image/*"
+                                    required
                                     className="w-[var(--size-field-sm)] h-[var(--size-preview-md)]"
 
                                 />
