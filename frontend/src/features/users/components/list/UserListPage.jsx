@@ -55,7 +55,6 @@ export default function ListUserPage() {
                         data={users}
                         reportConfig={usersReportConfig}
                         className="self-start md:self-auto"
-                        icon={Download}
                     >
                         Descargar Reporte
                     </Button>
