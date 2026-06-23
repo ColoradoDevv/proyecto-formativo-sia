@@ -1,36 +1,16 @@
-import { apiFetch } from "@/shared/services/api";
+import { apiFetch, throwApiError } from "@/shared/services/api";
 
-const HTTP_ERROR_MESSAGES = {
-    400: "400 Solicitud inválida. Verifica los datos enviados.",
-    401: "401 No autenticado. Por favor, inicia sesión.",
-    403: "403 No tienes permisos para realizar esta acción.",
-    404: "404 El recurso solicitado no fue encontrado.",
-    409: "409 Conflicto: ya existe un registro con esos datos.",
-    422: "422 Los datos enviados no son procesables por el servidor.",
-    429: "429 Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
-    500: "500 Error interno del servidor. Intenta más tarde.",
-    502: "502 El servidor no está disponible (Bad Gateway).",
-    503: "503 Servicio temporalmente no disponible. Intenta más tarde.",
-};
-
-function handleHttpError(response) {
-    const message =
-        HTTP_ERROR_MESSAGES[response.status] ??
-        `Error inesperado del servidor (código ${response.status}).`;
-    const error = new Error(message);
-    error.status = response.status;
-    throw error;
-}
+const FIELD_MAP = { name: "brandName" };
 
 export const getBrands = async () => {
     const response = await apiFetch("/api/products/brands/");
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 };
 
 export const getBrandById = async (id) => {
     const response = await apiFetch(`/api/products/brands/${id}/`);
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 };
 
@@ -40,7 +20,7 @@ export const createBrand = async (brandData) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: brandData.brandName }),
     });
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 };
 
@@ -50,7 +30,7 @@ export const updateBrand = async (id, brandData) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: brandData.brandName }),
     });
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 };
 
@@ -60,7 +40,7 @@ export const toggleBrandActive = async (id, isActive) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: isActive }),
     });
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 };
 
@@ -68,5 +48,5 @@ export const deleteBrand = async (id) => {
     const response = await apiFetch(`/api/products/brands/${id}/`, {
         method: "DELETE",
     });
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
 };

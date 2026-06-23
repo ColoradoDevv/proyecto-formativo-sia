@@ -13,7 +13,7 @@ export default function ConfirmCancelModal({
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center ${className}`}>
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-500/20 backdrop-blur-xs"

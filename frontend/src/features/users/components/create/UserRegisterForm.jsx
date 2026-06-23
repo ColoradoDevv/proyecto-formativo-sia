@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDocumentTypes, getUserGroups} from "../../services/selectServices";
-import {Input, Button, SelectInput, ProfileFileInput, ConfirmCancelModal} from "@/shared";
+import {Input, Button, SelectInput, SelectInputMultiple, ProfileFileInput, ConfirmCancelModal, successAlert, errorAlert} from "@/shared";
 import UserTaskModal from "./UserTaskModal";
 import { userSchema } from "../../schemas/userSchema";
 import { createUser } from "../../services/userService";
 import { Plus } from "lucide-react";
-import Alert from '@mui/material/Alert';
 
 export default function UserRegisterForm(){
 
@@ -34,7 +33,6 @@ export default function UserRegisterForm(){
     
     const [errors, setErrors] = useState({});
     const [showAdditionalPhone, setShowAdditionalPhone] = useState(false);
-    const [notification, setNotification] = useState(null);
 
     const [documentTypes, setDocumentTypes] = useState([]);
     useEffect(() => {
@@ -82,12 +80,13 @@ export default function UserRegisterForm(){
 
             await createUser(result.data);
 
-            setNotification({ message: "Usuario creado exitosamente", severity: "success" });
+            await successAlert({ title: "Usuario creado exitosamente" });
             navigate("/usuarios");
 
         } catch (error) {
             console.error("Error al crear usuario:", error);
-            setNotification({ message: "Error al crear usuario: " + error.message, severity: "error" });
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+            errorAlert({ title: "Error al crear usuario", text: error.message });
         }
     };
 
@@ -105,12 +104,6 @@ export default function UserRegisterForm(){
                         </h1>
                     </div>
                 </div>
-
-                {notification && (
-                    <Alert severity={notification.severity} onClose={() => setNotification(null)}>
-                        {notification.message}
-                    </Alert>
-                )}
 
                 <form
                     noValidate
@@ -141,7 +134,7 @@ export default function UserRegisterForm(){
                                 error={errors.userDocumentType}
                                 required
                             />
-                            <SelectInput
+                            <SelectInputMultiple
                                 label="Tipo de Usuario"
                                 name="userGroups"
                                 options={userGroups}
@@ -149,7 +142,6 @@ export default function UserRegisterForm(){
                                 onChange={handleChange}
                                 error={errors.userGroups}
                                 required
-                                multiple
                             />
 
                             <Input
