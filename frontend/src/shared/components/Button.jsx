@@ -1,12 +1,29 @@
+import { useState } from "react";
+import ReportModal from "./ReportModal";
+
 export default function Button({
     variant = "primary",
     size = "md",
     type = "button",
     className = "",
     children,
+    data,
+    reportConfig,
     icon: Icon,
+    onClick,
     ...props
 }) {
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const isReportButton = Boolean(reportConfig && data);
+
+    const handleClick = (event) => {
+        if (isReportButton) {
+            setIsReportModalOpen(true);
+            return;
+        }
+        onClick?.(event);
+    };
+
     const variants = {
         primary:   "bg-brand text-text-inverse border border-brand hover:bg-brand-hover",
         secondary: "bg-transparent border border-border text-text-primary hover:bg-surface-muted",
@@ -24,32 +41,38 @@ export default function Button({
               before:-inset-y-[5px] before:-inset-x-[0px]`,
     };
 
-    // if (to) {
-    //     return (
-    //         <Link to={to} className="" {...props}>
-    //             <span>{children}</span>
-    //         </Link>
-    //     );
-    // }
-
     return (
-        <button
-            type={type}
-            className={`
-                relative
-                cursor-pointer
-                inline-flex items-center justify-center
-                rounded-[var(--radius-full)]
-                transition-colors duration-[var(--duration-base)]
-                focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2
-                disabled:cursor-not-allowed disabled:opacity-60
-                ${variants[variant]}
-                ${sizes[size]}
-                ${className}
-            `}
-            {...props}
-        >
-            {Icon && <Icon />}{children}
-        </button>
+        <>
+            <button
+                type={type}
+                onClick={handleClick}
+                className={`
+                    relative
+                    cursor-pointer
+                    inline-flex items-center justify-center
+                    rounded-[var(--radius-full)]
+                    transition-colors duration-[var(--duration-base)]
+                    focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2
+                    disabled:cursor-not-allowed disabled:opacity-60
+                    ${variants[variant]}
+                    ${sizes[size]}
+                    ${className}
+                `}
+                {...props}
+            >
+                {Icon && <Icon />}{children}
+            </button>
+
+            {isReportButton && (
+                <ReportModal
+                    isOpen={isReportModalOpen}
+                    onClose={() => setIsReportModalOpen(false)}
+                    data={data}
+                    fields={reportConfig.fields}
+                    reportTitle={reportConfig.reportTitle}
+                    fileNamePrefix={reportConfig.fileNamePrefix}
+                />
+            )}
+        </>
     );
 }
