@@ -79,7 +79,7 @@ function UserEditForm({ user, documentTypes, groups }) {
     const isActive = formData.isActive === "true";
 
     return (
-        <div className="h-full p-4 text-text-primary flex flex-col gap-4">
+        <div className="h-full p-4 text-text-primary grid grid-cols-1 md:flex md:flex-col gap-4">
 
             {/* Encabezado */}
             <div className="flex items-center gap-3">
@@ -138,7 +138,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                     </div>
 
                     {/* Col 3 — foto ocupa fila 1 y 2 */}
-                    <div className="row-span-2 flex flex-col items-center justify-center gap-3">
+                    <div className="row-span-2 grid grid-cols-1 md:flex md:flex-col items-center justify-center gap-3">
                         <ProfileFileInput
                             className="w-32 h-32 rounded-[var(--radius-xl)]"
                             value={formData.profilePicture}
@@ -162,7 +162,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                 </EditCard>
 
                 {/* Contacto y Sistema lado a lado */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                     <EditCard title="Información de Contacto">
                         <Input
@@ -235,7 +235,7 @@ function UserEditForm({ user, documentTypes, groups }) {
 
                 </div>
 
-                <div className="flex gap-4 justify-end">
+                <div className="flex gap-4 justify-center md:justify-end">
                     <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
                         Cancelar
                     </Button>

@@ -1,22 +1,23 @@
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import TabBar from "../components/TabBar";
+import { TvMinimal } from "lucide-react";
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
 
-export default function ConfigLayout(){
+export default function ConfigLayout({children}){
+        const [sidebarOpen, setSidebarOpen] = useState(false);
+    
     return (
         <div className="h-screen flex flex-col">
-            <Navbar />
-
-
-            <div className="flex flex-1">
-                <Sidebar />
-
-                <main className="flex-1 bg-background">
+            <Navbar onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
+            <div className="flex flex-1 overflow-hidden">
+                <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+                <main className="flex-1 bg-background text-text-primary overflow-y-auto">
+                    {children ?? <Outlet />}
                     <TabBar/>
                 </main>
-
             </div>
-
         </div>
     );
 }
