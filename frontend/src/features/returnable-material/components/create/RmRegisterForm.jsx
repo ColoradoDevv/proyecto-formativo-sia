@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { getBrands, getStates, getCategories } from "../../services/selectServices";
 import { createRM } from "../../services/returnableService";
 
-import { Input, FileInput, Button, SelectInput, ConfirmCancelModal } from "@/shared";
+import { Input, FileInput, Button, SelectInput, ConfirmCancelModal, TextArea, successAlert, errorAlert } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
 
 export default function RmRegisterForm() {
@@ -14,7 +14,6 @@ export default function RmRegisterForm() {
     const [brands, setBrands] = useState([]);
     const [states, setStates] = useState([]);
     const [submitting, setSubmitting] = useState(false);
-    const [serverError, setServerError] = useState(null);
 
     const [formData, setFormData] = useState({
         rmSenaPlate: "",
@@ -62,13 +61,14 @@ export default function RmRegisterForm() {
 
         setErrors({});
         setSubmitting(true);
-        setServerError(null);
 
         try {
             await createRM(result.data);
+            await successAlert({ title: "Material devolutivo creado exitosamente" });
             navigate("/devolutivos");
         } catch (err) {
-            setServerError(err.message);
+            if (err.fieldErrors) setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
+            errorAlert({ title: "Error al crear material devolutivo", text: err.message });
         } finally {
             setSubmitting(false);
         }
@@ -85,10 +85,6 @@ export default function RmRegisterForm() {
                         </h1>
                     </div>
                 </div>
-
-                {serverError && (
-                    <p className="text-error text-small mt-2">{serverError}</p>
-                )}
 
                 <form noValidate onSubmit={handleSubmit} className="flex flex-col items-center gap-6">
                     <div className="flex gap-8 items-start">
@@ -192,7 +188,7 @@ export default function RmRegisterForm() {
                                 error={errors.rmPurchaseDate}
                                 required
                             />
-                            <Input
+                            <TextArea
                                 label="Descripción"
                                 name="rmDescription"
                                 placeholder="Descripción del material"

@@ -17,13 +17,13 @@ export default function TabBar() {
       <Tab.Group>
 
 
-        <Tab.List className="flex space-x-10 border-b border-border px-6">
+        <Tab.List className="flex space-x-10 border-b border-border px-6 " >
           {tabs.map((tab) => (
             <Tab
               key={tab}
               className={({ selected }) =>
                 classNames(
-                  'pb-3 text-small font-medium outline-none transition-all duration-[var(--duration-base)]',
+                  'pb-3 text-small font-medium outline-none transition-all cursor-pointer duration-[var(--duration-base)]',
                   selected
                     ? 'border-b-2 border-brand text-text-primary'
                     : 'border-b-2 border-transparent text-text-muted hover:border-border-strong hover:text-text-secondary'
@@ -35,11 +35,10 @@ export default function TabBar() {
           ))}
         </Tab.List>
 
-        <Tab.Panels className="mt-6 px-6">
+        <Tab.Panels className="mt-6 px-6 ">
           <Tab.Panel>
-            Contenido de Editar Perfil
-            
-              </Tab.Panel>
+            Editar Perfil
+          </Tab.Panel>
           <Tab.Panel>
             <TmHomePage/>
           </Tab.Panel>

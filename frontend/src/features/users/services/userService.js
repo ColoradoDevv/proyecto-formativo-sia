@@ -1,39 +1,32 @@
-import { apiFetch } from "@/shared/services/api";
+import { apiFetch, throwApiError } from "@/shared/services/api";
 
-// Utilidad para menejar errores HTTP de manera consistente en los servicios de usuario
-const HTTP_ERROR_MESSAGES = {
-    400: "400 Solicitud inválida. Verifica los datos enviados.",
-    401: "401 No autenticado. Por favor, inicia sesión.",
-    403: "403 No tienes permisos para realizar esta acción.",
-    404: "404 El recurso solicitado no fue encontrado.",
-    409: "409 Conflicto: ya existe un registro con esos datos.",
-    422: "422 Los datos enviados no son procesables por el servidor.",
-    429: "429 Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
-    500: "500 Error interno del servidor. Intenta más tarde.",
-    502: "502 El servidor no está disponible (Bad Gateway).",
-    503: "503 Servicio temporalmente no disponible. Intenta más tarde.",
+// Mapea los nombres de campo que devuelve el backend a las keys del formData
+// del formulario de usuarios, para poder mostrar el error junto al input correcto.
+const FIELD_MAP = {
+    first_name: "userName",
+    last_name: "userLastName",
+    document_type_id: "userDocumentType",
+    document_number: "userDocumentNumber",
+    email: "userEmail",
+    phone_number: "userPhone",
+    second_phone_number: "userAdditionalPhone",
+    institutional_email: "userInstitutionalEmail",
+    address: "userAddress",
+    start_date: "userStartDate",
+    end_date: "userEndDate",
 };
-
-function handleHttpError(response) {
-    const message =
-        HTTP_ERROR_MESSAGES[response.status] ??
-        `Error inesperado del servidor (código ${response.status}).`;
-    const error = new Error(message);
-    error.status = response.status;
-    throw error;
-}
 
 // METODO GET (obtener lista de usuarios)
 export async function getUsers() {
     const response = await apiFetch("/api/users/");
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
 
 // METODO GET (obtener un usuario por su ID)
 export async function getUserById(id) {
     const response = await apiFetch(`/api/users/${id}/`);
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
 
@@ -65,7 +58,7 @@ export async function createUser(userData) {
         body: formData,
     });
 
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     const user = await response.json();
 
     // Si se especificaron grupos, asignarlos al usuario recién creado
@@ -83,14 +76,14 @@ export async function toggleUserActive(id, isActive) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ is_active: isActive }),
   });
-  if (!response.ok) handleHttpError(response);
+  if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();
 }
 
 // METODO GET (obtener grupos de un usuario)
 export async function getUserGroups(userId) {
   const response = await apiFetch(`/api/users/${userId}/groups/`);
-  if (!response.ok) handleHttpError(response);
+  if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();
 }
 
@@ -101,7 +94,7 @@ export async function assignUserGroups(userId, groupIds) {
   const assignments = groupIds.map(async (groupId) => {
     // Primero obtenemos el nombre del grupo
     const groupResponse = await apiFetch(`/api/permissions/groups/${groupId}/`);
-    if (!groupResponse.ok) handleHttpError(groupResponse);
+    if (!groupResponse.ok) await throwApiError(groupResponse);
     const group = await groupResponse.json();
 
     // Luego asignamos el usuario al grupo
@@ -110,7 +103,7 @@ export async function assignUserGroups(userId, groupIds) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ group_name: group.name }),
     });
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
   });
 
@@ -121,7 +114,7 @@ export async function assignUserGroups(userId, groupIds) {
 export async function removeUserFromGroup(userId, groupId) {
   // Obtenemos el nombre del grupo
   const groupResponse = await apiFetch(`/api/permissions/groups/${groupId}/`);
-  if (!groupResponse.ok) handleHttpError(groupResponse);
+  if (!groupResponse.ok) await throwApiError(groupResponse);
   const group = await groupResponse.json();
 
   // Removemos el usuario del grupo
@@ -130,7 +123,7 @@ export async function removeUserFromGroup(userId, groupId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ group_name: group.name }),
   });
-  if (!response.ok) handleHttpError(response);
+  if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();
 }
 

@@ -1,36 +1,31 @@
-import { apiFetch } from "@/shared/services/api";
+import { apiFetch, throwApiError } from "@/shared/services/api";
 
-const HTTP_ERROR_MESSAGES = {
-    400: "400 Solicitud inválida. Verifica los datos enviados.",
-    401: "401 No autenticado. Por favor, inicia sesión.",
-    403: "403 No tienes permisos para realizar esta acción.",
-    404: "404 El recurso solicitado no fue encontrado.",
-    409: "409 Conflicto: ya existe un registro con esos datos.",
-    422: "422 Los datos enviados no son procesables por el servidor.",
-    429: "429 Demasiadas solicitudes. Espera un momento e intenta de nuevo.",
-    500: "500 Error interno del servidor. Intenta más tarde.",
-    502: "502 El servidor no está disponible (Bad Gateway).",
-    503: "503 Servicio temporalmente no disponible. Intenta más tarde.",
+const FIELD_MAP = {
+    name: "rmName",
+    sena_plate: "rmSenaPlate",
+    state: "rmState",
+    brand_id: "rmBrand",
+    category_id: "rmCategory",
+    serial: "rmSerial",
+    unit_price: "rmUnitValue",
+    total_price: "rmTotalValue",
+    description: "rmDescription",
+    purchase_date: "rmPurchaseDate",
+    quantity: "rmQuantity",
+    location: "rmLocation",
+    image: "rmPhoto",
+    technical_sheet: "rmTechnicalSheet",
 };
-
-function handleHttpError(response) {
-    const message =
-        HTTP_ERROR_MESSAGES[response.status] ??
-        `Error inesperado del servidor (código ${response.status}).`;
-    const error = new Error(message);
-    error.status = response.status;
-    throw error;
-}
 
 export async function getRMs() {
     const response = await apiFetch("/api/products/returnables/");
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
 
 export async function getRMById(id) {
     const response = await apiFetch(`/api/products/returnables/${id}/`);
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
 
@@ -58,7 +53,7 @@ export async function createRM(rmData) {
         body: formData,
     });
 
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
 
@@ -69,6 +64,6 @@ export async function toggleRMActive(consumableId, isActive) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: isActive }),
     });
-    if (!response.ok) handleHttpError(response);
+    if (!response.ok) await throwApiError(response);
     return response.json();
 }

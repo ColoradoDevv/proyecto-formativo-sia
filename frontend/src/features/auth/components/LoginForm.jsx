@@ -3,6 +3,7 @@ import { Eye, EyeOff, Asterisk } from "lucide-react";
 import { useState } from "react";
 import { loginSchemas } from "../schemas/loginSchemas";
 import { login } from "../services/authService";
+import { Button } from "@/shared"
 
 export default function LoginForm() {
     const navigate = useNavigate();
@@ -114,13 +115,14 @@ export default function LoginForm() {
                 </div>
 
                 {/* Botón */}
-                <button
+                <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-[var(--size-control-lg)] rounded-[var(--radius-xl)] mt-1 text-text-primary bg-brand-soft font-heading text-small hover:opacity-90 active:scale-[0.98] transition-all duration-[var(--duration-fast)] shadow-[var(--shadow-elevation-2)] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    variant="primary"
+                    size="md"
                 >
                     {loading ? "Entrando..." : "Entrar"}
-                </button>
+                </Button>
             </form>
         </div>
     );

@@ -1,8 +1,19 @@
 import { ChevronDown, Menu } from "lucide-react";
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from "@/shared";
-import { Link } from "react-router-dom";
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator } from "@/shared";
+import { Link, useNavigate } from "react-router-dom";
+import { getStoredUser } from "@/shared/services/api"
+import { logout } from "@/features/auth/services/authService";
 
 export default function Navbar({ onToggleSidebar }) {
+
+    const navigate = useNavigate();
+
+    const userPlaceholder = getStoredUser()?.first_name
+
+    const handleLogout = () => {
+        logout();                      // borra el token de la sesion
+        navigate("/iniciar-sesion");   // vuelve al login
+    };
     return (
         <div className="bg-surface-hover px-4 sm:px-6 border-b border-border flex items-center text-text-primary h-[var(--size-control-2xl)] shrink-0">
 
@@ -26,15 +37,16 @@ export default function Navbar({ onToggleSidebar }) {
             {/* Menú de usuario */}
             <Dropdown>
                 <DropdownTrigger>
-                    <span className="hidden lg:inline underline cursor-pointer">Administrador</span>
+                    <span className="hidden lg:inline underline cursor-pointer">{userPlaceholder}</span>
                     <ChevronDown className="size-5 cursor-pointer" />
                 </DropdownTrigger>
                 <DropdownContent className="right-0 w-48">
                     <DropdownItem>
-                        <Link to="/auth" className="block w-full">Auth</Link>
+                        <Link to="/configuracion" className="block w-full">Ver Perfil</Link>
                     </DropdownItem>
+                          <DropdownSeparator />
                     <DropdownItem>
-                        <Link to="/dashboard" className="block w-full">Dashboard</Link>
+                        <Link to="/iniciar-sesion"className="block w-full" onClick={handleLogout}>Cerrar Sesion</Link>
                     </DropdownItem>
                 </DropdownContent>
             </Dropdown>

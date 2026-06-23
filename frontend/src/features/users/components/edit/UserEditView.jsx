@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, ConfirmCancelModal } from "@/shared";
+import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ConfirmCancelModal } from "@/shared";
 import EditCard from "./EditCard.jsx";
 import { Undo2, Pencil, UserRound } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
@@ -220,14 +220,13 @@ function UserEditForm({ user, documentTypes, groups }) {
                     </EditCard>
 
                     <EditCard title="Información del Sistema">
-                        <SelectInput
+                        <SelectInputMultiple
                             label="Tipo de usuario"
                             name="groups"
                             options={groups}
                             value={formData.groups}
                             onChange={handleChange}
                             required
-                            multiple
                         />
                         <SelectInput
                             label="Estado"

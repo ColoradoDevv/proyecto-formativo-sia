@@ -1,16 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, ConfirmCancelModal } from "@/shared";
+import { Button, Input, ConfirmCancelModal, successAlert, errorAlert } from "@/shared";
 import { brandSchema } from "../../schemas/brandSchema";
 import { createBrand } from "../../services/brandService";
-import Alert from "@mui/material/Alert";
 
 export default function TmRegisterForm() {
     const navigate = useNavigate();
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [formData, setFormData] = useState({ brandName: "" });
     const [errors, setErrors] = useState({});
-    const [notification, setNotification] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -35,10 +33,11 @@ export default function TmRegisterForm() {
 
         try {
             await createBrand(result.data);
-            setNotification({ message: "Marca registrada exitosamente", severity: "success" });
-            setTimeout(() => navigate("/marcas"), 1500);
+            await successAlert({ title: "Marca registrada exitosamente" });
+            navigate("/marcas");
         } catch (error) {
-            setNotification({ message: error.message, severity: "error" });
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+            errorAlert({ title: "Error al registrar la marca", text: error.message });
         }
     }
 
@@ -51,12 +50,6 @@ export default function TmRegisterForm() {
                         Registra una nueva marca para asociarla a los materiales.
                     </p>
                 </div>
-
-                {notification && (
-                    <Alert severity={notification.severity} onClose={() => setNotification(null)}>
-                        {notification.message}
-                    </Alert>
-                )}
 
                 <form
                     noValidate

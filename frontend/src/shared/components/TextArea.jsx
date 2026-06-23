@@ -1,10 +1,10 @@
-export default function Input({
+export default function TextArea({
     label,
-    type = "text",
     required,
     className = "w-full",
     error,
     hint,
+    rows = 4,
     ...props
 }){
     return(
@@ -24,20 +24,21 @@ export default function Input({
                 </label>
             )}
 
-            <div className="relative h-[var(--size-control-xl)] flex items-center">
-                <input
-                    type={type}
+            <div className="relative flex items-center">
+                <textarea
                     required={required}
+                    rows={rows}
                     className={`
                         relative
                         w-full
-                        h-[var(--size-control-xl)]
                         rounded-[var(--radius-md)]
                         border
                         px-4
+                        py-2
                         text-body
                         bg-surface-hover
                         placeholder:text-text-muted
+                        resize-none
                         focus:outline-none
                         focus:ring-2
                         focus:ring-focus-ring
