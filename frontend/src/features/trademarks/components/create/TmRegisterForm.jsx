@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, ConfirmCancelModal, successAlert, errorAlert } from "@/shared";
+import { Button, Input, showAlert, cancelAlert } from "@/shared";
 import { brandSchema } from "../../schemas/brandSchema";
 import { createBrand } from "../../services/brandService";
 
 export default function TmRegisterForm() {
     const navigate = useNavigate();
-    const [showCancelModal, setShowCancelModal] = useState(false);
     const [formData, setFormData] = useState({ brandName: "" });
     const [errors, setErrors] = useState({});
 
@@ -14,6 +13,11 @@ export default function TmRegisterForm() {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
+
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -33,11 +37,11 @@ export default function TmRegisterForm() {
 
         try {
             await createBrand(result.data);
-            await successAlert({ title: "Marca registrada exitosamente" });
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Marca registrada exitosamente" });
             navigate("/marcas");
         } catch (error) {
             if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
-            errorAlert({ title: "Error al registrar la marca", text: error.message });
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al registrar la marca", text: error.message });
         }
     }
 
@@ -71,7 +75,7 @@ export default function TmRegisterForm() {
                             type="button"
                             variant="secondary"
                             size="md"
-                            onClick={() => setShowCancelModal(true)}
+                            onClick={handleCancel}
                         >
                             Cancelar
                         </Button>
@@ -81,12 +85,6 @@ export default function TmRegisterForm() {
                     </div>
                 </form>
             </div>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
         </>
     );
 }

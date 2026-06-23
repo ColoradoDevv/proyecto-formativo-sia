@@ -5,8 +5,12 @@ import { loansColumns } from "../../table/LoansColumns";
 import { loansReportConfig } from "../../reports/loansReportConfig.js";
 import useLoans from "../../hooks/useLoans";
 import { TailChase } from "ldrs/react";
-import { CloudAlert } from "lucide-react";
+import { CloudAlert, Plus, Download } from "lucide-react";
 import Alert from "@mui/material/Alert";
+import { Link } from "react-router-dom";
+import { Button } from "@/shared"
+
+
 
 export default function LoansListPage() {
     const { loans, loading, error } = useLoans();
@@ -44,19 +48,24 @@ export default function LoansListPage() {
                     </Alert>
                 )}
                 <div className="grid grid-cols-2 gap-4">
-                    <RegisterButton
-                        to="/prestamos/crear"
-                        className="self-start md:self-auto"
-                    >
-                        Registrar Préstamo
-                    </RegisterButton>
-                    <DownloadReportButton
+                    <Link to="/prestamos/crear">
+                        <Button
+                            className="self-start md:self-auto"
+                            variant="soft"
+                            icon={Plus}
+                        >
+                            Registrar Préstamo
+                        </Button>
+                    </Link>
+
+                    <Button
                         data={loans}
                         reportConfig={loansReportConfig}
                         className="self-start md:self-auto"
+                        icon={Download}
                     >
                         Descargar Reporte
-                    </DownloadReportButton>
+                    </Button>
                 </div>
             </div>
 

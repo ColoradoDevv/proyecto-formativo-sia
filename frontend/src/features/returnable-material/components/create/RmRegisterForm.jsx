@@ -4,12 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { getBrands, getStates, getCategories } from "../../services/selectServices";
 import { createRM } from "../../services/returnableService";
 
-import { Input, FileInput, Button, SelectInput, ConfirmCancelModal, TextArea, successAlert, errorAlert } from "@/shared";
+import { Input, FileInput, Button, SelectInput, TextArea, showAlert, cancelAlert } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
 
 export default function RmRegisterForm() {
     const navigate = useNavigate();
-    const [showCancelModal, setShowCancelModal] = useState(false);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
     const [states, setStates] = useState([]);
@@ -45,6 +44,11 @@ export default function RmRegisterForm() {
         setFormData({ ...formData, [name]: files });
     };
 
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -64,11 +68,11 @@ export default function RmRegisterForm() {
 
         try {
             await createRM(result.data);
-            await successAlert({ title: "Material devolutivo creado exitosamente" });
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material devolutivo creado exitosamente" });
             navigate("/devolutivos");
         } catch (err) {
             if (err.fieldErrors) setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
-            errorAlert({ title: "Error al crear material devolutivo", text: err.message });
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al crear material devolutivo", text: err.message });
         } finally {
             setSubmitting(false);
         }
@@ -224,7 +228,7 @@ export default function RmRegisterForm() {
                     </div>
 
                     <div className="flex gap-4">
-                        <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>
+                        <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
                             Cancelar
                         </Button>
                         <Button type="submit" variant="primary" size="md" disabled={submitting}>
@@ -233,12 +237,6 @@ export default function RmRegisterForm() {
                     </div>
                 </form>
             </div>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
         </>
     );
 }
