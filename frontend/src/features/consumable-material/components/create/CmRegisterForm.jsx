@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getBrands, getUsers } from "../../services/selectServices";
 
-import {Input, FileInput, Button, SelectInput, ConfirmCancelModal, TextArea, successAlert, errorAlert} from "@/shared";
+import {Input, FileInput, Button, SelectInput, TextArea, showAlert, cancelAlert} from "@/shared";
 import { cmSchema } from "../../schemas/cmSchema";
 import {createCm} from "../../services/consumableService";
 
@@ -11,7 +11,6 @@ import {createCm} from "../../services/consumableService";
 export default function CmRegisterForm(){
 
         const navigate = useNavigate();
-        const [showCancelModal, setShowCancelModal] = useState(false);
         const [brands, setBrands] = useState([]);
         const [errors, setErrors] = useState({});
         const [users, setUsers] = useState([]);
@@ -68,6 +67,11 @@ export default function CmRegisterForm(){
             setFormData({ ...formData, [name]: files });
         };
 
+        async function handleCancel() {
+            const result = await cancelAlert();
+            if (result.isConfirmed) navigate(-1);
+        }
+
         async function handleSubmit(e) {
             e.preventDefault();
 
@@ -88,13 +92,13 @@ export default function CmRegisterForm(){
 
                 await createCm(result.data);
 
-                await successAlert({ title: "Material de consumo creado exitosamente" });
+                await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material de consumo creado exitosamente" });
                 navigate("/consumibles");
 
             } catch (error) {
                 console.error("Error al crear material de consumo:", error);
                 if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
-                errorAlert({ title: "Error al crear material de consumo", text: error.message });
+                showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al crear material de consumo", text: error.message });
             }
         };
 
@@ -231,18 +235,12 @@ export default function CmRegisterForm(){
                             </div>
                         </div>
                         <div className="flex gap-4">
-                            <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>Cancelar</Button>
+                            <Button type="button" variant="secondary" size="md" onClick={handleCancel}>Cancelar</Button>
                             <Button type="submit"  variant="primary"   size="md">Crear</Button>
                         </div>
                     </form>
 
         </div>
-
-        <ConfirmCancelModal
-            isOpen={showCancelModal}
-            onClose={() => setShowCancelModal(false)}
-            onConfirm={() => navigate(-1)}
-        />
         </>
     )
 }
