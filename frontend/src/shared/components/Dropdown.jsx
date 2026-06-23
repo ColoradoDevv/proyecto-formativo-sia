@@ -91,7 +91,7 @@ export function DropdownTrigger({ children, className = "" }) {
 // Usa un portal para renderizar fuera del DOM de la tabla y evitar que
 // overflow:hidden/auto del contenedor padre recorte el menú.
 
-export function DropdownContent({ children, className = "", align = "right" }) {
+export function DropdownContent({ children, className = "", align = "right", matchTriggerWidth = false }) {
     const { open, triggerRef } = useContext(DropdownContext)
     const contentRef = useRef(null)
     const [style, setStyle] = useState({ position: "fixed", top: -9999, left: -9999, visibility: "hidden" })
@@ -104,7 +104,7 @@ export function DropdownContent({ children, className = "", align = "right" }) {
 
             const triggerRect   = triggerRef.current.getBoundingClientRect()
             const contentHeight = contentRef.current.offsetHeight
-            const contentWidth  = contentRef.current.offsetWidth
+            const contentWidth  = matchTriggerWidth ? triggerRect.width : contentRef.current.offsetWidth
             const spaceBelow    = window.innerHeight - triggerRect.bottom
             const spaceAbove    = triggerRect.top
 
@@ -118,11 +118,17 @@ export function DropdownContent({ children, className = "", align = "right" }) {
                 ? Math.max(8, triggerRect.right - contentWidth)
                 : Math.min(triggerRect.left, window.innerWidth - contentWidth - 8)
 
-            setStyle({ position: "fixed", top, left, visibility: "visible" })
+            setStyle({
+                position: "fixed",
+                top,
+                left,
+                visibility: "visible",
+                ...(matchTriggerWidth ? { width: triggerRect.width } : {}),
+            })
         })
 
         return () => cancelAnimationFrame(frame)
-    }, [open, triggerRef, align])
+    }, [open, triggerRef, align, matchTriggerWidth])
 
     if (!open) return null
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDocumentTypes, getUserGroups} from "../../services/selectServices";
-import {Input, Button, SelectInput, ProfileFileInput, ConfirmCancelModal} from "@/shared";
+import {Input, Button, SelectInput, SelectInputMultiple, ProfileFileInput, ConfirmCancelModal} from "@/shared";
 import UserTaskModal from "./UserTaskModal";
 import { userSchema } from "../../schemas/userSchema";
 import { createUser } from "../../services/userService";
@@ -141,7 +141,7 @@ export default function UserRegisterForm(){
                                 error={errors.userDocumentType}
                                 required
                             />
-                            <SelectInput
+                            <SelectInputMultiple
                                 label="Tipo de Usuario"
                                 name="userGroups"
                                 options={userGroups}
@@ -149,7 +149,6 @@ export default function UserRegisterForm(){
                                 onChange={handleChange}
                                 error={errors.userGroups}
                                 required
-                                multiple
                             />
 
                             <Input
