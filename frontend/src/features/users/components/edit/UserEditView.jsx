@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ProfileFileInput, StatusBadge, cancelAlert } from "@/shared";
-import EditCard from "./EditCard.jsx";
+import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ProfileFileInput, StatusBadge, cancelAlert, EditCard } from "@/shared";
 import { Undo2 } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
 import { getDocumentTypes, getUserGroups } from "../../services/selectServices";

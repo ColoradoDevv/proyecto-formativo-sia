@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, cancelAlert } from "@/shared";
-import EditCard from "./EditCard.jsx";
+import { Button, IconButton, Input, SelectInput, cancelAlert, EditCard } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useRm from "../../hooks/useRm";
 import { getBrands, getCategories, getStates } from "../../services/selectServices";

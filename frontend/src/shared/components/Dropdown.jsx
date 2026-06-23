@@ -38,10 +38,13 @@ export function Dropdown({
 
     const containerRef = useRef(null)
     const triggerRef   = useRef(null)
+    const contentRef   = useRef(null)
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            if (containerRef.current && !containerRef.current.contains(e.target)) {
+            const insideContainer = containerRef.current && containerRef.current.contains(e.target)
+            const insideContent   = contentRef.current && contentRef.current.contains(e.target)
+            if (!insideContainer && !insideContent) {
                 setOpen(false)
             }
         }
@@ -58,7 +61,7 @@ export function Dropdown({
     }, [setOpen])
 
     return (
-        <DropdownContext.Provider value={{ open, setOpen, triggerRef }}>
+        <DropdownContext.Provider value={{ open, setOpen, triggerRef, contentRef }}>
             <div
                 ref={containerRef}
                 className={`relative inline-block ${className}`}
@@ -76,6 +79,7 @@ export function DropdownTrigger({ children, className = "" }) {
 
     return (
         <button
+            type="button"
             ref={triggerRef}
             onClick={() => setOpen(!open)}
             aria-expanded={open}
@@ -92,8 +96,7 @@ export function DropdownTrigger({ children, className = "" }) {
 // overflow:hidden/auto del contenedor padre recorte el menú.
 
 export function DropdownContent({ children, className = "", align = "right", matchTriggerWidth = false }) {
-    const { open, triggerRef } = useContext(DropdownContext)
-    const contentRef = useRef(null)
+    const { open, triggerRef, contentRef } = useContext(DropdownContext)
     const [style, setStyle] = useState({ position: "fixed", top: -9999, left: -9999, visibility: "hidden" })
 
     useEffect(() => {
@@ -176,6 +179,7 @@ export function DropdownItem({
 
     return (
         <button
+            type="button"
             role="menuitem"
             onClick={handleClick}
             className={`w-full text-left px-3 py-2 cursor-pointer rounded-sm text-medium

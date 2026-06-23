@@ -1,7 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton } from "@/shared";
-import DetailCard from "./DetailCard";
-import DetailField from "./DetailField";
+import { Button, IconButton, DetailCard, DetailField } from "@/shared";
 import useCm from "../../hooks/useCm";
 import { TailChase } from 'ldrs/react';
 import 'ldrs/react/TailChase.css';

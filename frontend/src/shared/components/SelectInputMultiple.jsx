@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { Dropdown, DropdownTrigger, DropdownContent } from "./Dropdown";
+import Checkbox from "./Checkbox";
 
 export default function SelectInputMultiple({
     label,
@@ -64,18 +65,15 @@ export default function SelectInputMultiple({
 
                 <DropdownContent align="left" matchTriggerWidth className="max-h-60 overflow-y-auto">
                     {options.map((opt) => (
-                        <label
+                        <Checkbox
                             key={opt.id}
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-surface-muted rounded-sm text-medium"
-                        >
-                            <input
-                                type="checkbox"
-                                checked={value.includes(String(opt.id))}
-                                onChange={() => toggle(String(opt.id))}
-                                className="w-4 h-4"
-                            />
-                            {opt.label}
-                        </label>
+                            id={`${name}-${opt.id}`}
+                            name={name}
+                            label={opt.label}
+                            checked={value.includes(String(opt.id))}
+                            onChange={() => toggle(String(opt.id))}
+                            className="px-3 py-2 hover:bg-surface-muted rounded-sm"
+                        />
                     ))}
                 </DropdownContent>
             </Dropdown>

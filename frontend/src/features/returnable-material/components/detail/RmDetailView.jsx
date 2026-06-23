@@ -1,30 +1,9 @@
 import { useParams } from "react-router-dom";
 import { FileText, ImageOff } from "lucide-react";
+import { DetailCard, DetailField } from "@/shared";
 import useRm from "../../hooks/useRm";
 import { TailChase } from "ldrs/react";
 import { CloudAlert } from "lucide-react";
-
-function DetailCard({ title, children }) {
-    return (
-        <div className="flex flex-col gap-4 p-5 rounded-[var(--radius-2xl)] border border-border bg-surface-hover">
-            <h3 className="text-small font-heading border-b border-border pb-2">{title}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
-                {children}
-            </div>
-        </div>
-    );
-}
-
-function DetailField({ label, value, fullWidth = false }) {
-    return (
-        <div className={fullWidth ? "sm:col-span-2" : ""}>
-            <p className="text-caption text-text-primary uppercase tracking-wide">{label}</p>
-            <p className="text-text-secondary text-small mt-1">
-                {value ?? <span className="italic text-text-muted">No registrado</span>}
-            </p>
-        </div>
-    );
-}
 
 export default function RmDetailView() {
     const { id } = useParams();

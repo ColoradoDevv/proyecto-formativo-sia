@@ -1,4 +1,4 @@
-export default function DetailField({ label, value, fullWidth = false }) {
+export default function EditField({ label, value, fullWidth = false }) {
     return (
         <div className={fullWidth ? "sm:col-span-2 " : ""}>
             <p className="text-caption text-text-primary uppercase tracking-wide">{label}</p>

@@ -1,13 +1,15 @@
 import { Pencil } from "lucide-react";
-import Switch from "./Switch";
+import ActiveSwitch from "./ActiveSwitch";
 import { IconButton } from "./IconButton";
 
 export default function Card({
+    id,
     number,
     title,
     subtitle,
     active,
-    onToggleActive,
+    toggleFn,
+    entity,
     onEdit,
     gradientClassName = "bg-gradient-to-b from-[#0f2942] to-[#bfe3ef]",
     className = "",
@@ -28,7 +30,7 @@ export default function Card({
                         <h3 className="text-medium font-heading text-text-primary">{title}</h3>
                         {subtitle && <p className="text-small text-text-muted">{subtitle}</p>}
                     </div>
-                    <Switch checked={active} onChange={onToggleActive} size="sm" />
+                    <ActiveSwitch id={id} isActive={active} toggleFn={toggleFn} entity={entity} size="sm" />
                 </div>
 
                 <IconButton

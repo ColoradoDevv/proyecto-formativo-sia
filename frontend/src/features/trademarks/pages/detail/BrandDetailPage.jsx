@@ -1,10 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton } from "@/shared";
+import { Button, IconButton, DetailCard, DetailField } from "@/shared";
 import { Undo2 } from "lucide-react";
 import { TailChase } from "ldrs/react";
 import useBrand from "../../hooks/useBrand";
-import DetailCard from "../../components/detail/DetailCard";
-import DetailField from "../../components/detail/DetailField";
 
 export default function BrandDetailPage() {
     const navigate = useNavigate();
