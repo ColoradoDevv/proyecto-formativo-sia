@@ -1,10 +1,11 @@
-import { RegisterButton, DownloadReportButton } from "@/shared";
+import { Button } from "@/shared";
+import { Link } from "react-router-dom";
 import DataTable from "@/shared/components/DataTable";
 import { materialColumns } from "../../table/materialColumns.jsx";
 import { consumablesReportConfig } from "../../reports/consumablesReportConfig.js";
 import useProducts from "../../hooks/useCMs.js";
 import { TailChase } from 'ldrs/react'
-import { CloudAlert } from "lucide-react";
+import { CloudAlert, Download, Plus } from "lucide-react";
 import Alert from "@mui/material/Alert";
 import { useState } from "react";
 
@@ -49,19 +50,22 @@ export default function ListCmPage() {
                     </Alert>
                 )}
                 <div className="grid grid-cols-2 gap-4">
-                    <RegisterButton
-                        to="/consumibles/crear"
+            <Link to="/consumibles/crear">
+                    <Button
                         className="self-start md:self-auto"
-                    >
+                        icon={Plus}
+                        >
                         Registrar Material
-                    </RegisterButton>
-                    <DownloadReportButton
+                    </Button>
+                </Link>
+                    <Button
                         data={CMs}
                         reportConfig={consumablesReportConfig}
                         className="self-start md:self-auto"
+                        icon={Download}
                     >
                         Descargar Reporte
-                    </DownloadReportButton>
+                    </Button>
                 </div>
             </div>
             <DataTable data={CMs} columns={materialColumns} />

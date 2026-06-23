@@ -13,8 +13,10 @@ export default function AccessPage() {
 
 
   return (
-    <div className="p-6 flex gap-10">
+    <div className="p-6 grid grid-cols-1 lg:flex gap-10 w-full">
+      
       <AccessSidebar
+      
         selectedGroup={selectedGroup}
         setSelectedGroup={setSelectedGroup}
         groupPermissions={groupPermissions}

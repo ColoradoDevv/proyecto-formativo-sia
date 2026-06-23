@@ -43,7 +43,7 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
             <div className="relative z-10 w-md max-w-3xl mx-4 bg-white/30 backdrop-blur-2xl border border-white/50 rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-8 flex flex-col gap-5">
 
                 {/* Encabezado */}
-                <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
                     <h2 className="text-h3 font-heading text-text-primary">Agregar Tarea</h2>
                     <IconButton
                         type="button"

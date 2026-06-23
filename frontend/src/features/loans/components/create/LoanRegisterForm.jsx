@@ -80,7 +80,7 @@ export default function LoanRegisterForm() {
                             Crear Prestamo
                         </h1>
 
-                        <h1 className="text-small">
+                        <h1 className="hidden lg:block text-small">
                             Aca podras crear un prestamo con los datos correspondientes
                         </h1>
                     </div>
@@ -91,7 +91,7 @@ export default function LoanRegisterForm() {
                     onSubmit={handleSubmit}
                     className="flex flex-col items-center gap-6"
                 >
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-4">
                         <SelectInput
                             label="Usuario"
                             name="loanUser"
