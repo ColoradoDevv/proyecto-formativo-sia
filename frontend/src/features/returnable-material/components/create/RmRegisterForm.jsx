@@ -81,18 +81,18 @@ export default function RmRegisterForm() {
     return (
         <>
             <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
-                <div className="grid grid-cols-3 justify-items-left">
+                <div className="grid lg:grid-cols-3 justify-items-center">
                     <div className="grid gap-2 justify-items-left">
                         <h1 className="text-h2">Crear Material Devolutivo</h1>
-                        <h1 className="text-small text-text-muted">
+                        <h1 className="hidden lg:block text-small text-text-muted">
                             Acá podrás crear un material devolutivo con los datos correspondientes
                         </h1>
                     </div>
                 </div>
 
-                <form noValidate onSubmit={handleSubmit} className="flex flex-col items-center gap-6">
-                    <div className="flex gap-8 items-start">
-                        <div className="grid grid-cols-2 items-center gap-x-8 gap-y-4">
+                <form noValidate onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full">
+                    <div className="grid grid-cols-1 lg:flex gap-8 items-start w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4">
                             <Input
                                 label="Placa Sena"
                                 name="rmSenaPlate"
@@ -203,7 +203,7 @@ export default function RmRegisterForm() {
                             />
                         </div>
 
-                        <div className="flex flex-col gap-4">
+                        <div className="grid justify-items-center md:flex-row lg:flex-col md:flex gap-4">
                             <FileInput
                                 label="Foto del Producto (Opcional)"
                                 name="rmPhoto"

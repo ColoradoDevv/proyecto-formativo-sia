@@ -73,7 +73,7 @@ export default function AccessSidebar({
 
 
       <section>
-        <h2 className="text-h3 font-heading mb-6">Usuario individual</h2>
+        <h2 className="text-h3 font-heading mb-6 w-full">Usuario individual</h2>
 
 
         <Select
