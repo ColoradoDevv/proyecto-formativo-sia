@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import DataTable from "@/shared/components/DataTable";
 import { userColumns } from "../../table/UserColumns.jsx";
 import { RegisterButton, DownloadReportButton } from "../../../../shared/index.js";
@@ -5,7 +6,9 @@ import { usersReportConfig } from "../../reports/usersReportConfig.js";
 import useUsers from "../../hooks/useUsers.js";
 import { TailChase } from 'ldrs/react'
 import 'ldrs/react/TailChase.css'
-import { CloudAlert } from "lucide-react";
+import { CloudAlert, Plus, Download } from "lucide-react";
+import { Button } from "@/shared"
+
 
 export default function ListUserPage() {
 
@@ -39,19 +42,23 @@ export default function ListUserPage() {
                 </h2>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <RegisterButton
-                        to="/usuarios/crear"
-                        className="self-start md:self-auto"
-                    >
-                        Registrar Usuario
-                    </RegisterButton>
-                    <DownloadReportButton
+                    <Link to="/usuarios/crear">
+                        <Button
+                            className="self-start md:self-auto"
+                            variant="soft"
+                            icon={Plus}
+                        >
+                            Registrar Usuario
+                        </Button>
+                    </Link>
+                    <Button
                         data={users}
                         reportConfig={usersReportConfig}
                         className="self-start md:self-auto"
+                        icon={Download}
                     >
                         Descargar Reporte
-                    </DownloadReportButton>
+                    </Button>
                 </div>
             </div>
 

@@ -4,6 +4,7 @@ export default function Button({
     type = "button",
     className = "",
     children,
+    icon: Icon,
     ...props
 }) {
     const variants = {
@@ -17,11 +18,19 @@ export default function Button({
         sm:  `h-[var(--size-control-xs)] px-4 text-small font-medium gap-1
               before:absolute before:content-['']
               before:-inset-y-[6px] before:-inset-x-[0px]`,
-        md:  `h-[var(--size-control-md)] px-6 text-medium font-medium gap-2 rounded-[var(--radius-full)]`,
+        md:  `h-[var(--size-control-md)] px-6 text-body font-medium gap-2 rounded-[var(--radius-full)]`,
         smm: `h-[var(--size-control-xs)] w-[var(--size-field-sm)] px-2 text-small
               before:absolute before:content-['']
               before:-inset-y-[5px] before:-inset-x-[0px]`,
     };
+
+    // if (to) {
+    //     return (
+    //         <Link to={to} className="" {...props}>
+    //             <span>{children}</span>
+    //         </Link>
+    //     );
+    // }
 
     return (
         <button
@@ -40,7 +49,7 @@ export default function Button({
             `}
             {...props}
         >
-            {children}
+            {Icon && <Icon />}{children}
         </button>
     );
 }
