@@ -16,7 +16,6 @@ export default function TabBar() {
     <div className="w-full w-max-3xl mx-auto pt-10">
       <Tab.Group>
 
-
         <Tab.List className="flex space-x-10 border-b border-gray-200 px-6">
           {tabs.map((tab) => (
             <Tab
@@ -37,16 +36,17 @@ export default function TabBar() {
 
         <Tab.Panels className="mt-6 px-6">
           <Tab.Panel>
-            Contenido de Editar Perfil
-            
-              </Tab.Panel>
+            Contenido de Editar Perfil         
+          </Tab.Panel>
+          
           <Tab.Panel>
             <TmHomePage/>
           </Tab.Panel>
 
+          <Tab.Panel> 
+            <AccessPage/> 
+          </Tab.Panel>
 
-
-          <Tab.Panel> <AccessPage/> </Tab.Panel>
         </Tab.Panels> 
       </Tab.Group>
     </div>

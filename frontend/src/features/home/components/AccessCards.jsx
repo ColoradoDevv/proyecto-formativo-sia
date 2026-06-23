@@ -1,6 +1,6 @@
 export default function AccessCards({ className = "", Icon, label, value }) {
     return (
-        <div className={`bg-white rounded-2xl cursor-pointer hover:shadow-lg hover:shadow-text-muted shadow-md p-5 w-70 flex flex-col gap-3 ${className}`}>
+        <div className={`bg-white rounded-2xl cursor-pointer hover:shadow-lg hover:shadow-text-muted shadow-md p-5 w-80 h-120 flex flex-col gap-3 ${className}`}>
             <div className="flex items-center gap-3">
                 {Icon && (
                     <span className="text-slate-800 text-2xl">

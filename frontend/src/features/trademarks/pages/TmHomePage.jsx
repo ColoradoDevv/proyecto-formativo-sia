@@ -3,12 +3,11 @@ import { Button, SearchField } from '@/shared';
 import DetailCard from '../components/detail/DetailCard';
 import { Funnel, Plus, ArrowLeft, ArrowRight } from "lucide-react";
 
-
 export default function TmHomePage() {
   const navigate = useNavigate();
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="p-6 flex">
       <div className="flex flex-1">
         <main className="flex-1 space-y-6 bg-background">
 
