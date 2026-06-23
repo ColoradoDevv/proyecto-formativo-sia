@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ConfirmCancelModal } from "@/shared";
+import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ProfileFileInput, StatusBadge, cancelAlert } from "@/shared";
 import EditCard from "./EditCard.jsx";
-import { Undo2, Pencil, UserRound } from "lucide-react";
+import { Undo2 } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
 import { getDocumentTypes, getUserGroups } from "../../services/selectServices";
 import { TailChase } from "ldrs/react";
@@ -38,13 +38,10 @@ export default function UserEditView() {
 
 // Componente interno: recibe user ya cargado e inicializa el estado directamente
 function UserEditForm({ user, documentTypes, groups }) {
-    const navigate      = useNavigate();
-    const photoInputRef = useRef();
-
-    const [showCancelModal, setShowCancelModal] = useState(false);
-    const [photoPreview,    setPhotoPreview]    = useState(user.profile_picture ?? null);
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
+        profilePicture:     user.profile_picture ? [user.profile_picture] : [],
         firstName:          user.first_name          ?? "",
         lastName:           user.last_name           ?? "",
         email:              user.email               ?? "",
@@ -65,14 +62,18 @@ function UserEditForm({ user, documentTypes, groups }) {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0];
-        if (file) setPhotoPreview(URL.createObjectURL(file));
+    const handlePhotoChange = (files) => {
+        setFormData(prev => ({ ...prev, profilePicture: files }));
     };
 
     function handleSubmit(e) {
         e.preventDefault();
         navigate(-1);
+    }
+
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
     }
 
     const isActive = formData.isActive === "true";
@@ -138,33 +139,12 @@ function UserEditForm({ user, documentTypes, groups }) {
 
                     {/* Col 3 — foto ocupa fila 1 y 2 */}
                     <div className="row-span-2 flex flex-col items-center justify-center gap-3">
-                        <div className="relative">
-                            <div className="size-32 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                                {photoPreview
-                                    ? <img src={photoPreview} alt={formData.firstName} className="w-full h-full object-cover" />
-                                    : <UserRound size={48} className="text-text-muted" />
-                                }
-                            </div>
-                            <button
-                                type="button"
-                                aria-label="Cambiar foto de perfil"
-                                onClick={() => photoInputRef.current.click()}
-                                className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
-                            >
-                                <Pencil size={13} />
-                            </button>
-                            <input
-                                ref={photoInputRef}
-                                type="file"
-                                hidden
-                                aria-label="Subir foto de perfil"
-                                accept=".jpg,.jpeg,.png"
-                                onChange={handlePhotoChange}
-                            />
-                        </div>
-                        <span className={`px-3 py-0.5 rounded-[var(--radius-full)] text-caption font-medium ${isActive ? "bg-success-soft text-success" : "bg-error-soft text-error"}`}>
-                            {isActive ? "Activo" : "Inactivo"}
-                        </span>
+                        <ProfileFileInput
+                            className="w-32 h-32 rounded-[var(--radius-xl)]"
+                            value={formData.profilePicture}
+                            onChange={handlePhotoChange}
+                        />
+                        <StatusBadge active={isActive} />
                     </div>
 
                     {/* Dirección — ocupa cols 1 y 2 en fila 2 */}
@@ -256,7 +236,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                 </div>
 
                 <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
                         Cancelar
                     </Button>
                     <Button type="submit" variant="primary" size="md">
@@ -265,12 +245,6 @@ function UserEditForm({ user, documentTypes, groups }) {
                 </div>
 
             </form>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
 
         </div>
     );

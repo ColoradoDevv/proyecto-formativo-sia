@@ -16,12 +16,14 @@ export default function ProfileFileInput({
 
     const preview = useMemo(() => {
         const file = value[0];
-        if (!file || !file.type?.startsWith("image/")) return null;
+        if (!file) return null;
+        if (typeof file === "string") return file;
+        if (!file.type?.startsWith("image/")) return null;
         return URL.createObjectURL(file);
     }, [value]);
 
     useEffect(() => {
-        return () => { if (preview) URL.revokeObjectURL(preview); };
+        return () => { if (preview && typeof value[0] !== "string") URL.revokeObjectURL(preview); };
     }, [preview]);
 
     const handleFiles = async (files) => {

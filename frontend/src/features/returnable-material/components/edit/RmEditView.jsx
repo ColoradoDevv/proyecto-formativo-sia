@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, ConfirmCancelModal } from "@/shared";
+import { Button, IconButton, Input, SelectInput, cancelAlert } from "@/shared";
 import EditCard from "./EditCard.jsx";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useRm from "../../hooks/useRm";
@@ -38,8 +38,7 @@ function RmEditForm({ RM, categories, brands, states }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
-    const [showCancelModal, setShowCancelModal] = useState(false);
-    const [photoPreview,    setPhotoPreview]    = useState(RM.image ?? null);
+    const [photoPreview, setPhotoPreview] = useState(RM.image ?? null);
 
     const [formData, setFormData] = useState({
         name:         RM.name ?? "",
@@ -78,6 +77,11 @@ function RmEditForm({ RM, categories, brands, states }) {
     function handleSubmit(e) {
         e.preventDefault();
         navigate(-1);
+    }
+
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
     }
 
     const isActive = RM.is_active;
@@ -258,7 +262,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                 </div>
 
                 <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
                         Cancelar
                     </Button>
                     <Button type="submit" variant="primary" size="md">
@@ -267,12 +271,6 @@ function RmEditForm({ RM, categories, brands, states }) {
                 </div>
 
             </form>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
 
         </div>
     );
