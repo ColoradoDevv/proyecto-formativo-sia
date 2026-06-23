@@ -42,7 +42,7 @@ export default function Navbar({ onToggleSidebar }) {
                 </DropdownTrigger>
                 <DropdownContent className="right-0 w-48">
                     <DropdownItem>
-                        <Link to="/configuracion" className="block w-full">Configuracion</Link>
+                        <Link to="/configuracion" className="block w-full">Ver Perfil</Link>
                     </DropdownItem>
                     <DropdownItem>
                         <Link to="/iniciar-sesion"className="block w-full" onClick={handleLogout}>Cerrar Sesion</Link>
