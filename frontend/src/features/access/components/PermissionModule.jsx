@@ -7,7 +7,7 @@ export default function PermissionModule({
 
   return (
     <section className="border rounded-lg p-6">
-      <h2 className="text-lg font-semibold mb-4">Gestión usuarios</h2>
+      <h2 className="text-h3 font-heading mb-4">Gestión usuarios</h2>
 
 
       <div className="flex flex-wrap gap-6">

@@ -53,9 +53,8 @@ export default function LoginForm() {
     };
 
     return (
-        <div className="bg-white rounded-3xl shadow-2xl px-8 py-10 w-[320px]">
-            <h1 className="text-center text-xl font-semibold mb-7"
-                style={{ color: "var(--color-quaternary-700)" }}>
+        <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-8 py-10 w-[var(--size-field-md)]">
+            <h1 className="text-center text-h2 font-heading mb-7 text-text-primary">
                 Iniciar Sesión
             </h1>
 
@@ -69,12 +68,12 @@ export default function LoginForm() {
                             placeholder="Correo Electrónico"
                             value={formData.userEmail}
                             onChange={handleChange}
-                            className={`w-full h-12 rounded-xl border px-4 pr-10 text-sm text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-quaternary-600)]/40 placeholder:text-gray-400 ${errors.userEmail ? "border-red-400" : "border-gray-200"}`}
+                            className={`w-full h-[var(--size-control-lg)] rounded-[var(--radius-xl)] border px-4 pr-10 text-small text-text-primary bg-surface-hover focus:outline-none focus:ring-2 focus:ring-focus-ring placeholder:text-text-muted ${errors.userEmail ? "border-error" : "border-border"}`}
                         />
-                        <Asterisk size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Asterisk size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
                     </div>
                     {errors.userEmail && (
-                        <p className="text-red-500 text-xs mt-1 pl-1">{errors.userEmail}</p>
+                        <p className="text-error text-caption mt-1 pl-1">{errors.userEmail}</p>
                     )}
                 </div>
 
@@ -87,29 +86,29 @@ export default function LoginForm() {
                             placeholder="Contraseña"
                             value={formData.userPassword}
                             onChange={handleChange}
-                            className={`w-full h-12 rounded-xl border px-4 pr-10 text-sm text-gray-500 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-quaternary-600)]/40 placeholder:text-gray-400 ${errors.userPassword ? "border-red-400" : "border-gray-200"}`}
+                            className={`w-full h-[var(--size-control-lg)] rounded-[var(--radius-xl)] border px-4 pr-10 text-small text-text-primary bg-surface-hover focus:outline-none focus:ring-2 focus:ring-focus-ring placeholder:text-text-muted ${errors.userPassword ? "border-error" : "border-border"}`}
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword((prev) => !prev)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors "
                         >
                             {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                         </button>
                     </div>
                     {errors.userPassword && (
-                        <p className="text-red-500 text-xs mt-1 pl-1">{errors.userPassword}</p>
+                        <p className="text-error text-caption mt-1 pl-1">{errors.userPassword}</p>
                     )}
                 </div>
 
                 {/* Error del servidor */}
                 {serverError && (
-                    <p className="text-red-500 text-sm text-center">{serverError}</p>
+                    <p className="text-error text-small text-center">{serverError}</p>
                 )}
 
                 {/* Olvidó contraseña */}
                 <div className="text-center -mt-1">
-                    <Link to="/forgot-password" className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors">
+                    <Link to="/forgot-password" className="text-caption text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors">
                         ¿Olvidó su contraseña?
                     </Link>
                 </div>
@@ -118,8 +117,7 @@ export default function LoginForm() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-12 rounded-xl mt-1 text-white font-semibold text-sm hover:opacity-90 active:scale-[0.98] transition-all duration-150 shadow-md cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                    style={{ background: `linear-gradient(to right, var(--color-quaternary-600), var(--color-quaternary-950))` }}
+                    className="w-full h-[var(--size-control-lg)] rounded-[var(--radius-xl)] mt-1 text-text-primary bg-brand-soft font-heading text-small hover:opacity-90 active:scale-[0.98] transition-all duration-[var(--duration-fast)] shadow-[var(--shadow-elevation-2)] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                     {loading ? "Entrando..." : "Entrar"}
                 </button>

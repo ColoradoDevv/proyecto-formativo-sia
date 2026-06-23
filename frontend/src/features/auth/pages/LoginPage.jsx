@@ -18,12 +18,12 @@ export default function LoginPage() {
             <div className="
                 relative z-10
                 w-[90%] h-[85vh]
-                rounded-3xl
+                rounded-[var(--radius-3xl)]
                 flex flex-row
                 backdrop-blur-md
                 bg-white/25
                 border border-white/40
-                shadow-2xl
+                shadow-[var(--shadow-elevation-5)]
                 overflow-hidden
             ">
                 {/* ── Lado izquierdo: logo + ilustración ── */}

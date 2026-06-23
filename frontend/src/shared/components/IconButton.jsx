@@ -25,8 +25,8 @@ export const IconButton = React.forwardRef(function IconButton(
     ) {
     const baseStyles = `
         inline-flex items-center justify-center
-        rounded-full
-        transition-colors duration-200
+        rounded-[var(--radius-full)]
+        transition-colors duration-[var(--duration-base)]
         cursor-pointer
         focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
         disabled:opacity-50 disabled:pointer-events-none

@@ -104,11 +104,11 @@ export default function CmRegisterForm(){
             <div className="grid grid-cols-3 justify-items-left">
                     {/* Titulos */}
                     <div className='grid gap-2 justify-items-left'>
-                        <h1 className="text-xl">
+                        <h1 className="text-h2">
                             Crear Material de Consumo
                         </h1>
 
-                        <h1 className="text-sm text-text-muted">
+                        <h1 className="text-small text-text-muted">
                             Aca podras crear un material consumible con los datos correspondientes
                         </h1>    
                     </div>
@@ -260,7 +260,7 @@ export default function CmRegisterForm(){
                                     onChange={handleFileChange("cmPhoto")}
                                     error={errors.cmPhoto}
                                     accept="image/*"
-                                    className="w-64 h-48"
+                                    className="w-[var(--size-field-sm)] h-[var(--size-preview-md)]"
 
                                 />
                             </div>

@@ -40,21 +40,21 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
             <div className="absolute inset-0 bg-slate-500/20 backdrop-blur-xs" />
 
             {/* Tarjeta glassmorphism */}
-            <div className="relative z-10 w-md max-w-3xl mx-4 bg-white/30 backdrop-blur-2xl border border-white/50 rounded-3xl shadow-2xl p-8 flex flex-col gap-5">
+            <div className="relative z-10 w-md max-w-3xl mx-4 bg-white/30 backdrop-blur-2xl border border-white/50 rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-8 flex flex-col gap-5">
 
                 {/* Encabezado */}
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-[#0C2D48]">Agregar Tarea</h2>
+                    <h2 className="text-h3 font-heading text-text-primary">Agregar Tarea</h2>
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="w-8 h-8 cursor-pointer rounded-full bg-white/40 border border-white/50 flex items-center justify-center hover:bg-white/60 transition-colors"
+                        className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] cursor-pointer rounded-[var(--radius-full)] bg-white/40 border border-white/50 flex items-center justify-center hover:bg-white/60 transition-colors"
                     >
                         <X size={16} />
                     </button>
                 </div>
 
-                <div className="w-full h-px bg-black/40" />
+                <div className="w-full h-px bg-border" />
 
                 {/* Formulario */}
                 <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -80,7 +80,7 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
                             value={taskData.taskDescription}
                             onChange={handleChange}
                             rows={4}
-                            className="w-full rounded-md border border-border px-4 py-3 text-base bg-surface-hover placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-focus-ring focus:border-focus-border resize-none"
+                            className="w-full rounded-[var(--radius-md)] border border-border px-4 py-3 text-body bg-surface-hover placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-focus-ring focus:border-focus-border resize-none"
                         />
                     </div>
 
@@ -104,7 +104,7 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
                         />
                     </div>
 
-                    <div className="w-full h-px bg-black/40" />
+                    <div className="w-full h-px bg-border" />
 
                     {/* Acciones */}
                     <div className="flex gap-3 justify-end">

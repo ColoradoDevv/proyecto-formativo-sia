@@ -16,16 +16,17 @@ export default function TabBar() {
     <div className="w-full w-max-3xl mx-auto pt-10">
       <Tab.Group>
 
-        <Tab.List className="flex space-x-10 border-b border-gray-200 px-6">
+
+        <Tab.List className="flex space-x-10 border-b border-border px-6">
           {tabs.map((tab) => (
             <Tab
               key={tab}
               className={({ selected }) =>
                 classNames(
-                  'pb-3 text-sm font-semibold outline-none transition-all duration-200',
+                  'pb-3 text-small font-medium outline-none transition-all duration-[var(--duration-base)]',
                   selected
-                    ? 'border-b-2 border-slate-900 text-slate-900'
-                    : 'border-b-2 border-transparent text-slate-500 hover:border-gray-300 hover:text-slate-700' 
+                    ? 'border-b-2 border-brand text-text-primary'
+                    : 'border-b-2 border-transparent text-text-muted hover:border-border-strong hover:text-text-secondary'
                 )
               }
             >

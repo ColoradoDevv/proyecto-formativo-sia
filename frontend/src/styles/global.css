@@ -32,7 +32,66 @@
     --color-focus-border: var(--semantic-focus-border);
 
     /* =============== STATE =============== */
+    --color-success: var(--semantic-success);
+    --color-success-soft: var(--semantic-success-soft);
     --color-error: var(--semantic-error);
+    --color-error-soft: var(--semantic-error-soft);
+
+    /* ============= SHAPE ================ */
+    --radius-none: var(--semantic-radius-none);
+    --radius-xs:   var(--semantic-radius-xs);
+    --radius-sm:   var(--semantic-radius-sm);
+    --radius-md:   var(--semantic-radius-md);
+    --radius-lg:   var(--semantic-radius-lg);
+    --radius-xl:   var(--semantic-radius-xl);
+    --radius-2xl:  var(--semantic-radius-2xl);
+    --radius-3xl:  var(--semantic-radius-3xl);
+    --radius-full: var(--semantic-radius-full);
+
+    /* =========== SWITCH ============= */
+    --size-switch-sm-h:    var(--semantic-size-switch-sm-h);
+    --size-switch-sm-w:    var(--semantic-size-switch-sm-w);
+    --size-switch-sm-knob: var(--semantic-size-switch-sm-knob);
+    --size-switch-md-h:    var(--semantic-size-switch-md-h);
+    --size-switch-md-w:    var(--semantic-size-switch-md-w);
+    --size-switch-md-knob: var(--semantic-size-switch-md-knob);
+    --size-switch-lg-h:    var(--semantic-size-switch-lg-h);
+    --size-switch-lg-w:    var(--semantic-size-switch-lg-w);
+    --size-switch-lg-knob: var(--semantic-size-switch-lg-knob);
+
+    /* ========= CONTROL HEIGHTS ========= */
+    --size-control-xs: var(--semantic-size-control-xs);
+    --size-control-sm: var(--semantic-size-control-sm);
+    --size-control-md: var(--semantic-size-control-md);
+    --size-control-lg: var(--semantic-size-control-lg);
+    --size-control-xl:  var(--semantic-size-control-xl);
+    --size-control-2xl: var(--semantic-size-control-2xl);
+
+    /* ========== ICON BUTTON ========== */
+    --size-icon-sm: var(--semantic-size-icon-sm);
+    --size-icon-md: var(--semantic-size-icon-md);
+    --size-icon-lg: var(--semantic-size-icon-lg);
+
+    /* ========== FILE PREVIEW ========== */
+    --size-preview-sm: var(--semantic-size-preview-sm);
+    --size-preview-md: var(--semantic-size-preview-md);
+
+    /* ========== FIXED WIDTHS ========== */
+    --size-field-sm: var(--semantic-size-field-sm);
+    --size-field-md: var(--semantic-size-field-md);
+
+    /* ======= SHADOW (elevation) ======= */
+    --shadow-elevation-1: var(--semantic-shadow-1);
+    --shadow-elevation-2: var(--semantic-shadow-2);
+    --shadow-elevation-3: var(--semantic-shadow-3);
+    --shadow-elevation-4: var(--semantic-shadow-4);
+    --shadow-elevation-5: var(--semantic-shadow-5);
+
+    /* =========== DURATION ============= */
+    --duration-fast: var(--semantic-duration-fast);
+    --duration-base: var(--semantic-duration-base);
+    --duration-slow: var(--semantic-duration-slow);
+    --duration-lazy: var(--semantic-duration-lazy);
 
     /* ============ TYPOGRAPHY ============== */
     --text-display: var(--semantic-font-size-display);

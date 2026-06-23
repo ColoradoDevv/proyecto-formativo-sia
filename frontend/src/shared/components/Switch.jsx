@@ -25,15 +25,15 @@ export default function StatusSwitch({
     };
 
     const sizes = {
-        sm: "h-5 w-9",
-        md: "h-6 w-11",
-        lg: "h-7 w-14",
+        sm: "h-[var(--size-switch-sm-h)] w-[var(--size-switch-sm-w)]",
+        md: "h-[var(--size-switch-md-h)] w-[var(--size-switch-md-w)]",
+        lg: "h-[var(--size-switch-lg-h)] w-[var(--size-switch-lg-w)]",
     };
 
     const knobSizes = {
-        sm: "h-4 w-4",
-        md: "h-5 w-5",
-        lg: "h-6 w-6",
+        sm: "h-[var(--size-switch-sm-knob)] w-[var(--size-switch-sm-knob)]",
+        md: "h-[var(--size-switch-md-knob)] w-[var(--size-switch-md-knob)]",
+        lg: "h-[var(--size-switch-lg-knob)] w-[var(--size-switch-lg-knob)]",
     };
 
     return(

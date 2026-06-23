@@ -90,8 +90,8 @@ export default function FileInput({
                             </div>
                         )}
                         <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100">
-                            <button className="w-7 h-7 bg-surface-hover rounded-full text-text-primary text-xs">↔</button>
-                            <button onClick={() => remove(i)} className="w-7 h-7 bg-surface-hover rounded-full text-text-primary text-xs">×</button>
+                            <button className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] bg-surface-hover rounded-[var(--radius-full)] text-text-primary text-caption">↔</button>
+                            <button onClick={() => remove(i)} className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] bg-surface-hover rounded-[var(--radius-full)] text-text-primary text-caption">×</button>
                         </div>
                     </div>
                 ))}
@@ -107,7 +107,7 @@ export default function FileInput({
                             strokeLength="0.15"
                             bgOpacity="0.1"
                             speed="1.3"
-                            color="black"
+                            color="var(--semantic-text-primary)"
                         />
                     ) : (
                         <span className="flex flex-col items-center gap-1 text-brand text-medium">

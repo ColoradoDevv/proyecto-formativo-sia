@@ -16,7 +16,7 @@ export default function CmDetailView() {
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
-                <TailChase size="40" speed="1.75" color="black"/>
+                <TailChase size="40" speed="1.75" color="var(--semantic-text-primary)"/>
             </div>
         );
 
@@ -35,7 +35,7 @@ export default function CmDetailView() {
             </IconButton>
             <div>
                 <h2 className="text-h3">Visualizar Material de Consumo</h2>
-                <p className="text-sm text-text-muted">Información completa en modo solo lectura.</p>
+                <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
             </div>
         </div>
 
@@ -54,12 +54,12 @@ export default function CmDetailView() {
 
                 {/* Foto — ocupa col 3, fila 1 y 2 */}
                 <div className="row-span-2 flex items-center justify-center">
-                    <div className="w-40 aspect-square rounded-xl overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                    <div className="w-40 aspect-square rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                         {CM.image
                             ? <img src={CM.image} alt={CM.name} className="w-40 h-40 object-cover" />
                             : <div className="flex flex-col items-center gap-2 text-text-muted">
                                 <ImageOff size={20} />
-                                <span className="text-xs">Sin foto</span>
+                                <span className="text-caption">Sin foto</span>
                             </div>
                         }
                     </div>

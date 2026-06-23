@@ -52,19 +52,19 @@ export default function ProfileFileInput({
             >
                 {isLoading ? (
                     <div className="w-full h-full flex items-center justify-center">
-                        <InfinityLoader size="55" stroke="4" strokeLength="0.15" bgOpacity="0.1" speed="1.3" color="black" />
+                        <InfinityLoader size="55" stroke="4" strokeLength="0.15" bgOpacity="0.1" speed="1.3" color="var(--semantic-text-primary)" />
                     </div>
                 ) : preview ? (
                     <>
                         <img src={preview} className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                            <span className="flex items-center gap-1 text-white text-medium font-medium">
+                            <span className="flex items-center gap-1 text-text-inverse text-medium font-medium">
                                 <Pencil size={16} /> Cambiar
                             </span>
                             <button
                                 type="button"
                                 onClick={remove}
-                                className="flex items-center gap-1 text-white text-medium font-medium"
+                                className="flex items-center gap-1 text-text-inverse text-medium font-medium"
                             >
                                 <X size={16} /> Eliminar
                             </button>

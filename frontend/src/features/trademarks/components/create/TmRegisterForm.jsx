@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button, Input, ConfirmCancelModal } from "@/shared";
+import { brandSchema } from "../../schemas/brandSchema";
+import { createBrand } from "../../services/brandService";
 import Alert from "@mui/material/Alert";
-import { Button, ConfirmCancelModal, Input, SelectInputTM, SelectInput } from "@/shared";
-import { apiFetch } from "@/shared/services/api";
 
-export default function TmRegisterForm(){
-        const navigate = useNavigate();
+export default function TmRegisterForm() {
+    const navigate = useNavigate();
     const [showCancelModal, setShowCancelModal] = useState(false);
-    const [formData, setFormData] = useState({ name: "" });
+    const [formData, setFormData] = useState({ brandName: "" });
     const [errors, setErrors] = useState({});
     const [notification, setNotification] = useState(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -20,48 +20,36 @@ export default function TmRegisterForm(){
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const name = formData.name.trim();
-        if (!name) {
-            setErrors({ name: "El nombre de la marca es obligatorio" });
+        const result = brandSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                fieldErrors[issue.path[0]] = issue.message;
+            });
+            setErrors(fieldErrors);
             return;
         }
 
         setErrors({});
-        setIsSubmitting(true);
 
         try {
-            const response = await apiFetch("/api/products/brands/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name }),
-            });
-
-            if (!response.ok) {
-                const data = await response.json().catch(() => ({}));
-                const message =
-                    data.name?.[0] ||
-                    data.detail ||
-                    "No se pudo registrar la marca";
-                throw new Error(message);
-            }
-
+            await createBrand(result.data);
             setNotification({ message: "Marca registrada exitosamente", severity: "success" });
-            navigate("/configuracion");
+            setTimeout(() => navigate("/marcas"), 1500);
         } catch (error) {
             setNotification({ message: error.message, severity: "error" });
-        } finally {
-            setIsSubmitting(false);
         }
     }
 
-    return(
+    return (
         <>
             <div className="grid grid-cols-1 my-2 mx-2 sm:mx-4 justify-items-center p-2 sm:p-4">
                 <div className="grid gap-2 justify-items-left mb-4 w-full">
                     <h1 className="text-h3">Registro de Marcas</h1>
-                    <h1 className="text-sm text-text-muted">
+                    <p className="text-sm text-text-muted">
                         Registra una nueva marca para asociarla a los materiales.
-                    </h1>
+                    </p>
                 </div>
 
                 {notification && (
@@ -73,71 +61,29 @@ export default function TmRegisterForm(){
                 <form
                     noValidate
                     onSubmit={handleSubmit}
-                    className="flex flex-col items-center gap-6 mt-4 w-full max-w-xl"
+                    className="flex flex-col items-center gap-6 mt-4 w-full max-w-sm"
                 >
-
-                <div className="grid grid-cols-2 gap-x-16 w-full">
-                        <Input
-                            label="Nombre de la marca"
-                            name="name"
-                            placeholder="Ej: Asus, Hp, Dell"
-                            value={formData.name}
-                            onChange={handleChange}
-                            error={errors.name}
-                            required
-                        />
-
-                        <SelectInputTM
-                                    label="Categoria"
-                                    name="rmState"
-                                    // options={states}
-                                    value={formData.rmState}
-                                    onChange={handleChange}
-                                    error={errors.rmState}
-                                    required
-                                />
-
-                        <SelectInputTM
-                                    label="Modulo"
-                                    name="rmState"
-                                    // options={states}
-                                    value={formData.rmState}
-                                    onChange={handleChange}
-                                    error={errors.rmState}
-                                    required
-                                />
-
-                        <SelectInputTM
-                                    label="Estado"
-                                    name="rmState"
-                                    // options={states}
-                                    value={formData.rmState}
-                                    onChange={handleChange}
-                                    error={errors.rmState}
-                                    required
-                                />
-                        </div>
-                        
-                        <div className="grid grid-col justify-items-stretch">
-                        <Input
-                            label="Uso o descripcion"
-                            name="name"
-                            placeholder="Ej: Portatiles y equipos de computo"
-                            value={formData.name}
-                            onChange={handleChange}
-                            error={errors.name}
-                            required
-                        />
-                    </div>
-
-
+                    <Input
+                        label="Nombre de la marca"
+                        name="brandName"
+                        placeholder="Ej: Asus, HP, Dell"
+                        value={formData.brandName}
+                        onChange={handleChange}
+                        error={errors.brandName}
+                        required
+                    />
 
                     <div className="flex gap-4">
-                        <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="md"
+                            onClick={() => setShowCancelModal(true)}
+                        >
                             Cancelar
                         </Button>
-                        <Button type="submit" variant="primary" size="md" disabled={isSubmitting}>
-                            {isSubmitting ? "Creando..." : "Crear"}
+                        <Button type="submit" variant="primary" size="md">
+                            Crear
                         </Button>
                     </div>
                 </form>
@@ -149,5 +95,5 @@ export default function TmRegisterForm(){
                 onConfirm={() => navigate(-1)}
             />
         </>
-    )
+    );
 }
