@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { Input, Button } from "@/shared";
+import { Input, Button, TextArea, IconButton } from "@/shared";
 
 export default function UserTaskModal({ isOpen, onClose, onAdd }) {
 
@@ -45,16 +45,14 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
                 {/* Encabezado */}
             <div className="flex items-center justify-between">
                     <h2 className="text-h3 font-heading text-text-primary">Agregar Tarea</h2>
-                    <button
+                    <IconButton
                         type="button"
+                        variant="secondary"
                         onClick={handleClose}
-                        className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] cursor-pointer rounded-[var(--radius-full)] bg-white/40 border border-white/50 flex items-center justify-center hover:bg-white/60 transition-colors"
                     >
                         <X size={16} />
-                    </button>
-                </div> 
-
-
+                    </IconButton>
+                </div>
 
                 <div className="w-full h-px bg-border" />
 
@@ -71,20 +69,13 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
                         required
                     />
 
-                    {/* Descripción — textarea con el mismo estilo visual que Input */}
-                    <div>
-                        <label className="block text-medium mb-1 text-text-primary">
-                            Descripción de la Tarea
-                        </label>
-                        <textarea
-                            name="taskDescription"
-                            placeholder="Ingrese una descripcióqwn"
-                            value={taskData.taskDescription}
-                            onChange={handleChange}
-                            rows={4}
-                            className="w-full rounded-[var(--radius-md)] border border-border px-4 py-3 text-body bg-surface-hover placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-focus-ring focus:border-focus-border resize-none"
-                        />
-                    </div>
+                    <TextArea
+                        label="Descripción de la Tarea (Opcional)"
+                        name="taskDescription"
+                        placeholder="Ingrese una descripción"
+                        value={taskData.taskDescription}
+                        onChange={handleChange}
+                    />
 
                     {/* Fechas en fila */}
                     <div className="flex gap-4">

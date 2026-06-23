@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDocumentTypes, getUserGroups} from "../../services/selectServices";
-import {Input, Button, SelectInput, SelectInputMultiple, ProfileFileInput, ConfirmCancelModal, successAlert, errorAlert} from "@/shared";
+import {Input, Button, SelectInput, SelectInputMultiple, ProfileFileInput, StatusLabel, showAlert, cancelAlert} from "@/shared";
 import UserTaskModal from "./UserTaskModal";
 import { userSchema } from "../../schemas/userSchema";
 import { createUser } from "../../services/userService";
@@ -10,7 +10,6 @@ import { Plus } from "lucide-react";
 export default function UserRegisterForm(){
 
     const navigate = useNavigate();
-    const [showCancelModal, setShowCancelModal] = useState(false);
     const [showTaskModal, setShowTaskModal] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -60,6 +59,11 @@ export default function UserRegisterForm(){
         setFormData((prev) => ({ ...prev, userTasks: [...prev.userTasks, task] }));
     };
 
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
+    }
+
     async function handleSubmit(e) {
         e.preventDefault();
 
@@ -80,13 +84,13 @@ export default function UserRegisterForm(){
 
             await createUser(result.data);
 
-            await successAlert({ title: "Usuario creado exitosamente" });
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Usuario creado exitosamente" });
             navigate("/usuarios");
 
         } catch (error) {
             console.error("Error al crear usuario:", error);
             if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
-            errorAlert({ title: "Error al crear usuario", text: error.message });
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al crear usuario", text: error.message });
         }
     };
 
@@ -238,9 +242,7 @@ export default function UserRegisterForm(){
                                 required
                             />
                             <div className="flex flex-col gap-2 ">
-                                <label className="block text-medium text-text-primary">
-                                    Telefono Adicional (Opcional)
-                                </label>
+                                <StatusLabel>Telefono Adicional (Opcional)</StatusLabel>
                                 {!showAdditionalPhone ? (
                                     
                                     <Button
@@ -249,7 +251,7 @@ export default function UserRegisterForm(){
                                         size="md"
                                         onClick={() => setShowAdditionalPhone(true)}
                                     >
-                                        + Agregar número
+                                        Agregar número
                                     </Button>
                                 ) : (
                                     <Input
@@ -275,9 +277,7 @@ export default function UserRegisterForm(){
                             />
                             {/* Botón que abre el modal de tareas */}
                             <div className="flex flex-col gap-2 ">
-                                <label className="block text-medium text-text-primary">
-                                    Tareas (Opcional)
-                                </label>
+                                <StatusLabel>Tareas (Opcional)</StatusLabel>
                                 <Button
                                     type="button"
                                     variant="secondary"
@@ -313,19 +313,13 @@ export default function UserRegisterForm(){
                     </div>
 
                     <div className="flex gap-4">
-                        <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>Cancelar</Button>
+                        <Button type="button" variant="secondary" size="md" onClick={handleCancel}>Cancelar</Button>
                         <Button type="submit"  variant="primary"   size="md">Crear</Button>
                     </div>
 
                 </form>
 
             </div>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
 
             <UserTaskModal
                 isOpen={showTaskModal}

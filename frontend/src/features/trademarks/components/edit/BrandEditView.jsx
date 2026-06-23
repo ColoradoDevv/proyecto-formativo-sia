@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, ConfirmCancelModal } from "@/shared";
+import { Button, IconButton, Input, showAlert, cancelAlert } from "@/shared";
 import { Undo2 } from "lucide-react";
 import { TailChase } from "ldrs/react";
 import useBrand from "../../hooks/useBrand";
 import { brandSchema } from "../../schemas/brandSchema";
 import { updateBrand } from "../../services/brandService";
-import Alert from "@mui/material/Alert";
 
 export default function BrandEditView() {
     const { id } = useParams();
@@ -27,15 +26,18 @@ export default function BrandEditView() {
 
 function BrandEditForm({ brand }) {
     const navigate = useNavigate();
-    const [showCancelModal, setShowCancelModal] = useState(false);
     const [formData, setFormData] = useState({ brandName: brand.name ?? "" });
     const [errors, setErrors] = useState({});
-    const [notification, setNotification] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
+
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -55,10 +57,11 @@ function BrandEditForm({ brand }) {
 
         try {
             await updateBrand(brand.id, result.data);
-            setNotification({ message: "Marca actualizada exitosamente", severity: "success" });
-            setTimeout(() => navigate("/marcas"), 1500);
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Marca actualizada exitosamente" });
+            navigate("/marcas");
         } catch (error) {
-            setNotification({ message: error.message, severity: "error" });
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar la marca", text: error.message });
         }
     }
 
@@ -74,12 +77,6 @@ function BrandEditForm({ brand }) {
                         <p className="text-small text-text-muted">Modifica el nombre de la marca.</p>
                     </div>
                 </div>
-
-                {notification && (
-                    <Alert severity={notification.severity} onClose={() => setNotification(null)}>
-                        {notification.message}
-                    </Alert>
-                )}
 
                 <form
                     noValidate
@@ -101,7 +98,7 @@ function BrandEditForm({ brand }) {
                             type="button"
                             variant="secondary"
                             size="md"
-                            onClick={() => setShowCancelModal(true)}
+                            onClick={handleCancel}
                         >
                             Cancelar
                         </Button>
@@ -111,12 +108,6 @@ function BrandEditForm({ brand }) {
                     </div>
                 </form>
             </div>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
         </>
     );
 }

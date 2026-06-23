@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Input, SelectInput, Button, ConfirmCancelModal, TextArea, successAlert, errorAlert } from "@/shared";
+import { Input, SelectInput, Button, TextArea, showAlert, cancelAlert } from "@/shared";
 import { loanSchema } from "../../schemas/loanSchema";
 import { createLoan } from "../../services/loanService";
 import { getUsers, getMaterials } from "../../services/selectServices";
 
 export default function LoanRegisterForm() {
     const navigate = useNavigate();
-    const [showCancelModal, setShowCancelModal] = useState(false);
     const [users, setUsers] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [submitting, setSubmitting] = useState(false);
@@ -35,6 +34,11 @@ export default function LoanRegisterForm() {
         }));
     };
 
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -57,11 +61,11 @@ export default function LoanRegisterForm() {
 
         try {
             await createLoan(result.data);
-            await successAlert({ title: "Prestamo creado exitosamente" });
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Prestamo creado exitosamente" });
             navigate("/prestamos");
         } catch (err) {
             if (err.fieldErrors) setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
-            errorAlert({ title: "Error al crear el prestamo", text: err.message });
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al crear el prestamo", text: err.message });
         } finally {
             setSubmitting(false);
         }
@@ -148,19 +152,13 @@ export default function LoanRegisterForm() {
                     </div>
 
                     <div className="flex gap-4">
-                        <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>Cancelar</Button>
+                        <Button type="button" variant="secondary" size="md" onClick={handleCancel}>Cancelar</Button>
                         <Button type="submit" variant="primary" size="md" disabled={submitting}>
                             {submitting ? "Guardando..." : "Crear"}
                         </Button>
                     </div>
                 </form>
             </div>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
         </>
     );
 }

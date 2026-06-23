@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, ConfirmCancelModal, TextArea } from "@/shared";
+import { Button, IconButton, Input, SelectInput, TextArea, showAlert, cancelAlert } from "@/shared";
 import EditCard from "./EditCard.jsx";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useCm from "../../hooks/useCm";
 import { getBrands, getUsers } from "../../services/selectServices";
 import { updateCm } from "../../services/consumableService";
-import Alert from '@mui/material/Alert';
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -47,10 +46,8 @@ function CmEditForm({ id, CM, brands, users }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
-    const [showCancelModal, setShowCancelModal] = useState(false);
-    const [photoPreview,    setPhotoPreview]    = useState(CM.image ?? null);
-    const [photoFile,       setPhotoFile]       = useState(null);
-    const [notification,    setNotification]    = useState(null);
+    const [photoPreview, setPhotoPreview] = useState(CM.image ?? null);
+    const [photoFile,    setPhotoFile]    = useState(null);
 
     const [formData, setFormData] = useState({
         name:         CM.name ?? "",
@@ -101,11 +98,16 @@ function CmEditForm({ id, CM, brands, users }) {
 
         try {
             await updateCm(id, { ...formData, photo: photoFile });
-            setNotification({ message: "Material de consumo actualizado exitosamente", severity: "success" });
-            setTimeout(() => navigate(-1), 1500);
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material de consumo actualizado exitosamente" });
+            navigate(-1);
         } catch (error) {
-            setNotification({ message: "Error al actualizar material de consumo: " + error.message, severity: "error" });
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar material de consumo", text: error.message });
         }
+    }
+
+    async function handleCancel() {
+        const result = await cancelAlert();
+        if (result.isConfirmed) navigate(-1);
     }
 
     const isActive = CM.is_active;
@@ -123,12 +125,6 @@ function CmEditForm({ id, CM, brands, users }) {
                     <p className="text-small text-text-muted">Modifica la información del material.</p>
                 </div>
             </div>
-
-            {notification && (
-                <Alert severity={notification.severity} onClose={() => setNotification(null)}>
-                    {notification.message}
-                </Alert>
-            )}
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
 
@@ -284,7 +280,7 @@ function CmEditForm({ id, CM, brands, users }) {
                 </div>
 
                 <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={() => setShowCancelModal(true)}>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
                         Cancelar
                     </Button>
                     <Button type="submit" variant="primary" size="md">
@@ -293,12 +289,6 @@ function CmEditForm({ id, CM, brands, users }) {
                 </div>
 
             </form>
-
-            <ConfirmCancelModal
-                isOpen={showCancelModal}
-                onClose={() => setShowCancelModal(false)}
-                onConfirm={() => navigate(-1)}
-            />
 
         </div>
     );
