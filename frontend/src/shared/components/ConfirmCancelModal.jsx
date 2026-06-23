@@ -1,5 +1,7 @@
 import { createPortal } from "react-dom";
 
+import { Button } from "@/shared"
+
 export default function ConfirmCancelModal({ 
     isOpen, 
     onClose, 
@@ -55,21 +57,39 @@ export default function ConfirmCancelModal({
                 <div className="w-full h-px bg-white/40" />
 
                 {/* Actions */}
-                <div className="flex gap-3 w-full">
-                    <button
+                <div className="flex gap-2 w-full">
+
+                    {/* <button
                     type="button"
                     onClick={onClose}
                     className="flex-1 cursor-pointer h-[var(--size-control-md)] rounded-[var(--radius-full)] border border-border bg-white/40 text-text-primary text-small font-medium transition-colors duration-[var(--duration-base)] hover:bg-white/60 focus:outline-none focus:ring-2 focus:ring-focus-ring"
                     >
                         {cancelText}
-                    </button>
+                    </button> */}
+
+                    <Button
+                    onClick={onClose}
+                    variant="secondary"
+                    className="self-start md:self-auto"
+                    >
+                        {cancelText}
+                    </Button>
+
+                    <Button
+                    onClick={onConfirm}
+                    className="self-start md:self-auto"
+                    >
+                        {confirmText}
+                    </Button>
+
+{/* 
                     <button
                         type="button"
                         onClick={onConfirm}
                         className="flex-1 cursor-pointer h-[var(--size-control-md)] rounded-[var(--radius-full)] bg-brand border border-brand text-text-inverse text-small font-medium transition-colors duration-[var(--duration-base)] hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-focus-ring"
                     >
                         {confirmText}
-                    </button>
+                    </button> */}
                 </div>
             </div>
         </div>,
