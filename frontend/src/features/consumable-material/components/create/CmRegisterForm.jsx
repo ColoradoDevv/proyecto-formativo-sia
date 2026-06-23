@@ -102,14 +102,14 @@ export default function CmRegisterForm(){
         <>
         <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
 
-            <div className="grid grid-cols-3 justify-items-left">
+            <div className="grid grid-cols lg:grid-cols-3 lg:justify-items-left">
                     {/* Titulos */}
-                    <div className='grid gap-2 justify-items-left'>
+                    <div className='grid gap-2 lg:justify-items-left '>
                         <h1 className="text-h2">
                             Crear Material de Consumo
                         </h1>
 
-                        <h1 className="text-small text-text-muted">
+                        <h1 className="hidden lg:block text-small text-text-muted">
                             Aca podras crear un material consumible con los datos correspondientes
                         </h1>    
                     </div>
@@ -119,11 +119,11 @@ export default function CmRegisterForm(){
                     <form
                         noValidate
                         onSubmit={handleSubmit}
-                        className="flex flex-col items-center gap-6"
+                        className="flex flex-col items-center gap-6 w-full"
                     >
                         {/* Inputs */}
-                        <div className="flex gap-8 items-start">
-                            <div className="grid grid-cols-2 items-center gap-x-8 gap-y-4">
+                        <div className="grid grid-cols-1 lg:flex gap-8 items-start w-full">
+                            <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4">
 
                                 <Input
                                     label = "Nombre"
@@ -215,7 +215,7 @@ export default function CmRegisterForm(){
 
                             </div>
 
-                            <div className="flex flex-col gap-4">
+                            <div className="grid grid-cols-1 lg:flex lg:flex-col gap-4">
                                 <FileInput
                                     label="Foto del Material"
                                     name="cmPhoto"
