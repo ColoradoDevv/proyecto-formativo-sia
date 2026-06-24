@@ -39,7 +39,7 @@ export default function ListCmPage() {
 
 
     return (
-        <div className="h-full p-6 text-text-primary">
+        <div className="h-full p-4 sm:p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h2 className="text-h3 font-heading">
                     Listado de Materiales de Consumo
@@ -49,19 +49,20 @@ export default function ListCmPage() {
                         {notification.message}
                     </Alert>
                 )}
-                <div className="grid grid-cols-2 gap-4">
-            <Link to="/consumibles/crear">
-                    <Button
-                        className="self-start md:self-auto"
-                        icon={Plus}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Link to="/consumibles/crear" className="w-full">
+                        <Button
+                            className="w-full"
+                            variant="soft"
+                            icon={Plus}
                         >
-                        Registrar Material
-                    </Button>
-                </Link>
+                            Registrar Material
+                        </Button>
+                    </Link>
                     <Button
                         data={CMs}
                         reportConfig={consumablesReportConfig}
-                        className="self-start md:self-auto"
+                        className="w-full"
                         icon={Download}
                     >
                         Descargar Reporte

@@ -66,7 +66,7 @@ export default function DataTable({ data, columns }) {
       {/* ================== TOOLBAR ================== */}
       {/* Barra superior con buscador y selector de filas */}
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* ================== BUSCADOR ================== */}
         {/* Filtra todas las columnas de la tabla */}
         <SearchField
@@ -74,6 +74,8 @@ export default function DataTable({ data, columns }) {
           value={globalFilter ?? ""}
           onChange={setGlobalFilter}
           variant="outlined"
+          fullWidth
+          className="sm:w-auto sm:flex-1 sm:max-w-xs"
         />
 
         {/* ================== SELECTOR DE FILAS ================== */}
@@ -81,7 +83,7 @@ export default function DataTable({ data, columns }) {
         <select
           value={table.getState().pagination.pageSize}
           onChange={(e) => table.setPageSize(Number(e.target.value))}
-          className="border border-border rounded px-2 py-2 bg-surface-hover"
+          className="border border-border rounded px-2 py-2 bg-surface-hover shrink-0"
         >
           {[5, 10, 20, 30, 50].map((size) => (
             <option key={size} value={size}>
@@ -139,7 +141,7 @@ export default function DataTable({ data, columns }) {
       {/* ================== FOOTER ================== */}
       <div className="flex items-center justify-center">
         {/* ================== CONTROLES DE PAGINACIÓN ================== */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <Button
             size="sm"
             variant="table"

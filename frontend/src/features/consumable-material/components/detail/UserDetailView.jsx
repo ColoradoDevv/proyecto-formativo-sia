@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, DetailCard, DetailField } from "@/shared";
+import { Button, IconButton, Input, TextArea, StatusBadge, EditCard } from "@/shared";
 import useCm from "../../hooks/useCm";
 import { TailChase } from 'ldrs/react';
 import 'ldrs/react/TailChase.css';
@@ -23,78 +23,82 @@ export default function CmDetailView() {
     const formatCurrency = (value) =>
         value != null ? `$${Number(value).toLocaleString("es-CO")}` : "-";
 
+    // Valores de solo lectura (los selects de Editar se muestran como texto).
+    const brandLabel = CM.brand?.name ?? "Sin marca";
+    const userLabel = CM.user ? `${CM.user.first_name} ${CM.user.last_name}` : "Sin cuentadante";
+    const isActive = CM.is_active;
+
     return (
-    <div className="h-full p-6 text-text-primary flex flex-col gap-6">
+        <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
-        {/* Encabezado */}
-        <div className="flex items-center gap-3">
-            <IconButton onClick={() => navigate(-1)} variant="ghost">
-                <Undo2/>
-            </IconButton>
-            <div>
-                <h2 className="text-h3">Visualizar Material de Consumo</h2>
-                <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
+            {/* Encabezado */}
+            <div className="flex items-center gap-3">
+                <IconButton onClick={() => navigate(-1)} variant="ghost">
+                    <Undo2 size={18}/>
+                </IconButton>
+                <div>
+                    <h2 className="text-primary">Visualizar Material de Consumo</h2>
+                    <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
+                </div>
             </div>
-        </div>
 
-        <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
 
-            {/* Card General con foto integrada */}
-            <DetailCard title="Información General" cols={3}>
-                <div className="flex flex-col gap-4">
-                    <DetailField label="Nombre"     value={CM.name} />
-                    <DetailField label="Placa SENA" value={CM.sena_plate ?? "Sin placa"} />
-                </div>
-                <div className="flex flex-col gap-4">
-                    <DetailField label="Marca"       value={CM.brand?.name ?? "Sin marca"} />
-                    <DetailField label="Cuentadante" value={CM.user ? `${CM.user.first_name} ${CM.user.last_name}` : "Sin cuentadante"} />
-                </div>
+                {/* Información General — foto lateral + campos */}
+                <EditCard title="Información General" cols={1}>
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
 
-                {/* Foto — ocupa col 3, fila 1 y 2 */}
-                <div className="row-span-2 flex items-center justify-center">
-                    <div className="w-40 aspect-square rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                        {CM.image
-                            ? <img src={CM.image} alt={CM.name} className="w-40 h-40 object-cover" />
-                            : <div className="flex flex-col items-center gap-2 text-text-muted">
-                                <ImageOff size={20} />
-                                <span className="text-caption">Sin foto</span>
+                        {/* Foto + estado */}
+                        <div className="flex flex-col items-center gap-2 shrink-0">
+                            <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                                {CM.image
+                                    ? <img src={CM.image} alt={CM.name} className="w-full h-full object-cover" />
+                                    : <ImageOff size={40} className="text-text-muted" />
+                                }
                             </div>
-                        }
+                            <StatusBadge active={isActive} />
+                        </div>
+
+                        {/* Campos generales */}
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
+                            <Input label="Nombre" value={CM.name ?? ""} disabled readOnly />
+                            <Input label="Placa SENA" value={CM.sena_plate ?? "Sin placa"} disabled readOnly />
+                            <Input label="Marca" value={brandLabel} disabled readOnly />
+                            <Input label="Cuentadante" value={userLabel} disabled readOnly />
+                            <div className="sm:col-span-2">
+                                <TextArea label="Descripción" value={CM.description ?? ""} disabled readOnly />
+                            </div>
+                        </div>
+
                     </div>
+                </EditCard>
+
+                {/* Inventario y Valores lado a lado */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <EditCard title="Inventario">
+                        <Input label="Cantidad" value={CM.quantity ?? "Sin cantidad"} disabled readOnly />
+                        <Input label="Ubicación" value={CM.location ?? "Sin ubicación"} disabled readOnly />
+                        <Input label="Estado" value={CM.state ?? ""} disabled readOnly />
+                        <Input label="Fecha de compra" value={CM.purchase_date ?? ""} disabled readOnly />
+                    </EditCard>
+
+                    <EditCard title="Valores">
+                        <Input label="Valor Unitario" value={formatCurrency(CM.unit_price)} disabled readOnly />
+                        <Input label="Valor Total" value={formatCurrency(CM.total_price)} disabled readOnly />
+                    </EditCard>
                 </div>
 
-                {/* Descripción — ocupa cols 1 y 2 en fila 2 */}
-                <div className="col-span-2">
-                    <DetailField label="Descripción" value={CM.description} fullWidth />
+                <div className="flex gap-4 justify-center md:justify-end">
+                    <Button variant="secondary" size="md" onClick={() => navigate("/consumibles")}>
+                        Volver al listado
+                    </Button>
+                    <Button variant="primary" size="md" onClick={() => navigate(`/consumibles/editar/${CM.id}`)}>
+                        Editar
+                    </Button>
                 </div>
-            </DetailCard>
 
-            {/* Inventario y Valores lado a lado */}
-            <div className="grid grid-cols-2 gap-6">
-                <DetailCard title="Inventario" cols={2}>
-                    <DetailField label="Cantidad"        value={CM.quantity ?? "Sin cantidad"} />
-                    <DetailField label="Ubicación"       value={CM.location ?? "Sin ubicación"} />
-                    <DetailField label="Estado"          value={CM.state} />
-                    <DetailField label="Fecha de compra" value={CM.purchase_date} />
-                    <DetailField label="Activo"          value={CM.is_active ? "Activo" : "Inactivo"} />
-                </DetailCard>
-
-                <DetailCard title="Valores" cols={2}>
-                    <DetailField label="Valor Unitario" value={formatCurrency(CM.unit_price)} />
-                    <DetailField label="Valor Total"    value={formatCurrency(CM.total_price)} />
-                </DetailCard>
             </div>
-        </div>
 
-        <div className="flex gap-4 justify-end">
-            <Button variant="secondary" size="md" onClick={() => navigate("/consumibles")}>
-                Volver al listado
-            </Button>
-            <Button variant="primary" size="md" onClick={() => navigate(`/consumibles/editar/${CM.id}`)}>
-                Editar
-            </Button>
         </div>
-
-    </div>
-);
+    );
 }

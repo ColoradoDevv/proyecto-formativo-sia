@@ -104,29 +104,26 @@ export default function CmRegisterForm(){
 
     return (
         <>
-        <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
+        <div className="flex flex-col p-4 sm:p-6">
 
-            <div className="grid grid-cols lg:grid-cols-3 lg:justify-items-left">
-                    {/* Titulos */}
-                    <div className='grid gap-2 lg:justify-items-left '>
-                        <h1 className="text-h2">
-                            Crear Material de Consumo
-                        </h1>
-
-                        <h1 className="hidden lg:block text-small text-text-muted">
-                            Aca podras crear un material consumible con los datos correspondientes
-                        </h1>    
-                    </div>
+            {/* Titulos */}
+            <div className="mb-4 w-full">
+                <h1 className="text-h2">
+                    Crear Material de Consumo
+                </h1>
+                <p className="text-small text-text-muted">
+                    Aca podras crear un material consumible con los datos correspondientes
+                </p>
             </div>
 
                     {/* Formulario */}
                     <form
                         noValidate
                         onSubmit={handleSubmit}
-                        className="flex flex-col items-center gap-6 w-full"
+                        className="flex flex-col gap-6 w-full"
                     >
                         {/* Inputs */}
-                        <div className="grid grid-cols-1 lg:flex gap-8 items-start w-full">
+                        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start w-full">
                             <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4">
 
                                 <Input
@@ -219,7 +216,7 @@ export default function CmRegisterForm(){
 
                             </div>
 
-                            <div className="grid grid-cols-1 lg:flex lg:flex-col gap-4">
+                            <div className="w-full lg:w-[var(--size-field-sm)] shrink-0">
                                 <FileInput
                                     label="Foto del Material"
                                     name="cmPhoto"
@@ -229,12 +226,12 @@ export default function CmRegisterForm(){
                                     error={errors.cmPhoto}
                                     accept="image/*"
                                     required
-                                    className="w-[var(--size-field-sm)] h-[var(--size-preview-md)]"
+                                    className="w-full h-[var(--size-preview-md)]"
 
                                 />
                             </div>
                         </div>
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 justify-center md:justify-end">
                             <Button type="button" variant="secondary" size="md" onClick={handleCancel}>Cancelar</Button>
                             <Button type="submit"  variant="primary"   size="md">Crear</Button>
                         </div>

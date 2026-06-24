@@ -82,7 +82,7 @@ export async function toggleUserActive(id, isActive) {
 
 // METODO GET (obtener grupos de un usuario)
 export async function getUserGroups(userId) {
-  const response = await apiFetch(`/api/users/${userId}/groups/`);
+  const response = await apiFetch(`/api/permissions/users/${userId}/groups/`);
   if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();
 }
@@ -98,7 +98,7 @@ export async function assignUserGroups(userId, groupIds) {
     const group = await groupResponse.json();
 
     // Luego asignamos el usuario al grupo
-    const response = await apiFetch(`/api/users/${userId}/groups/`, {
+    const response = await apiFetch(`/api/permissions/users/${userId}/groups/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ group_name: group.name }),
@@ -118,7 +118,7 @@ export async function removeUserFromGroup(userId, groupId) {
   const group = await groupResponse.json();
 
   // Removemos el usuario del grupo
-  const response = await apiFetch(`/api/users/${userId}/groups/`, {
+  const response = await apiFetch(`/api/permissions/users/${userId}/groups/`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ group_name: group.name }),

@@ -2,15 +2,19 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Input, Button, TextArea, IconButton } from "@/shared";
+import { taskSchema } from "../../schemas/taskSchema";
+
+const EMPTY_TASK = {
+    taskName: "",
+    taskDescription: "",
+    taskStartDate: "",
+    taskEndDate: "",
+};
 
 export default function UserTaskModal({ isOpen, onClose, onAdd }) {
 
-    const [taskData, setTaskData] = useState({
-        taskName: "",
-        taskDescription: "",
-        taskStartDate: "",
-        taskEndDate: "",
-    });
+    const [taskData, setTaskData] = useState(EMPTY_TASK);
+    const [errors, setErrors] = useState({});
 
     if (!isOpen) return null;
 
@@ -19,11 +23,28 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
         setTaskData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const reset = () => setTaskData({ taskName: "", taskDescription: "", taskStartDate: "", taskEndDate: "" });
+    const reset = () => {
+        setTaskData(EMPTY_TASK);
+        setErrors({});
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onAdd({ ...taskData });
+
+        const result = taskSchema.safeParse(taskData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                const field = issue.path[0];
+                if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+        onAdd(result.data);
         reset();
         onClose();
     };
@@ -40,7 +61,7 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
             <div className="absolute inset-0 bg-slate-500/20 backdrop-blur-xs" />
 
             {/* Tarjeta glassmorphism */}
-            <div className="relative z-10 w-md max-w-3xl mx-4 bg-white/30 backdrop-blur-2xl border border-white/50 rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-8 flex flex-col gap-5">
+            <div className="relative z-10 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto bg-white/30 backdrop-blur-2xl border border-white/50 rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-6 sm:p-8 flex flex-col gap-5">
 
                 {/* Encabezado */}
             <div className="flex items-center justify-between">
@@ -57,7 +78,7 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
                 <div className="w-full h-px bg-border" />
 
                 {/* Formulario */}
-                <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-1">
 
                     <Input
                         label="Nombre de la Tarea"
@@ -66,6 +87,7 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
                         className="w-full"
                         value={taskData.taskName}
                         onChange={handleChange}
+                        error={errors.taskName}
                         required
                     />
 
@@ -75,24 +97,29 @@ export default function UserTaskModal({ isOpen, onClose, onAdd }) {
                         placeholder="Ingrese una descripción"
                         value={taskData.taskDescription}
                         onChange={handleChange}
+                        error={errors.taskDescription}
                     />
 
-                    {/* Fechas en fila */}
-                    <div className="flex gap-4">
+                    {/* Fechas: apiladas en móvil, lado a lado desde sm */}
+                    <div className="flex flex-col sm:flex-row gap-4">
                         <Input
                             label="Fecha Inicio"
                             name="taskStartDate"
                             type="date"
+                            className="w-full min-w-0"
                             value={taskData.taskStartDate}
                             onChange={handleChange}
+                            error={errors.taskStartDate}
                             required
                         />
                         <Input
                             label="Fecha Fin"
                             name="taskEndDate"
                             type="date"
+                            className="w-full min-w-0"
                             value={taskData.taskEndDate}
                             onChange={handleChange}
+                            error={errors.taskEndDate}
                             required
                         />
                     </div>

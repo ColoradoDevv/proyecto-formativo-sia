@@ -1,11 +1,9 @@
-const API_URL = "http://localhost:4000/api/groups";
+import { apiFetch, throwApiError } from "@/shared/services/api";
 
+// METODO GET (obtener los permisos asignados a un grupo)
 export async function getGroupPermissions(groupId) {
-    const response = await fetch(`${API_URL}/${groupId}/permissions`);
-
-    if (!response.ok) {
-        throw new Error ("Error obteniendo permisos");
-    }
-
-    return response.json();
+    const response = await apiFetch(`/api/permissions/groups/${groupId}/`);
+    if (!response.ok) await throwApiError(response);
+    const group = await response.json();
+    return group.permissions ?? [];
 }

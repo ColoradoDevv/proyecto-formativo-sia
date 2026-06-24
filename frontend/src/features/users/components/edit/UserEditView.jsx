@@ -78,90 +78,88 @@ function UserEditForm({ user, documentTypes, groups }) {
     const isActive = formData.isActive === "true";
 
     return (
-        <div className="h-full p-4 text-text-primary grid grid-cols-1 md:flex md:flex-col gap-4">
+        <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
             {/* Encabezado */}
             <div className="flex items-center gap-3">
                 <IconButton onClick={() => navigate(-1)} variant="ghost">
-                    <Undo2 />
+                    <Undo2 size={18}/>
                 </IconButton>
                 <div>
-                    <h2 className="text-h3">Editar Usuario</h2>
+                    <h2 className="text-primary">Editar Usuario</h2>
                     <p className="text-small text-text-muted">Modifica la información del usuario.</p>
                 </div>
             </div>
 
-            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-                {/* Información Personal — 3 columnas con foto integrada */}
-                <EditCard title="Información Personal" cols={3}>
+                {/* Información Personal — foto lateral + campos */}
+                <EditCard title="Información Personal" cols={1}>
 
-                    {/* Col 1 */}
-                    <div className="flex flex-col gap-3">
-                        <Input
-                            label="Nombres"
-                            name="firstName"
-                            placeholder="Ingresa el nombre"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Apellidos"
-                            name="lastName"
-                            placeholder="Ingresa los apellidos"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
 
-                    {/* Col 2 */}
-                    <div className="flex flex-col gap-3">
-                        <SelectInput
-                            label="Tipo de documento"
-                            name="documentType"
-                            options={documentTypes}
-                            value={formData.documentType}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Número de documento"
-                            name="documentNumber"
-                            placeholder="Ingresa el número"
-                            value={formData.documentNumber}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                        {/* Foto + estado */}
+                        <div className="flex flex-col items-center gap-2 shrink-0">
+                            <ProfileFileInput
+                                className="w-24 h-24 rounded-[var(--radius-xl)]"
+                                value={formData.profilePicture}
+                                onChange={handlePhotoChange}
+                            />
+                            <StatusBadge active={isActive} />
+                        </div>
 
-                    {/* Col 3 — foto ocupa fila 1 y 2 */}
-                    <div className="row-span-2 grid grid-cols-1 md:flex md:flex-col items-center justify-center gap-3">
-                        <ProfileFileInput
-                            className="w-32 h-32 rounded-[var(--radius-xl)]"
-                            value={formData.profilePicture}
-                            onChange={handlePhotoChange}
-                        />
-                        <StatusBadge active={isActive} />
-                    </div>
+                        {/* Campos personales */}
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
+                            <Input
+                                label="Nombres"
+                                name="firstName"
+                                placeholder="Ingresa el nombre"
+                                value={formData.firstName}
+                                onChange={handleChange}
+                                required
+                            />
+                            <Input
+                                label="Apellidos"
+                                name="lastName"
+                                placeholder="Ingresa los apellidos"
+                                value={formData.lastName}
+                                onChange={handleChange}
+                                required
+                            />
+                            <SelectInput
+                                label="Tipo de documento"
+                                name="documentType"
+                                options={documentTypes}
+                                value={formData.documentType}
+                                onChange={handleChange}
+                                required
+                            />
+                            <Input
+                                label="Número de documento"
+                                name="documentNumber"
+                                placeholder="Ingresa el número"
+                                value={formData.documentNumber}
+                                onChange={handleChange}
+                                required
+                            />
+                            <div className="sm:col-span-2">
+                                <Input
+                                    label="Dirección"
+                                    name="address"
+                                    placeholder="Ingresa la dirección"
+                                    value={formData.address}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
+                        </div>
 
-                    {/* Dirección — ocupa cols 1 y 2 en fila 2 */}
-                    <div className="col-span-2">
-                        <Input
-                            label="Dirección"
-                            name="address"
-                            placeholder="Ingresa la dirección"
-                            value={formData.address}
-                            onChange={handleChange}
-                            required
-                        />
                     </div>
 
                 </EditCard>
 
                 {/* Contacto y Sistema lado a lado */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
                     <EditCard title="Información de Contacto">
                         <Input

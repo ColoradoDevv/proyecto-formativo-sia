@@ -48,13 +48,13 @@ export default function HomeLayout(){
     const userPlaceholder = getStoredUser()?.first_name
 
     return (
-        <>
-            <div className="p-4">
-                <h2 className="text-h3 justify-self-center">¡Hola!  {userPlaceholder}.</h2>
+        <div className="p-4 sm:p-6 flex flex-col gap-6">
+            <div>
+                <h2 className="text-h3">¡Hola!  {userPlaceholder}.</h2>
                 <p className="text-small text-text-muted">Bienvenido al Sistema de Gestion Inventario.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 justify-items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <AccessCards
                     label="Usuarios Registrados"
                     Icon={<Users />}
@@ -80,6 +80,6 @@ export default function HomeLayout(){
                     to="/prestamos"
                 />
             </div>
-        </>
+        </div>
     )
 }

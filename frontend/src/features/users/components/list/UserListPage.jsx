@@ -41,10 +41,10 @@ export default function ListUserPage() {
                     Listado de Usuarios
                 </h2>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <Link to="/usuarios/crear">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Link to="/usuarios/crear" className="w-full">
                         <Button
-                            className="self-start md:self-auto"
+                            className="w-full"
                             variant="soft"
                             icon={Plus}
                         >
@@ -54,7 +54,7 @@ export default function ListUserPage() {
                     <Button
                         data={users}
                         reportConfig={usersReportConfig}
-                        className="self-start md:self-auto"
+                        className="w-full"
                     >
                         Descargar Reporte
                     </Button>

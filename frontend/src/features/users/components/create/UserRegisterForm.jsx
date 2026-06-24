@@ -96,26 +96,24 @@ export default function UserRegisterForm(){
 
     return (
         <>
-            <div className="grid grid-cols-1 my-2 mx-2 sm:mx-4 justify-items-center p-2 sm:p-4">
+            <div className="flex flex-col p-4 sm:p-6">
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 justify-items-left mb-4 w-full">
-                    <div className="grid gap-2 justify-items-left">
-                        <h1 className="text-h3">
-                            Registro de Usuarios
-                        </h1>
-                        <h1 className="text-small text-text-muted">
-                            Aca podras registrar a un usuario con los datos correspondientes
-                        </h1>
-                    </div>
+                <div className="mb-4 w-full">
+                    <h1 className="text-h3">
+                        Registro de Usuarios
+                    </h1>
+                    <p className="text-small text-text-muted">
+                        Aca podras registrar a un usuario con los datos correspondientes
+                    </p>
                 </div>
 
                 <form
                     noValidate
                     onSubmit={handleSubmit}
-                    className="flex flex-col items-center gap-6 mt-4 w-full"
+                    className="flex flex-col gap-6 mt-4 w-full"
                 >
                     {/* Grid de inputs */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6 w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-6 w-full">
 
                         {/* Columna izquierda */}
                         <div className="grid grid-cols-1 gap-4 min-w-0">
@@ -295,14 +293,13 @@ export default function UserRegisterForm(){
                                     </span>
                                 ))}
                             </div>
-                            <div className="h-20.75"></div>
                         </div>
 
                         <div className="min-w-0">
                             <ProfileFileInput
                                 label="Foto de Perfil"
                                 name="userProfile"
-                                className="w-full h-58"
+                                className="w-full aspect-square"
                                 placeholder="Subir foto de perfil"
                                 value={formData.userProfile}
                                 onChange={handleProfileChange}
@@ -312,7 +309,7 @@ export default function UserRegisterForm(){
 
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 justify-center md:justify-end">
                         <Button type="button" variant="secondary" size="md" onClick={handleCancel}>Cancelar</Button>
                         <Button type="submit"  variant="primary"   size="md">Crear</Button>
                     </div>
