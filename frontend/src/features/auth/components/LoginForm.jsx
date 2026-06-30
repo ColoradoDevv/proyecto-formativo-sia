@@ -3,7 +3,7 @@ import { Eye, EyeOff, Asterisk } from "lucide-react";
 import { useState } from "react";
 import { loginSchemas } from "../schemas/loginSchemas";
 import { login } from "../services/authService";
-import { Button } from "@/shared"
+import { Button, Input } from "@/shared"
 
 export default function LoginForm() {
     const navigate = useNavigate();
@@ -54,53 +54,43 @@ export default function LoginForm() {
     };
 
     return (
-        <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-8 py-10 w-[var(--size-field-md)]">
+        <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-8 py-10 w-full sm:w-[var(--size-field-md)]">
             <h1 className="text-center text-h2 font-heading mb-7 text-text-primary">
                 Iniciar Sesión
             </h1>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 {/* Correo */}
-                <div>
-                    <div className="relative">
-                        <input
-                            type="email"
-                            name="userEmail"
-                            placeholder="Correo Electrónico"
-                            value={formData.userEmail}
-                            onChange={handleChange}
-                            className={`w-full h-[var(--size-control-lg)] rounded-[var(--radius-xl)] border px-4 pr-10 text-small text-text-primary bg-surface-hover focus:outline-none focus:ring-2 focus:ring-focus-ring placeholder:text-text-muted ${errors.userEmail ? "border-error" : "border-border"}`}
-                        />
-                        <Asterisk size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted" />
-                    </div>
-                    {errors.userEmail && (
-                        <p className="text-error text-caption mt-1 pl-1">{errors.userEmail}</p>
-                    )}
-                </div>
+                <Input
+                    type="email"
+                    name="userEmail"
+                    placeholder="Correo Electrónico"
+                    value={formData.userEmail}
+                    onChange={handleChange}
+                    variant="auth"
+                    error={errors.userEmail}
+                    endAdornment={<Asterisk size={16} />}
+                />
 
                 {/* Contraseña */}
-                <div>
-                    <div className="relative">
-                        <input
-                            type={showPassword ? "text" : "password"}
-                            name="userPassword"
-                            placeholder="Contraseña"
-                            value={formData.userPassword}
-                            onChange={handleChange}
-                            className={`w-full h-[var(--size-control-lg)] rounded-[var(--radius-xl)] border px-4 pr-10 text-small text-text-primary bg-surface-hover focus:outline-none focus:ring-2 focus:ring-focus-ring placeholder:text-text-muted ${errors.userPassword ? "border-error" : "border-border"}`}
-                        />
+                <Input
+                    type={showPassword ? "text" : "password"}
+                    name="userPassword"
+                    placeholder="Contraseña"
+                    value={formData.userPassword}
+                    onChange={handleChange}
+                    variant="auth"
+                    error={errors.userPassword}
+                    endAdornment={
                         <button
                             type="button"
                             onClick={() => setShowPassword((prev) => !prev)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors "
+                            className="text-text-muted hover:text-text-secondary transition-colors"
                         >
                             {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                         </button>
-                    </div>
-                    {errors.userPassword && (
-                        <p className="text-error text-caption mt-1 pl-1">{errors.userPassword}</p>
-                    )}
-                </div>
+                    }
+                />
 
                 {/* Error del servidor */}
                 {serverError && (

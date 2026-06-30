@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import DataTable from "@/shared/components/DataTable";
 import { userColumns } from "../../table/UserColumns.jsx";
-import { RegisterButton, DownloadReportButton } from "../../../../shared/index.js";
 import { usersReportConfig } from "../../reports/usersReportConfig.js";
 import useUsers from "../../hooks/useUsers.js";
 import { TailChase } from 'ldrs/react'
@@ -53,6 +52,7 @@ export default function ListUserPage() {
                     </Link>
                     <Button
                         data={users}
+                        icon={Download}
                         reportConfig={usersReportConfig}
                         className="w-full"
                     >

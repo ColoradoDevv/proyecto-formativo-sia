@@ -3,6 +3,8 @@ import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSepar
 import { Link, useNavigate } from "react-router-dom";
 import { getStoredUser } from "@/shared/services/api"
 import { logout } from "@/features/auth/services/authService";
+import { cancelAlert } from "@/shared";
+
 
 export default function Navbar({ onToggleSidebar }) {
 
@@ -10,12 +12,22 @@ export default function Navbar({ onToggleSidebar }) {
 
     const userPlaceholder = getStoredUser()?.first_name
 
-    const handleLogout = () => {
-        logout();                      // borra el token de la sesion
-        navigate("/iniciar-sesion");   // vuelve al login
-    };
+        async function handleLogout() {
+        const result = await cancelAlert({
+            title: "¿Cerrar sesión?",
+            text: "Tendrás que volver a iniciar sesión para acceder al sistema.",
+            confirmText: "Sí, cerrar sesión",
+            cancelText: "Seguir aquí",
+        });
+
+        if (!result.isConfirmed) return;
+
+        logout();
+        navigate("/iniciar-sesion");
+    }
+
     return (
-        <div className="bg-surface-hover px-4 sm:px-6 border-b border-border flex items-center text-text-primary h-[var(--size-control-2xl)] shrink-0">
+        <div className="bg-surface-hover px-4 sm:px-6 border-b border-border flex items-center text-text-primary h-(--size-control-2xl) shrink-0">
 
             {/* Hamburger — solo visible en móvil/tablet */}
             {onToggleSidebar && (
@@ -46,7 +58,7 @@ export default function Navbar({ onToggleSidebar }) {
                     </DropdownItem>
                           <DropdownSeparator />
                     <DropdownItem>
-                        <Link to="/iniciar-sesion"className="block w-full" onClick={handleLogout}>Cerrar Sesion</Link>
+                        <button type="button" onClick={handleLogout} className="block w-full text-left">Cerrar Sesión</button>
                     </DropdownItem>
                 </DropdownContent>
             </Dropdown>

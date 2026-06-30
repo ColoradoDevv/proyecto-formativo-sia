@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import AccessCards from "../components/AccessCards"
+import QuickActions from "../components/QuickActions"
+import RecentActivity from "../components/RecentActivity"
 import { Wrench, Package, ClipboardList, Users } from "lucide-react"
 import { getUsers } from "@/features/users/services/userService"
 import { getStoredUser } from "@/shared/services/api"
@@ -51,7 +53,7 @@ export default function HomeLayout(){
         <div className="p-4 sm:p-6 flex flex-col gap-6">
             <div>
                 <h2 className="text-h3">¡Hola!  {userPlaceholder}.</h2>
-                <p className="text-small text-text-muted">Bienvenido al Sistema de Gestion Inventario.</p>
+                <p className="text-small text-text-muted">Bienvenido al Sistema de Gestion Inventario SIA.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -80,6 +82,10 @@ export default function HomeLayout(){
                     to="/prestamos"
                 />
             </div>
+
+            <QuickActions />
+
+            <RecentActivity />
         </div>
     )
 }

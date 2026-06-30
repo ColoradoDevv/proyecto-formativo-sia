@@ -80,19 +80,17 @@ export default function RmRegisterForm() {
 
     return (
         <>
-            <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
-                <div className="grid lg:grid-cols-3 justify-items-center">
-                    <div className="grid gap-2 justify-items-left">
-                        <h1 className="text-h2">Crear Material Devolutivo</h1>
-                        <h1 className="hidden lg:block text-small text-text-muted">
-                            Acá podrás crear un material devolutivo con los datos correspondientes
-                        </h1>
-                    </div>
+            <div className="flex flex-col p-4 sm:p-6">
+                <div className="mb-4 w-full">
+                    <h1 className="text-h2">Crear Material Devolutivo</h1>
+                    <p className="text-small text-text-muted">
+                        Acá podrás crear un material devolutivo con los datos correspondientes
+                    </p>
                 </div>
 
-                <form noValidate onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full">
-                    <div className="grid grid-cols-1 lg:flex gap-8 items-start w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4">
+                <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
+                    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start w-full">
+                        <div className="w-full lg:flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 min-w-0">
                             <Input
                                 label="Placa Sena"
                                 name="rmSenaPlate"
@@ -203,7 +201,7 @@ export default function RmRegisterForm() {
                             />
                         </div>
 
-                        <div className="grid justify-items-center md:flex-row lg:flex-col md:flex gap-4">
+                        <div className="w-full lg:w-[var(--size-field-sm)] shrink-0 flex flex-col gap-4">
                             <FileInput
                                 label="Foto del Producto (Opcional)"
                                 name="rmPhoto"
@@ -212,7 +210,7 @@ export default function RmRegisterForm() {
                                 onChange={handleFileChange("rmPhoto")}
                                 error={errors.rmPhoto}
                                 accept="image/*"
-                                className="w-[var(--size-field-sm)] h-[var(--size-preview-md)]"
+                                className="w-full h-[var(--size-preview-md)]"
                             />
                             <FileInput
                                 label="Ficha Técnica (Opcional)"
@@ -222,12 +220,12 @@ export default function RmRegisterForm() {
                                 onChange={handleFileChange("rmTechnicalSheet")}
                                 error={errors.rmTechnicalSheet}
                                 accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                className="w-[var(--size-field-sm)] h-[var(--size-preview-sm)]"
+                                className="w-full h-[var(--size-preview-sm)]"
                             />
                         </div>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 justify-center md:justify-end">
                         <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
                             Cancelar
                         </Button>

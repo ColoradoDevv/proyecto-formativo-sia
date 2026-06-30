@@ -67,13 +67,13 @@ function BrandEditForm({ brand }) {
 
     return (
         <>
-            <div className="h-full p-6 text-text-primary flex flex-col gap-6">
+            <div className="h-full p-4 sm:p-6 text-text-primary flex flex-col gap-6">
                 <div className="flex items-center gap-3">
                     <IconButton onClick={() => navigate(-1)} variant="ghost">
-                        <Undo2 />
+                        <Undo2 size={18}/>
                     </IconButton>
                     <div>
-                        <h2 className="text-h3">Editar Marca</h2>
+                        <h2 className="text-primary">Editar Marca</h2>
                         <p className="text-small text-text-muted">Modifica el nombre de la marca.</p>
                     </div>
                 </div>
@@ -90,10 +90,11 @@ function BrandEditForm({ brand }) {
                         value={formData.brandName}
                         onChange={handleChange}
                         error={errors.brandName}
+                        maxLength={100}
                         required
                     />
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 justify-center sm:justify-start">
                         <Button
                             type="button"
                             variant="secondary"

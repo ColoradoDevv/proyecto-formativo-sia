@@ -13,17 +13,17 @@ export default function TabBar() {
   const tabs = ['Editar Perfil', 'Marcas', 'Grupos'];
 
   return (
-    <div className="w-full w-max-3xl mx-auto pt-10">
+    <div className="w-full pt-4 sm:pt-6">
       <Tab.Group>
 
 
-        <Tab.List className="flex space-x-10 border-b border-border px-6 " >
+        <Tab.List className="grid grid-cols-3  border-b border-border px-4 sm:px-6" >
           {tabs.map((tab) => (
             <Tab
               key={tab}
               className={({ selected }) =>
                 classNames(
-                  'pb-3 text-small font-medium outline-none transition-all cursor-pointer duration-[var(--duration-base)]',
+                  'flex-1 pb-3 text-primary font-medium text-center outline-none transition-all cursor-pointer duration-(--duration-base)',
                   selected
                     ? 'border-b-2 border-brand text-text-primary'
                     : 'border-b-2 border-transparent text-text-muted hover:border-border-strong hover:text-text-secondary'
@@ -35,7 +35,7 @@ export default function TabBar() {
           ))}
         </Tab.List>
 
-        <Tab.Panels className="mt-6 px-6 ">
+        <Tab.Panels className="mt-6 px-4 sm:px-6">
           <Tab.Panel>
             Editar Perfil
           </Tab.Panel>

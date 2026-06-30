@@ -10,3 +10,10 @@ export const loginSchemas = z.object({
         .string()
         .min(1, "La contraseña es obligatoria"),
 });
+
+export const forgotSchemas = z.object({
+    userEmail: z
+        .string()
+        .min(1, "El correo es obligatorio")
+        .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Debe ingresar un email válido"),
+});

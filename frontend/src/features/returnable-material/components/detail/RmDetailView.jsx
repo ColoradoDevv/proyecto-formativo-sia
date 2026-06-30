@@ -1,16 +1,17 @@
-import { useParams } from "react-router-dom";
-import { FileText, ImageOff } from "lucide-react";
-import { DetailCard, DetailField } from "@/shared";
+import { useNavigate, useParams } from "react-router-dom";
+import { Undo2, FileText, ImageOff } from "lucide-react";
+import { Button, IconButton, Input, StatusBadge, EditCard } from "@/shared";
 import useRm from "../../hooks/useRm";
 import { TailChase } from "ldrs/react";
 import { CloudAlert } from "lucide-react";
 
 export default function RmDetailView() {
+    const navigate = useNavigate();
     const { id } = useParams();
     const { RM: material, loading, error } = useRm(id);
 
     const formatCurrency = (value) =>
-        value != null ? `$${Number(value).toLocaleString("es-CO")}` : null;
+        value != null ? `$${Number(value).toLocaleString("es-CO")}` : "-";
 
     if (loading)
         return (
@@ -34,80 +35,98 @@ export default function RmDetailView() {
 
     if (!material) return null;
 
+    // Valores de solo lectura (los selects de Editar se muestran como texto).
+    const categoryLabel = material.category?.name ?? "Sin categoría";
+    const brandLabel = material.brand?.name ?? "Sin marca";
+    const userLabel = material.user
+        ? `${material.user.first_name} ${material.user.last_name}`
+        : "Sin responsable";
+
     return (
-        <div className="h-full p-6 text-text-primary flex flex-col gap-6">
-            <div className="flex flex-col gap-1">
-                <h2 className="text-h3">Visualizar Material Devolutivo</h2>
-                <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
+        <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
+
+            {/* Encabezado */}
+            <div className="flex items-center gap-3">
+                <IconButton onClick={() => navigate(-1)} variant="ghost">
+                    <Undo2 size={18}/>
+                </IconButton>
+                <div>
+                    <h2 className="text-primary">Visualizar Material Devolutivo</h2>
+                    <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
+                </div>
             </div>
 
-            <div className="flex gap-6 items-start">
-                {/* Columna izquierda: foto + ficha técnica */}
-                <div className="flex flex-col gap-4 w-[var(--size-field-sm)] shrink-0">
-                    <div className="flex flex-col gap-3 p-4 rounded-[var(--radius-2xl)] border border-border bg-surface-hover">
-                        <p className="text-caption text-text-primary uppercase tracking-wide font-heading">Foto del Producto</p>
-                        <div className="w-full aspect-square rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                            {material.image
-                                ? <img src={material.image} alt={material.name} className="w-full h-full object-cover" />
-                                : <div className="flex flex-col items-center gap-2 text-text-muted">
-                                    <ImageOff size={40} />
-                                    <span className="text-caption">Sin foto</span>
-                                </div>
+            <div className="flex flex-col gap-3">
+
+                {/* Información General — foto lateral + campos */}
+                <EditCard title="Información General" cols={1}>
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+
+                        {/* Foto + estado + ficha técnica */}
+                        <div className="flex flex-col items-center gap-2 shrink-0 w-full sm:w-32">
+                            <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                                {material.image
+                                    ? <img src={material.image} alt={material.name} className="w-full h-full object-cover" />
+                                    : <ImageOff size={40} className="text-text-muted" />
+                                }
+                            </div>
+                            <StatusBadge active={material.is_active} />
+                            {material.technical_sheet
+                                ? <a
+                                    href={material.technical_sheet}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-1 text-brand text-caption hover:underline"
+                                >
+                                    <FileText size={14} />
+                                    Ficha técnica
+                                </a>
+                                : <span className="text-caption italic text-text-muted">Sin ficha</span>
                             }
                         </div>
-                        <span className={`w-fit px-3 py-0.5 rounded-[var(--radius-full)] text-caption font-medium ${material.is_active ? "bg-success-soft text-success" : "bg-error-soft text-error"}`}>
-                            {material.is_active ? "Activo" : "Inactivo"}
-                        </span>
-                    </div>
 
-                    <div className="flex flex-col gap-3 p-4 rounded-[var(--radius-2xl)] border border-border bg-surface-hover">
-                        <p className="text-caption text-text-primary uppercase tracking-wide font-heading">Ficha Técnica</p>
-                        {material.technical_sheet
-                            ? <a
-                                href={material.technical_sheet}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-2 text-brand text-small hover:underline"
-                            >
-                                <FileText size={16} />
-                                Ver ficha técnica
-                            </a>
-                            : <span className="text-small italic text-text-muted">No registrada</span>
-                        }
+                        {/* Campos generales */}
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
+                            <Input label="Nombre" value={material.name ?? ""} disabled readOnly />
+                            <Input label="Placa SENA" value={material.sena_plate ?? ""} disabled readOnly />
+                            <Input label="Serial" value={material.serial ?? ""} disabled readOnly />
+                            <Input label="Categoría" value={categoryLabel} disabled readOnly />
+                            <Input label="Marca" value={brandLabel} disabled readOnly />
+                            <Input label="Responsable" value={userLabel} disabled readOnly />
+                            <div className="sm:col-span-2">
+                                <Input label="Descripción" value={material.description ?? ""} disabled readOnly />
+                            </div>
+                        </div>
+
                     </div>
+                </EditCard>
+
+                {/* Inventario y Valores lado a lado */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <EditCard title="Inventario">
+                        <Input label="Estado" value={material.state ?? ""} disabled readOnly />
+                        <Input label="Cantidad" value={material.quantity ?? "Sin cantidad"} disabled readOnly />
+                        <Input label="Ubicación" value={material.location ?? "Sin ubicación"} disabled readOnly />
+                        <Input label="Fecha de compra" value={material.purchase_date ?? ""} disabled readOnly />
+                    </EditCard>
+
+                    <EditCard title="Valores">
+                        <Input label="Valor Unitario" value={formatCurrency(material.unit_price)} disabled readOnly />
+                        <Input label="Valor Total" value={formatCurrency(material.total_price)} disabled readOnly />
+                    </EditCard>
                 </div>
 
-                {/* Columna derecha: cards con campos */}
-                <div className="flex flex-col gap-4 flex-1">
-                    <DetailCard title="Información General">
-                        <DetailField label="Nombre" value={material.name} />
-                        <DetailField label="Placa SENA" value={material.sena_plate} />
-                        <DetailField label="Serial" value={material.serial} />
-                        <DetailField label="Categoría" value={material.category?.name} />
-                        <DetailField label="Descripción" value={material.description} fullWidth />
-                    </DetailCard>
-
-                    <DetailCard title="Inventario">
-                        <DetailField label="Marca" value={material.brand?.name} />
-                        <DetailField label="Estado" value={material.state} />
-                        <DetailField label="Cantidad" value={material.quantity} />
-                        <DetailField label="Ubicación" value={material.location} />
-                    </DetailCard>
-
-                    <DetailCard title="Valores y Fechas">
-                        <DetailField label="Valor Unitario" value={formatCurrency(material.unit_price)} />
-                        <DetailField label="Valor Total" value={formatCurrency(material.total_price)} />
-                        <DetailField label="Fecha de Compra" value={material.purchase_date} />
-                    </DetailCard>
-
-                    <DetailCard title="Responsable">
-                        <DetailField
-                            label="Usuario"
-                            value={material.user ? `${material.user.first_name} ${material.user.last_name}` : null}
-                        />
-                    </DetailCard>
+                <div className="flex gap-4 justify-center md:justify-end">
+                    <Button variant="secondary" size="md" onClick={() => navigate("/devolutivos")}>
+                        Volver al listado
+                    </Button>
+                    <Button variant="primary" size="md" onClick={() => navigate(`/devolutivos/editar/${material.id}`)}>
+                        Editar
+                    </Button>
                 </div>
+
             </div>
+
         </div>
     );
 }

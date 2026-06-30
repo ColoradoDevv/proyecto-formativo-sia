@@ -15,6 +15,12 @@ export async function getLoans() {
     return response.json();
 }
 
+export async function getLoanById(id) {
+    const response = await apiFetch(`/api/loans/${id}/`);
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
+    return response.json();
+}
+
 export async function createLoan(loanData) {
     const response = await apiFetch("/api/loans/", {
         method: "POST",

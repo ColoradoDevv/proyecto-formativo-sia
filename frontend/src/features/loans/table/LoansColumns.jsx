@@ -1,4 +1,4 @@
-import { Switch } from "@/shared";
+import { StatusBadge } from "@/shared";
 import LoansRowActions from "../components/list/LoansRowActions";
 
 export const loansColumns = [
@@ -30,11 +30,16 @@ export const loansColumns = [
         accessorKey: "is_active",
         header: "Estado",
         cell: ({ row }) => (
-            <Switch checked={row.original.is_active} disabled className="inline-flex" />
+            <StatusBadge
+                active={row.original.is_active}
+                activeLabel="Prestado"
+                inactiveLabel="Devuelto"
+            />
         ),
     },
     {
         id: "actions",
+        header: "Acciones",
         cell: ({ row }) => <LoansRowActions loan={row.original} />,
     },
 ];

@@ -24,6 +24,24 @@ export async function login(email, password) {
     return data;
 }
 
+// METODO POST - solicita el envio del correo de recuperacion de contraseña
+export async function requestPasswordReset(email) {
+    const response = await fetch("/api/users/forgot-password/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "No se pudo enviar el correo de recuperación");
+        error.status = response.status;
+        throw error;
+    }
+
+    return response.json().catch(() => ({}));
+}
+
 // Cierra la sesion (borra el token guardado)
 export function logout() {
     clearSession();

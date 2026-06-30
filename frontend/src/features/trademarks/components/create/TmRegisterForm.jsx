@@ -47,10 +47,10 @@ export default function TmRegisterForm() {
 
     return (
         <>
-            <div className="grid grid-cols-1 my-2 mx-2 sm:mx-4 justify-items-center p-2 sm:p-4">
-                <div className="grid gap-2 justify-items-left mb-4 w-full">
+            <div className="flex flex-col p-4 sm:p-6">
+                <div className="mb-4 w-full">
                     <h1 className="text-h3">Registro de Marcas</h1>
-                    <p className="text-sm text-text-muted">
+                    <p className="text-small text-text-muted">
                         Registra una nueva marca para asociarla a los materiales.
                     </p>
                 </div>
@@ -58,7 +58,7 @@ export default function TmRegisterForm() {
                 <form
                     noValidate
                     onSubmit={handleSubmit}
-                    className="flex flex-col items-center gap-6 mt-4 w-full max-w-sm"
+                    className="flex flex-col gap-6 w-full max-w-sm"
                 >
                     <Input
                         label="Nombre de la marca"
@@ -67,10 +67,11 @@ export default function TmRegisterForm() {
                         value={formData.brandName}
                         onChange={handleChange}
                         error={errors.brandName}
+                        maxLength={100}
                         required
                     />
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 justify-center sm:justify-start">
                         <Button
                             type="button"
                             variant="secondary"

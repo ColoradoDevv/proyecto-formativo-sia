@@ -73,25 +73,22 @@ export default function LoanRegisterForm() {
 
     return (
         <>
-            <div className="grid grid-cols-1  justify-items-center p-4">
-                <div className="grid grid-col justify-self-start mb-2">
-                    <div className="grid gap-2 justify-items-start">
-                        <h1 className="text-h2 font-heading">
-                            Crear Prestamo
-                        </h1>
-
-                        <h1 className="hidden lg:block text-small">
-                            Aca podras crear un prestamo con los datos correspondientes
-                        </h1>
-                    </div>
+            <div className="flex flex-col p-4 sm:p-6">
+                <div className="mb-4 w-full">
+                    <h1 className="text-h2 font-heading">
+                        Crear Prestamo
+                    </h1>
+                    <p className="text-small text-text-muted">
+                        Aca podras crear un prestamo con los datos correspondientes
+                    </p>
                 </div>
 
                 <form
                     noValidate
                     onSubmit={handleSubmit}
-                    className="flex flex-col items-center gap-6"
+                    className="flex flex-col gap-6 w-full"
                 >
-                    <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 w-full">
                         <SelectInput
                             label="Usuario"
                             name="loanUser"
@@ -131,15 +128,6 @@ export default function LoanRegisterForm() {
                             error={errors.loanGroup}
                             required
                         />
-                        <TextArea
-                            label="Justificacion de Uso"
-                            name="loanJustification"
-                            placeholder="Ingrese la justificacion de uso"
-                            value={formData.loanJustification}
-                            onChange={handleChange}
-                            error={errors.loanJustification}
-                            required
-                        />
                         <Input
                             label="Fecha Devolucion"
                             name="loanReturnDate"
@@ -149,9 +137,20 @@ export default function LoanRegisterForm() {
                             error={errors.loanReturnDate}
                             required
                         />
+                        <div className="sm:col-span-2">
+                            <TextArea
+                                label="Justificacion de Uso"
+                                name="loanJustification"
+                                placeholder="Ingrese la justificacion de uso"
+                                value={formData.loanJustification}
+                                onChange={handleChange}
+                                error={errors.loanJustification}
+                                required
+                            />
+                        </div>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 justify-center md:justify-end">
                         <Button type="button" variant="secondary" size="md" onClick={handleCancel}>Cancelar</Button>
                         <Button type="submit" variant="primary" size="md" disabled={submitting}>
                             {submitting ? "Guardando..." : "Crear"}

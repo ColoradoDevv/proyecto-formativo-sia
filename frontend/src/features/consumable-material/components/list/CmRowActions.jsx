@@ -6,18 +6,19 @@ import {
     DropdownItem,
 } from "@/shared";
 
-import { EllipsisVertical, Pencil, Eye } from "lucide-react";
+import { EllipsisVertical, Eye, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function LoansRowActions({ loan }) {
+// Acciones de cada fila de material de consumo.
+export default function CmRowActions({ cm }) {
     const navigate = useNavigate();
 
     const handleEdit = () => {
-        navigate(`/prestamos/editar/${loan.id_loan}`);
+        navigate(`/consumibles/editar/${cm.id}`);
     };
 
     const handleVisualizer = () => {
-        navigate(`/prestamos/visualizar/${loan.id_loan}`);
+        navigate(`/consumibles/visualizar/${cm.id}`);
     };
 
     return (
@@ -35,8 +36,8 @@ export default function LoansRowActions({ loan }) {
                     <EllipsisVertical size={16} />
                 </DropdownTrigger>
 
-                <DropdownContent className="w-48">
-                    <DropdownItem>Marcar devuelto</DropdownItem>
+                <DropdownContent className="right-0 w-48">
+                    <DropdownItem onClick={handleEdit}>Editar</DropdownItem>
                     <DropdownItem>Deshabilitar</DropdownItem>
                 </DropdownContent>
             </Dropdown>

@@ -1,10 +1,10 @@
 import bgLogin from "@/assets/images/auth/bg-login.png"
 import officeImg from "@/assets/images/auth/office-imagen.png"
 import senaLogo from "@/assets/images/auth/logo-sena-verde-png-2022 1.png"
-import LoginForm from "../components/LoginForm"
+import ForgotForm from "../components/ForgotForm"
 
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
     return (
         <div className="relative w-full h-screen overflow-hidden flex items-center justify-center">
 
@@ -49,7 +49,7 @@ export default function LoginPage() {
 
                 {/* ── Lado derecho: formulario blanco ── */}
                 <div className="flex-1 flex items-center justify-center p-6 pt-20 sm:pt-24 md:p-0">
-                    <LoginForm />
+                    <ForgotForm />
                 </div>
             </div>
 

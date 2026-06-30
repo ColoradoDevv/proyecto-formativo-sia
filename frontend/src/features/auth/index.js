@@ -1,3 +1,5 @@
 export { default as LoginForm } from "./components/LoginForm.jsx"
+export { default as ForgotForm } from "./components/ForgotForm.jsx"
 export { default as LoginPage } from "./pages/LoginPage.jsx"
 export { default as ProtectedRoute } from "./components/ProtectedRoute.jsx"
+export { default as ForgotPasswordPage} from "./pages/ForgotPasswordPage.jsx"

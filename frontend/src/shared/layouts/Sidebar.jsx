@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { House, Users, Wrench, Truck, Scroll, Settings, LogOut, X } from "lucide-react";
 import { logout } from "@/features/auth/services/authService";
+import { cancelAlert } from "@/shared";
 
 function NavLinks({ onLinkClick }) {
     const navigate = useNavigate();
@@ -15,11 +16,23 @@ function NavLinks({ onLinkClick }) {
 
     const linkClass = "flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors";
 
-    const handleLogout = () => {
-        logout();                      // borra el token de la sesion
-        if (onLinkClick) onLinkClick(); // cierra el drawer en movil
-        navigate("/iniciar-sesion");   // vuelve al login
-    };
+
+    async function handleLogout() {
+        const result = await cancelAlert({
+            title: "¿Cerrar sesión?",
+            text: "Tendrás que volver a iniciar sesión para acceder al sistema.",
+            confirmText: "Sí, cerrar sesión",
+            cancelText: "Seguir aquí",
+        });
+
+        if (!result.isConfirmed) {
+            onLinkClick?.();
+            return;
+        }
+
+        logout();
+        navigate("/iniciar-sesion");
+    }
 
     return (
         <>

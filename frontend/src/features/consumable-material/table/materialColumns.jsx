@@ -1,6 +1,6 @@
 import { ActiveSwitch } from "@/shared";
 import { toggleCmActive } from "../services/consumableService";
-import UserRowActions from "../components/list/UserRowActions";
+import CmRowActions from "../components/list/CmRowActions";
 
 export const materialColumns = [
     {
@@ -42,6 +42,6 @@ export const materialColumns = [
     {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }) => <UserRowActions user={row.original} />,
+        cell: ({ row }) => <CmRowActions cm={row.original} />,
     },
 ];

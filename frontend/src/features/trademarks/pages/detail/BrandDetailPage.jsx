@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, DetailCard, DetailField } from "@/shared";
+import { Button, IconButton, Input, EditCard } from "@/shared";
 import { Undo2 } from "lucide-react";
 import { TailChase } from "ldrs/react";
 import useBrand from "../../hooks/useBrand";
@@ -23,23 +23,23 @@ export default function BrandDetailPage() {
         return <p className="text-center p-6">Marca no encontrada</p>;
 
     return (
-        <div className="h-full p-6 text-text-primary flex flex-col gap-6">
+        <div className="h-full p-4 sm:p-6 text-text-primary flex flex-col gap-3">
             <div className="flex items-center gap-3">
                 <IconButton onClick={() => navigate(-1)} variant="ghost">
-                    <Undo2 />
+                    <Undo2 size={18}/>
                 </IconButton>
                 <div>
-                    <h2 className="text-h3">Visualizar Marca</h2>
+                    <h2 className="text-primary">Visualizar Marca</h2>
                     <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
                 </div>
             </div>
 
-            <DetailCard title="Información General" cols={1}>
-                <DetailField label="ID" value={brand.id} />
-                <DetailField label="Nombre" value={brand.name} />
-            </DetailCard>
+            <EditCard title="Información General" cols={2}>
+                <Input label="ID" value={brand.id ?? ""} disabled readOnly />
+                <Input label="Nombre" value={brand.name ?? ""} disabled readOnly />
+            </EditCard>
 
-            <div className="flex gap-4 justify-end">
+            <div className="flex gap-4 justify-center md:justify-end">
                 <Button variant="secondary" size="md" onClick={() => navigate("/marcas")}>
                     Volver al listado
                 </Button>

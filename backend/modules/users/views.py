@@ -3,6 +3,7 @@ import jwt
 import datetime
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
+from django.core.mail import send_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -85,6 +86,69 @@ class LoginView(APIView):
                 "groups": [g.group.name for g in user_groups],  # Lista todos los grupos
             },
         })
+
+class ForgetPasswordView(APIView):
+    # Solicitar recuperacion de contrasena: tambien debe ser PUBLICO.
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get("email")
+
+        # 1. Validar que llego el email
+        if not email:
+            return Response(
+                {"error": "El email es obligatorio"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 2. Respuesta generica: NO revelamos si el email existe o no.
+        # Asi evitamos que alguien use este endpoint para descubrir cuentas.
+        generic_response = Response(
+            {"message": "Si el correo está registrado, enviaremos un enlace para restablecer la contraseña."},
+            status=status.HTTP_200_OK,
+        )
+
+        # 3. Buscar el usuario. Si no existe (o esta inactivo), respondemos igual.
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return generic_response
+
+        if not user.is_active:
+            return generic_response
+
+        # 4. Construir un token de reset de vida corta.
+        # El "scope" lo distingue del token de login para que no se pueda
+        # reutilizar uno por el otro.
+        payload = {
+            "user_id": user.id,
+            "scope": "password_reset",
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
+            "iat": datetime.datetime.utcnow(),
+        }
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+
+        # 5. Armar el enlace que apunta al frontend.
+        reset_link = f"{settings.FRONTEND_URL}/reset-password?token={token}"
+
+        # 6. Enviar el correo. fail_silently=False para que un fallo real
+        # se vea en los logs durante el desarrollo.
+        send_mail(
+            subject="Restablece tu contraseña - SIA",
+            message=(
+                f"Hola {user.first_name},\n\n"
+                "Recibimos una solicitud para restablecer tu contraseña.\n"
+                f"Haz clic en el siguiente enlace para crear una nueva (válido por 1 hora):\n\n"
+                f"{reset_link}\n\n"
+                "Si no solicitaste este cambio, puedes ignorar este correo."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+
+        return generic_response
 
 
 class UserListCreateView(generics.ListCreateAPIView):

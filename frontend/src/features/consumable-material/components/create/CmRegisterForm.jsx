@@ -123,8 +123,8 @@ export default function CmRegisterForm(){
                         className="flex flex-col gap-6 w-full"
                     >
                         {/* Inputs */}
-                        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start w-full">
-                            <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4">
+                        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-start w-full">
+                            <div className="w-full lg:flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 min-w-0">
 
                                 <Input
                                     label = "Nombre"
