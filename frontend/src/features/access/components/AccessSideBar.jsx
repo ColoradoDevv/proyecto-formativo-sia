@@ -15,6 +15,7 @@ export default function AccessSidebar({
   setSelectedUser,
   groupPermissions,
   setGroupPermissions,
+  isEditing = false,
 }) {
   // Modo de asignación: por grupo o por usuario individual.
   const [mode, setMode] = useState("group");
@@ -95,6 +96,7 @@ export default function AccessSidebar({
             size="md"
             icon={Users}
             onClick={() => switchMode("group")}
+            disabled={isEditing}
           >
             Grupo
           </Button>
@@ -103,6 +105,7 @@ export default function AccessSidebar({
             size="md"
             icon={User}
             onClick={() => switchMode("user")}
+            disabled={isEditing}
           >
             Usuario
           </Button>
@@ -115,6 +118,7 @@ export default function AccessSidebar({
             value={selectedGroup}
             onChange={handleGroupChange}
             options={groupOptions}
+            disabled={isEditing}
           />
         ) : (
           <SelectInput
@@ -123,7 +127,13 @@ export default function AccessSidebar({
             value={selectedUser}
             onChange={handleUserChange}
             options={userOptions}
+            disabled={isEditing}
           />
+        )}
+        {isEditing && (
+          <p className="text-caption text-text-muted mt-1">
+            Guarde o cancele los cambios para cambiar de destino.
+          </p>
         )}
       </EditCard>
 

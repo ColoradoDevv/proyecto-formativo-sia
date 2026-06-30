@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+// Comprueba que el string sea una fecha real (rechaza "2024-13-40", "0000-00-00").
+function isValidDateString(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [y, m, d] = value.split("-").map(Number);
+    const date = new Date(`${value}T00:00:00`);
+    return (
+        !Number.isNaN(date.getTime()) &&
+        date.getFullYear() === y &&
+        date.getMonth() + 1 === m &&
+        date.getDate() === d
+    );
+}
+
 export const taskSchema = z.object({
 
     taskName: z
@@ -16,11 +29,13 @@ export const taskSchema = z.object({
 
     taskStartDate: z
         .string()
-        .min(1, "Debe ingresar una fecha de inicio"),
+        .min(1, "Debe ingresar una fecha de inicio")
+        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
 
     taskEndDate: z
         .string()
-        .min(1, "Debe ingresar una fecha de finalización"),
+        .min(1, "Debe ingresar una fecha de finalización")
+        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
 
 })
 .refine(

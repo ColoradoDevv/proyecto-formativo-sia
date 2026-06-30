@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, StatusBadge, cancelAlert, EditCard } from "@/shared";
+import { Button, IconButton, Input, SelectInput, StatusBadge, showAlert, cancelAlert, EditCard } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useRm from "../../hooks/useRm";
 import { getBrands, getCategories, getStates } from "../../services/selectServices";
+import { rmEditSchema } from "../../schemas/rmSchema";
+import { updateRM } from "../../services/returnableService";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -38,6 +40,8 @@ function RmEditForm({ RM, categories, brands, states }) {
     const photoInputRef = useRef();
 
     const [photoPreview, setPhotoPreview] = useState(RM.image ?? null);
+    const [photoFile,    setPhotoFile]    = useState(null);
+    const [submitting,   setSubmitting]   = useState(false);
 
     const [formData, setFormData] = useState({
         name:         RM.name ?? "",
@@ -53,6 +57,8 @@ function RmEditForm({ RM, categories, brands, states }) {
         totalPrice:   RM.total_price != null ? String(RM.total_price) : "",
         purchaseDate: RM.purchase_date ?? "",
     });
+
+    const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -70,12 +76,39 @@ function RmEditForm({ RM, categories, brands, states }) {
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) setPhotoPreview(URL.createObjectURL(file));
+        if (file) {
+            setPhotoFile(file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
     };
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        navigate(-1);
+
+        const result = rmEditSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                fieldErrors[issue.path[0]] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+        setSubmitting(true);
+
+        try {
+            await updateRM(RM.consumable_id, { ...formData, photo: photoFile ? [photoFile] : null });
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material devolutivo actualizado exitosamente" });
+            navigate(-1);
+        } catch (error) {
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar material devolutivo", text: error.message });
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     async function handleCancel() {
@@ -141,6 +174,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 placeholder="Nombre del material"
                                 value={formData.name}
                                 onChange={handleChange}
+                                error={errors.name}
                                 required
                             />
                             <Input
@@ -149,6 +183,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 placeholder="Placa SENA"
                                 value={formData.senaPlate}
                                 onChange={handleChange}
+                                error={errors.senaPlate}
                                 required
                             />
                             <Input
@@ -157,6 +192,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 placeholder="Serial del material"
                                 value={formData.serial}
                                 onChange={handleChange}
+                                error={errors.serial}
                                 required
                             />
                             <SelectInput
@@ -165,6 +201,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 options={categories}
                                 value={formData.category}
                                 onChange={handleChange}
+                                error={errors.category}
                                 required
                             />
                             <SelectInput
@@ -173,6 +210,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 options={brands}
                                 value={formData.brand}
                                 onChange={handleChange}
+                                error={errors.brand}
                                 required
                             />
                             <div className="sm:col-span-2">
@@ -182,6 +220,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                                     placeholder="Descripción del material"
                                     value={formData.description}
                                     onChange={handleChange}
+                                    error={errors.description}
                                     required
                                 />
                             </div>
@@ -200,6 +239,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                             options={states}
                             value={formData.state}
                             onChange={handleChange}
+                            error={errors.state}
                             required
                         />
                         <Input
@@ -211,6 +251,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                             placeholder="Cantidad"
                             value={formData.quantity}
                             onChange={handleChange}
+                            error={errors.quantity}
                             required
                         />
                         <Input
@@ -219,6 +260,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                             placeholder="Ubicación del material"
                             value={formData.location}
                             onChange={handleChange}
+                            error={errors.location}
                         />
                         <Input
                             label="Fecha de compra"
@@ -226,6 +268,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                             type="date"
                             value={formData.purchaseDate}
                             onChange={handleChange}
+                            error={errors.purchaseDate}
                             required
                         />
                     </EditCard>
@@ -240,6 +283,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                             placeholder="Valor unitario"
                             value={formData.unitPrice}
                             onChange={handleChange}
+                            error={errors.unitPrice}
                             required
                         />
                         <Input
@@ -248,6 +292,7 @@ function RmEditForm({ RM, categories, brands, states }) {
                             type="number"
                             placeholder="Calculado automáticamente"
                             value={formData.totalPrice}
+                            error={errors.totalPrice}
                             readOnly
                         />
                     </EditCard>
@@ -255,11 +300,11 @@ function RmEditForm({ RM, categories, brands, states }) {
                 </div>
 
                 <div className="flex gap-4 justify-center md:justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary" size="md">
-                        Guardar cambios
+                    <Button type="submit" variant="primary" size="md" disabled={submitting}>
+                        {submitting ? "Guardando..." : "Guardar cambios"}
                     </Button>
                 </div>
 

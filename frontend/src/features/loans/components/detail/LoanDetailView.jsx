@@ -51,11 +51,6 @@ export default function LoanDetailView() {
                 <EditCard title="Información del Préstamo" cols={1}>
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
 
-                        {/* Estado */}
-                        <div className="flex flex-col items-center gap-2 shrink-0">
-                            <StatusBadge active={loan.is_active} activeLabel="Prestado" inactiveLabel="Devuelto" />
-                        </div>
-
                         {/* Campos del prestamo */}
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
                             <Input label="Usuario" value={loan.usuario ?? ""} disabled readOnly />

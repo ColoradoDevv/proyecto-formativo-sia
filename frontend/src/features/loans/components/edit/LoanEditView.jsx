@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, TextArea, StatusBadge, cancelAlert, EditCard } from "@/shared";
+import { Button, IconButton, Input, SelectInput, TextArea, StatusBadge, showAlert, cancelAlert, EditCard } from "@/shared";
 import { Undo2 } from "lucide-react";
 import useLoan from "../../hooks/useLoan";
 import { getUsers, getMaterials } from "../../services/selectServices";
+import { loanSchema } from "../../schemas/loanSchema";
+import { updateLoan } from "../../services/loanService";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -43,14 +45,41 @@ function LoanEditForm({ loan, users, materials }) {
         loanReturnDate:    loan.return_date        ?? "",
     });
 
+    const [errors, setErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        navigate(-1);
+
+        const result = loanSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                fieldErrors[issue.path[0]] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+        setSubmitting(true);
+
+        try {
+            await updateLoan(loan.id_loan, result.data);
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Préstamo actualizado exitosamente" });
+            navigate("/prestamos");
+        } catch (err) {
+            if (err.fieldErrors) setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar el préstamo", text: err.message });
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     async function handleCancel() {
@@ -76,12 +105,6 @@ function LoanEditForm({ loan, users, materials }) {
 
                 <EditCard title="Información del Préstamo" cols={1}>
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
-
-                        {/* Estado */}
-                        <div className="flex flex-col items-center gap-2 shrink-0">
-                            <StatusBadge active={loan.is_active} activeLabel="Activo" inactiveLabel="Devuelto" />
-                        </div>
-
                         {/* Campos del prestamo */}
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
                             <SelectInput
@@ -90,6 +113,7 @@ function LoanEditForm({ loan, users, materials }) {
                                 options={users}
                                 value={formData.loanUser}
                                 onChange={handleChange}
+                                error={errors.loanUser}
                                 required
                             />
                             <SelectInput
@@ -98,6 +122,7 @@ function LoanEditForm({ loan, users, materials }) {
                                 options={materials}
                                 value={formData.loanMaterial}
                                 onChange={handleChange}
+                                error={errors.loanMaterial}
                                 required
                             />
                             <Input
@@ -108,6 +133,7 @@ function LoanEditForm({ loan, users, materials }) {
                                 step="1"
                                 value={formData.loanAmount}
                                 onChange={handleChange}
+                                error={errors.loanAmount}
                                 required
                             />
                             <Input
@@ -115,6 +141,7 @@ function LoanEditForm({ loan, users, materials }) {
                                 name="loanGroup"
                                 value={formData.loanGroup}
                                 onChange={handleChange}
+                                error={errors.loanGroup}
                                 required
                             />
                             <Input
@@ -123,6 +150,7 @@ function LoanEditForm({ loan, users, materials }) {
                                 type="date"
                                 value={formData.loanReturnDate}
                                 onChange={handleChange}
+                                error={errors.loanReturnDate}
                                 required
                             />
                             <Input
@@ -137,6 +165,7 @@ function LoanEditForm({ loan, users, materials }) {
                                     name="loanJustification"
                                     value={formData.loanJustification}
                                     onChange={handleChange}
+                                    error={errors.loanJustification}
                                     required
                                 />
                             </div>
@@ -146,11 +175,11 @@ function LoanEditForm({ loan, users, materials }) {
                 </EditCard>
 
                 <div className="flex gap-4 justify-center md:justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary" size="md">
-                        Guardar cambios
+                    <Button type="submit" variant="primary" size="md" disabled={submitting}>
+                        {submitting ? "Guardando..." : "Guardar cambios"}
                     </Button>
                 </div>
 

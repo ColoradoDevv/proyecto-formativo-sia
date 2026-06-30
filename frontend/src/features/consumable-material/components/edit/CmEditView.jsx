@@ -5,6 +5,7 @@ import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useCm from "../../hooks/useCm";
 import { getBrands, getUsers } from "../../services/selectServices";
 import { updateCm } from "../../services/consumableService";
+import { cmEditSchema } from "../../schemas/cmSchema";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -62,6 +63,8 @@ function CmEditForm({ id, CM, brands, users }) {
         purchaseDate: CM.purchase_date ?? "",
     });
 
+    const [errors, setErrors] = useState({});
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => {
@@ -95,11 +98,25 @@ function CmEditForm({ id, CM, brands, users }) {
     async function handleSubmit(e) {
         e.preventDefault();
 
+        const result = cmEditSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                fieldErrors[issue.path[0]] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+
         try {
             await updateCm(id, { ...formData, photo: photoFile });
             await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material de consumo actualizado exitosamente" });
             navigate(-1);
         } catch (error) {
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
             showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar material de consumo", text: error.message });
         }
     }
@@ -167,6 +184,7 @@ function CmEditForm({ id, CM, brands, users }) {
                                 placeholder="Nombre del material"
                                 value={formData.name}
                                 onChange={handleChange}
+                                error={errors.name}
                                 required
                             />
                             <Input
@@ -175,6 +193,7 @@ function CmEditForm({ id, CM, brands, users }) {
                                 placeholder="Placa SENA (opcional)"
                                 value={formData.senaPlate}
                                 onChange={handleChange}
+                                error={errors.senaPlate}
                             />
                             <SelectInput
                                 label="Marca"
@@ -182,6 +201,7 @@ function CmEditForm({ id, CM, brands, users }) {
                                 options={brands}
                                 value={formData.brand}
                                 onChange={handleChange}
+                                error={errors.brand}
                                 required
                             />
                             <SelectInput
@@ -190,6 +210,7 @@ function CmEditForm({ id, CM, brands, users }) {
                                 options={users}
                                 value={formData.user}
                                 onChange={handleChange}
+                                error={errors.user}
                                 required
                             />
                             <div className="sm:col-span-2">
@@ -199,6 +220,7 @@ function CmEditForm({ id, CM, brands, users }) {
                                     placeholder="Descripción del material"
                                     value={formData.description}
                                     onChange={handleChange}
+                                    error={errors.description}
                                     required
                                 />
                             </div>
@@ -221,6 +243,7 @@ function CmEditForm({ id, CM, brands, users }) {
                             value={formData.quantity}
                             onChange={handleChange}
                             disabled={hasSenaPlate}
+                            error={errors.quantity}
                             hint={hasSenaPlate ? "La cantidad es 1 porque el material tiene placa SENA, no es editable." : undefined}
                         />
                         <Input
@@ -229,6 +252,7 @@ function CmEditForm({ id, CM, brands, users }) {
                             placeholder="Ubicación del material"
                             value={formData.location}
                             onChange={handleChange}
+                            error={errors.location}
                         />
                         <SelectInput
                             label="Estado"
@@ -236,6 +260,7 @@ function CmEditForm({ id, CM, brands, users }) {
                             options={STATE_OPTIONS}
                             value={formData.state}
                             onChange={handleChange}
+                            error={errors.state}
                             required
                         />
                         <Input
@@ -244,6 +269,7 @@ function CmEditForm({ id, CM, brands, users }) {
                             type="date"
                             value={formData.purchaseDate}
                             onChange={handleChange}
+                            error={errors.purchaseDate}
                             required
                         />
                     </EditCard>

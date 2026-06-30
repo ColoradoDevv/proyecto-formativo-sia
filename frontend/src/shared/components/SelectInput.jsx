@@ -6,6 +6,7 @@ export default function SelectInput({
     className = "",
     onChange,
     required,
+    disabled = false,
     options = [],
 }){
     return(
@@ -30,6 +31,7 @@ export default function SelectInput({
                 value={value}
                 onChange={onChange}
                 required={required}
+                disabled={disabled}
                 className={`
                     relative
                     w-full
@@ -41,6 +43,8 @@ export default function SelectInput({
                     focus:outline-none
                     focus:ring-2
                     focus:border-focus-border
+                    disabled:cursor-not-allowed
+                    disabled:opacity-60
                     ${error ? "border-error" : "border-border"}
                     ${!value ? "text-text-muted" : "text-text-primary"}
                 `}

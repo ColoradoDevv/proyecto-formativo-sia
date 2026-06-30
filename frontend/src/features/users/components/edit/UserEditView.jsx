@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ProfileFileInput, StatusBadge, cancelAlert, EditCard } from "@/shared";
+import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ProfileFileInput, StatusBadge, showAlert, cancelAlert, EditCard } from "@/shared";
 import { Undo2 } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
 import { getDocumentTypes, getUserGroups } from "../../services/selectServices";
+import { userEditSchema } from "../../schemas/userSchema";
+import { updateUser } from "../../services/userService";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -32,11 +34,11 @@ export default function UserEditView() {
 
     if (error) return <p>Error al cargar usuario: {error.message}</p>;
 
-    return <UserEditForm user={user} documentTypes={documentTypes} groups={groups} />;
+    return <UserEditForm id={id} user={user} documentTypes={documentTypes} groups={groups} />;
 }
 
 // Componente interno: recibe user ya cargado e inicializa el estado directamente
-function UserEditForm({ user, documentTypes, groups }) {
+function UserEditForm({ id, user, documentTypes, groups }) {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -56,6 +58,9 @@ function UserEditForm({ user, documentTypes, groups }) {
         endDate:            user.end_date            ?? "",
     });
 
+    const [errors, setErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -65,9 +70,33 @@ function UserEditForm({ user, documentTypes, groups }) {
         setFormData(prev => ({ ...prev, profilePicture: files }));
     };
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        navigate(-1);
+
+        const result = userEditSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                fieldErrors[issue.path[0]] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+        setSubmitting(true);
+
+        try {
+            await updateUser(id, formData);
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Usuario actualizado exitosamente" });
+            navigate(-1);
+        } catch (error) {
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar usuario", text: error.message });
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     async function handleCancel() {
@@ -116,6 +145,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                                 placeholder="Ingresa el nombre"
                                 value={formData.firstName}
                                 onChange={handleChange}
+                                error={errors.firstName}
                                 required
                             />
                             <Input
@@ -124,6 +154,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                                 placeholder="Ingresa los apellidos"
                                 value={formData.lastName}
                                 onChange={handleChange}
+                                error={errors.lastName}
                                 required
                             />
                             <SelectInput
@@ -132,6 +163,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                                 options={documentTypes}
                                 value={formData.documentType}
                                 onChange={handleChange}
+                                error={errors.documentType}
                                 required
                             />
                             <Input
@@ -140,6 +172,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                                 placeholder="Ingresa el número"
                                 value={formData.documentNumber}
                                 onChange={handleChange}
+                                error={errors.documentNumber}
                                 required
                             />
                             <div className="sm:col-span-2">
@@ -149,6 +182,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                                     placeholder="Ingresa la dirección"
                                     value={formData.address}
                                     onChange={handleChange}
+                                    error={errors.address}
                                     required
                                 />
                             </div>
@@ -169,6 +203,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                             placeholder="correo@ejemplo.com"
                             value={formData.email}
                             onChange={handleChange}
+                            error={errors.email}
                             required
                         />
                         <Input
@@ -178,6 +213,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                             placeholder="correo@sena.edu.co"
                             value={formData.institutionalEmail}
                             onChange={handleChange}
+                            error={errors.institutionalEmail}
                         />
                         <Input
                             label="Teléfono"
@@ -185,6 +221,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                             placeholder="Número de teléfono"
                             value={formData.phone}
                             onChange={handleChange}
+                            error={errors.phone}
                             required
                         />
                         <Input
@@ -193,6 +230,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                             placeholder="Número adicional (opcional)"
                             value={formData.additionalPhone}
                             onChange={handleChange}
+                            error={errors.additionalPhone}
                         />
                     </EditCard>
 
@@ -203,6 +241,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                             options={groups}
                             value={formData.groups}
                             onChange={handleChange}
+                            error={errors.groups}
                             required
                         />
                         <SelectInput
@@ -211,6 +250,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                             options={STATUS_OPTIONS}
                             value={formData.isActive}
                             onChange={handleChange}
+                            error={errors.isActive}
                             required
                         />
                         <Input
@@ -219,6 +259,7 @@ function UserEditForm({ user, documentTypes, groups }) {
                             type="date"
                             value={formData.startDate}
                             onChange={handleChange}
+                            error={errors.startDate}
                             required
                         />
                         <Input
@@ -227,17 +268,18 @@ function UserEditForm({ user, documentTypes, groups }) {
                             type="date"
                             value={formData.endDate}
                             onChange={handleChange}
+                            error={errors.endDate}
                         />
                     </EditCard>
 
                 </div>
 
                 <div className="flex gap-4 justify-center md:justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary" size="md">
-                        Guardar cambios
+                    <Button type="submit" variant="primary" size="md" disabled={submitting}>
+                        {submitting ? "Guardando..." : "Guardar cambios"}
                     </Button>
                 </div>
 
