@@ -6,7 +6,7 @@ import {
     DropdownItem,
 } from "@/shared";
 
-import { EllipsisVertical, Eye } from "lucide-react";
+import { EllipsisVertical, Eye, Pencil} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function RmRowActions({ Rm }) {
@@ -16,8 +16,15 @@ export default function RmRowActions({ Rm }) {
         navigate(`/devolutivos/visualizar/${Rm.consumable_id}`);
     };
 
+    const handleEdit = () => {
+        navigate(`/devolutivos/editar/${Rm.consumable_id}`);
+    };
     return (
         <div className="flex gap-2">
+            <IconButton onClick={handleEdit} variant="ghost" hitSize={32} iconSize={16}>
+                <Pencil size={16} />
+            </IconButton>
+
             <IconButton onClick={handleVisualizar} variant="ghost" hitSize={32} iconSize={16}>
                 <Eye size={16} />
             </IconButton>
