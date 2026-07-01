@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DataTable from "@/shared/components/DataTable";
 import { userColumns } from "../../table/UserColumns.jsx";
 import { usersReportConfig } from "../../reports/usersReportConfig.js";
@@ -10,6 +10,8 @@ import { Button } from "@/shared"
 
 
 export default function ListUserPage() {
+
+    const navigate = useNavigate();
 
     // FETCH GET /api/users/
     const { users, loading, error } = useUsers();
@@ -61,7 +63,12 @@ export default function ListUserPage() {
                 </div>
             </div>
 
-            <DataTable data={users} columns={userColumns} />
+            {/* Doble click en una fila navega al detalle del usuario */}
+            <DataTable
+                data={users}
+                columns={userColumns}
+                onRowDoubleClick={(user) => navigate(`/usuarios/visualizar/${user.id}`)}
+            />
         </div>
     );
 }

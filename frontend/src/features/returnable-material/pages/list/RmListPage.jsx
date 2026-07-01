@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react";
 import { RmColumns } from "../../table/RmColumns";
 import DataTable from "@/shared/components/DataTable";
@@ -10,6 +10,7 @@ import Alert from "@mui/material/Alert";
 import { Button } from "@/shared"
 
 export default function RmListPage() {
+    const navigate = useNavigate();
     const { RMs, setRMs, loading, error } = useRMs();
     const [notification, setNotification] = useState(null);
 
@@ -66,7 +67,12 @@ export default function RmListPage() {
                 </div>
             </div>
             
-            <DataTable data={RMs} columns={RmColumns(setRMs, setNotification)} />
+            {/* Doble click en una fila navega al detalle del material */}
+            <DataTable
+                data={RMs}
+                columns={RmColumns(setRMs, setNotification)}
+                onRowDoubleClick={(rm) => navigate(`/devolutivos/visualizar/${rm.consumable_id}`)}
+            />
         </div>
     );
 }

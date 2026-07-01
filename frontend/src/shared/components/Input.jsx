@@ -15,7 +15,7 @@ export default function Input({
     // (placeholder, esquinas mas redondeadas y altura menor).
     const inputVariants = {
         default: `
-            h-[var(--size-control-xl)]
+            h-[var(--size-control-md)]
             rounded-[var(--radius-md)]
             text-body
         `,
@@ -43,7 +43,7 @@ export default function Input({
                 </label>
             )}
 
-            <div className={`relative flex items-center ${variant === "auth" ? "h-[var(--size-control-lg)]" : "h-[var(--size-control-xl)]"}`}>
+            <div className={`relative flex items-center ${variant === "auth" ? "h-[var(--size-control-lg)]" : "h-[var(--size-control-md)]"}`}>
                 <input
                     type={type}
                     required={required}

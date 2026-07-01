@@ -65,7 +65,7 @@ function NavLinks({ onLinkClick }) {
     );
 }
 
-export default function Sidebar({ isOpen = false, onClose }) {
+export default function Sidenav({ isOpen = false, onClose }) {
     return (
         <>
             {/* ── Móvil / tablet: drawer con overlay ── */}

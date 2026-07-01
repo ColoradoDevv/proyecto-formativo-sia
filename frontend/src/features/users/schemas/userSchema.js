@@ -15,65 +15,67 @@ function isValidDateString(value) {
     );
 }
 
+// Schema para CREACION. Usa la MISMA convencion de nombres que el UserForm
+// reutilizable (firstName, lastName, ...) y agrega la confirmacion de correo.
 export const userSchema = z.object({
 
-    userName: z
+    firstName: z
         .string()
         .min(3, "El nombre debe tener mínimo 3 caracteres")
         .max(60, "El nombre es demasiado largo")
         .regex(nameRegex, "Solo se permiten letras y espacios"),
 
-    userLastName: z
+    lastName: z
         .string()
         .min(3, "El apellido debe tener mínimo 3 caracteres")
         .max(60, "El apellido es demasiado largo")
         .regex(nameRegex, "Solo se permiten letras y espacios"),
 
-    userDocumentType: z
+    documentType: z
         .string()
         .min(1, "Debe seleccionar un tipo de documento"),
 
-    userDocumentNumber: z
+    documentNumber: z
         .string()
         .regex(/^\d+$/, "Solo se permiten números")
         .min(5, "Número de documento inválido")
         .max(15, "Número de documento demasiado largo"),
 
-    userGroups: z
+    groups: z
         .array(z.string())
         .min(1, "Debe seleccionar al menos un grupo"),
 
-    userStartDate: z
+    startDate: z
         .string()
         .min(1, "Debe ingresar una fecha de inicio")
         .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
 
-    userEndDate: z
+    endDate: z
         .string()
         .min(1, "Debe ingresar una fecha de finalización")
         .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
 
-    userEmail: z
+    email: z
         .string()
         .email("Debe ingresar un email válido"),
 
-    userConfirmEmail: z
+    confirmEmail: z
         .string()
         .email("Debe ingresar un email válido"),
 
-    userInstitutionalEmail: z
+    institutionalEmail: z
         .string()
         .email("Debe ingresar un email válido")
         .or(z.literal(""))
         .optional(),
 
-    userPhone: z
+    phone: z
         .string()
         .regex(/^\d+$/, "Solo se permiten números")
         .min(7, "Mínimo 7 dígitos")
         .max(15, "Máximo 15 dígitos"),
 
-    userAdditionalPhone: z
+    additionalPhone: z
         .string()
         .regex(/^\d+$/, "Solo se permiten números")
         .min(7, "Mínimo 7 dígitos")
@@ -81,27 +83,27 @@ export const userSchema = z.object({
         .or(z.literal(""))
         .optional(),
 
-    userAddress: z
+    address: z
         .string()
         .min(10, "La dirección debe tener mínimo 10 caracteres")
         .max(100, "La dirección no puede superar 100 caracteres"),
 
-    userProfile: z
+    profilePicture: z
         .array(z.any())
         .optional(),
 
 })
 .refine(
-    (data) => data.userEmail === data.userConfirmEmail,
-    { message: "Los correos no coinciden", path: ["userConfirmEmail"] }
+    (data) => data.email === data.confirmEmail,
+    { message: "Los correos no coinciden", path: ["confirmEmail"] }
 )
 .refine(
-    (data) => !data.userInstitutionalEmail || data.userInstitutionalEmail !== data.userEmail,
-    { message: "No puede coincidir con el correo personal", path: ["userInstitutionalEmail"] }
+    (data) => !data.institutionalEmail || data.institutionalEmail !== data.email,
+    { message: "No puede coincidir con el correo personal", path: ["institutionalEmail"] }
 )
 .refine(
-    (data) => !data.userStartDate || !data.userEndDate || data.userEndDate >= data.userStartDate,
-    { message: "La fecha de finalización no puede ser anterior a la de inicio", path: ["userEndDate"] }
+    (data) => !data.startDate || !data.endDate || data.endDate >= data.startDate,
+    { message: "La fecha de finalización no puede ser anterior a la de inicio", path: ["endDate"] }
 );
 
 

@@ -2,7 +2,7 @@ import { ChevronDown } from "lucide-react";
 import { Dropdown, DropdownTrigger, DropdownContent } from "./Dropdown";
 import Checkbox from "./Checkbox";
 
-export default function SelectInputMultiple({
+export default function SelectMultiple({
     label,
     name,
     error,
@@ -45,7 +45,7 @@ export default function SelectInputMultiple({
                     className={`
                         w-full
                         justify-between
-                        h-[var(--size-control-xl)]
+                        h-[var(--size-control-md)]
                         rounded-[var(--radius-md)]
                         border
                         px-8

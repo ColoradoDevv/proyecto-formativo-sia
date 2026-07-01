@@ -51,6 +51,19 @@ export default function ForgotForm() {
         }
     };
 
+    // Reenvia el enlace al mismo correo (desde la pantalla de confirmacion).
+    const handleResend = async () => {
+        setServerError("");
+        try {
+            setLoading(true);
+            await requestPasswordReset(formData.userEmail);
+        } catch (err) {
+            setServerError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-8 py-10 w-full sm:w-[var(--size-field-md)]">
             <h1 className="text-center text-h2 font-heading mb-2 text-text-primary">
@@ -65,6 +78,21 @@ export default function ForgotForm() {
                         Si el correo está registrado, te hemos enviado un enlace
                         para restablecer tu contraseña. Revisa tu bandeja de entrada.
                     </p>
+
+                    {/* Reenviar: vuelve a solicitar el enlace al mismo correo */}
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="md"
+                        disabled={loading}
+                        onClick={handleResend}
+                    >
+                        {loading ? "Reenviando..." : "Reenviar enlace"}
+                    </Button>
+                    {serverError && (
+                        <p className="text-error text-small text-center">{serverError}</p>
+                    )}
+
                     <Link
                         to="/iniciar-sesion"
                         className="flex items-center gap-1 text-caption text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors"

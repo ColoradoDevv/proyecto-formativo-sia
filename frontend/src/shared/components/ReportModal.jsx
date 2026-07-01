@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { FileText, TableProperties } from "lucide-react";
 import { buildReportDataset } from "@/shared/reports/buildReportDataset";
 import { generateExcelReport } from "@/shared/reports/generateExcelReport";
@@ -7,6 +6,7 @@ import { generatePdfReport } from "@/shared/reports/generatePdfReport";
 import Button from "./Button";
 import Checkbox from "./Checkbox";
 import Input from "./Input";
+import Modal from "./Modal";
 
 const FORMAT_OPTIONS = [
     { value: "pdf",   label: "PDF",   Icon: FileText },
@@ -43,8 +43,6 @@ export default function ReportModal({
     } else if (!isOpen && wasOpen) {
         setWasOpen(false);
     }
-
-    if (!isOpen) return null;
 
     const handleToggleField = (field) => {
         const exists = selectedFields.find((f) => f.key === field.key);
@@ -83,113 +81,98 @@ export default function ReportModal({
         onClose();
     };
 
-    return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-background-inverse/30"
-                onClick={onClose}
-            />
+    const footer = (
+        <>
+            <Button variant="secondary" onClick={onClose} className="sm:flex-1">
+                Cancelar
+            </Button>
+            <Button
+                variant="primary"
+                onClick={handleGenerate}
+                disabled={selectedFields.length === 0}
+                className="sm:flex-1"
+            >
+                Generar reporte
+            </Button>
+        </>
+    );
 
-            {/* Card */}
-            <div className="relative z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto bg-surface-hover border border-border rounded-[var(--radius-2xl)] shadow-[var(--shadow-elevation-5)] p-6 sm:p-8 flex flex-col gap-6">
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Generar Reporte"
+            variant="solid"
+            size="lg"
+            footer={footer}
+        >
+            <p className="text-small text-text-secondary -mt-3">{reportTitle}</p>
 
-                {/* Header */}
-                <div>
-                    <h2 className="text-h3 font-heading text-text-primary">Generar Reporte</h2>
-                    <p className="text-small text-text-secondary mt-0.5">{reportTitle}</p>
-                </div>
-
-                <div className="w-full h-px bg-border" />
-
-                {/* Format selector */}
-                <div>
-                    <p className="text-small font-heading text-text-primary mb-3">
-                        Formato de exportación
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                        {FORMAT_OPTIONS.map(({ value, label, Icon }) => (
-                            <Button
-                                key={value}
-                                variant={format === value ? "primary" : "secondary"}
-                                icon={Icon}
-                                onClick={() => setFormat(value)}
-                            >
-                                {label}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Field selection */}
-                <div>
-                    <p className="text-small font-heading text-text-primary mb-3">
-                        Campos a incluir{" "}
-                        <span className="font-body text-text-secondary">
-                            ({selectedFields.length} de {fields.length})
-                        </span>
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-4">
-                        {fields.map((field) => (
-                            <Checkbox
-                                key={field.key}
-                                id={`report-field-${field.key}`}
-                                name={field.key}
-                                label={field.label}
-                                checked={selectedFields.some((f) => f.key === field.key)}
-                                onChange={() => handleToggleField(field)}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                {/* Scope filter */}
-                <div>
-                    <p className="text-small font-heading text-text-primary mb-3">Registros</p>
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                        {SCOPE_OPTIONS.map(({ value, label }) => (
-                            <Button
-                                key={value}
-                                variant={scope === value ? "primary" : "secondary"}
-                                onClick={() => setScope(value)}
-                            >
-                                {label}
-                            </Button>
-                        ))}
-                    </div>
-
-                    {scope === "filter" && (
-                        <Input
-                            name="reportFilter"
-                            value={filterValue}
-                            onChange={(e) => setFilterValue(e.target.value)}
-                            placeholder="Texto a buscar en los registros…"
-                        />
-                    )}
-                </div>
-
-                <div className="w-full h-px bg-border" />
-
-                {/* Actions */}
-                <div className="flex flex-col-reverse sm:flex-row gap-3">
-                    <Button
-                        variant="secondary"
-                        onClick={onClose}
-                        className="sm:flex-1"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        variant="primary"
-                        onClick={handleGenerate}
-                        disabled={selectedFields.length === 0}
-                        className="sm:flex-1"
-                    >
-                        Generar reporte
-                    </Button>
+            {/* Format selector */}
+            <div>
+                <p className="text-small font-heading text-text-primary mb-3">
+                    Formato de exportación
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                    {FORMAT_OPTIONS.map(({ value, label, Icon }) => (
+                        <Button
+                            key={value}
+                            variant={format === value ? "primary" : "secondary"}
+                            icon={Icon}
+                            onClick={() => setFormat(value)}
+                        >
+                            {label}
+                        </Button>
+                    ))}
                 </div>
             </div>
-        </div>,
-        document.body
+
+            {/* Field selection */}
+            <div>
+                <p className="text-small font-heading text-text-primary mb-3">
+                    Campos a incluir{" "}
+                    <span className="font-body text-text-secondary">
+                        ({selectedFields.length} de {fields.length})
+                    </span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-4">
+                    {fields.map((field) => (
+                        <Checkbox
+                            key={field.key}
+                            id={`report-field-${field.key}`}
+                            name={field.key}
+                            label={field.label}
+                            checked={selectedFields.some((f) => f.key === field.key)}
+                            onChange={() => handleToggleField(field)}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Scope filter */}
+            <div>
+                <p className="text-small font-heading text-text-primary mb-3">Registros</p>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                    {SCOPE_OPTIONS.map(({ value, label }) => (
+                        <Button
+                            key={value}
+                            variant={scope === value ? "primary" : "secondary"}
+                            onClick={() => setScope(value)}
+                        >
+                            {label}
+                        </Button>
+                    ))}
+                </div>
+
+                {scope === "filter" && (
+                    <Input
+                        name="reportFilter"
+                        value={filterValue}
+                        onChange={(e) => setFilterValue(e.target.value)}
+                        placeholder="Texto a buscar en los registros…"
+                    />
+                )}
+            </div>
+        </Modal>
     );
 }

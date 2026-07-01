@@ -18,7 +18,8 @@ import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-r
 // Recibe:
 // - data: datos que se mostrarán
 // - columns: configuración de columnas
-export default function DataTable({ data, columns }) {
+// - onRowDoubleClick: (opcional) callback con la fila original al hacer doble click
+export default function DataTable({ data, columns, onRowDoubleClick }) {
   // ================== ESTADO DE PAGINACIÓN ==================
   // pageIndex → página actual
   // pageSize → cantidad de filas por página
@@ -124,10 +125,14 @@ export default function DataTable({ data, columns }) {
           <tbody>
             {/* Filas generadas por TanStack */}
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="bg-surface-hover hover:bg-surface-muted">
+              <tr
+                key={row.id}
+                onDoubleClick={onRowDoubleClick ? () => onRowDoubleClick(row.original) : undefined}
+                className={`bg-surface-hover hover:bg-surface-muted ${onRowDoubleClick ? "cursor-pointer select-none" : ""}`}
+              >
                 {/* Celdas visibles de cada fila */}
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="p-3 border-b">
+                  <td key={cell.id} className="p-2 border-b mx-auto">
                     {/* Render dinámico del contenido de la celda */}
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>

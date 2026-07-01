@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, StatusBadge, showAlert, cancelAlert, EditCard } from "@/shared";
+import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useRm from "../../hooks/useRm";
 import { getBrands, getCategories, getStates } from "../../services/selectServices";
 import { rmEditSchema } from "../../schemas/rmSchema";
 import { updateRM } from "../../services/returnableService";
+import ReturnableForm from "../ReturnableForm";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -134,12 +135,15 @@ function RmEditForm({ RM, categories, brands, states }) {
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-                {/* Información General — foto lateral + campos */}
-                <EditCard title="Información General" cols={1}>
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
-
-                        {/* Foto + estado */}
-                        <div className="flex flex-col items-center gap-2 shrink-0">
+                <ReturnableForm
+                    formData={formData}
+                    errors={errors}
+                    onChange={handleChange}
+                    categories={categories}
+                    brands={brands}
+                    states={states}
+                    photoSlot={
+                        <>
                             <div className="relative">
                                 <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                                     {photoPreview
@@ -164,140 +168,9 @@ function RmEditForm({ RM, categories, brands, states }) {
                                 />
                             </div>
                             <StatusBadge active={isActive} />
-                        </div>
-
-                        {/* Campos generales */}
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
-                            <Input
-                                label="Nombre"
-                                name="name"
-                                placeholder="Nombre del material"
-                                value={formData.name}
-                                onChange={handleChange}
-                                error={errors.name}
-                                required
-                            />
-                            <Input
-                                label="Placa SENA"
-                                name="senaPlate"
-                                placeholder="Placa SENA"
-                                value={formData.senaPlate}
-                                onChange={handleChange}
-                                error={errors.senaPlate}
-                                required
-                            />
-                            <Input
-                                label="Serial"
-                                name="serial"
-                                placeholder="Serial del material"
-                                value={formData.serial}
-                                onChange={handleChange}
-                                error={errors.serial}
-                                required
-                            />
-                            <SelectInput
-                                label="Categoría"
-                                name="category"
-                                options={categories}
-                                value={formData.category}
-                                onChange={handleChange}
-                                error={errors.category}
-                                required
-                            />
-                            <SelectInput
-                                label="Marca"
-                                name="brand"
-                                options={brands}
-                                value={formData.brand}
-                                onChange={handleChange}
-                                error={errors.brand}
-                                required
-                            />
-                            <div className="sm:col-span-2">
-                                <Input
-                                    label="Descripción"
-                                    name="description"
-                                    placeholder="Descripción del material"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    error={errors.description}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                    </div>
-                </EditCard>
-
-                {/* Inventario y Valores lado a lado */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-
-                    <EditCard title="Inventario">
-                        <SelectInput
-                            label="Estado"
-                            name="state"
-                            options={states}
-                            value={formData.state}
-                            onChange={handleChange}
-                            error={errors.state}
-                            required
-                        />
-                        <Input
-                            label="Cantidad"
-                            name="quantity"
-                            type="number"
-                            min="1"
-                            step="1"
-                            placeholder="Cantidad"
-                            value={formData.quantity}
-                            onChange={handleChange}
-                            error={errors.quantity}
-                            required
-                        />
-                        <Input
-                            label="Ubicación"
-                            name="location"
-                            placeholder="Ubicación del material"
-                            value={formData.location}
-                            onChange={handleChange}
-                            error={errors.location}
-                        />
-                        <Input
-                            label="Fecha de compra"
-                            name="purchaseDate"
-                            type="date"
-                            value={formData.purchaseDate}
-                            onChange={handleChange}
-                            error={errors.purchaseDate}
-                            required
-                        />
-                    </EditCard>
-
-                    <EditCard title="Valores">
-                        <Input
-                            label="Valor Unitario"
-                            name="unitPrice"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="Valor unitario"
-                            value={formData.unitPrice}
-                            onChange={handleChange}
-                            error={errors.unitPrice}
-                            required
-                        />
-                        <Input
-                            label="Valor Total"
-                            name="totalPrice"
-                            type="number"
-                            placeholder="Calculado automáticamente"
-                            value={formData.totalPrice}
-                            error={errors.totalPrice}
-                            readOnly
-                        />
-                    </EditCard>
-
-                </div>
+                        </>
+                    }
+                />
 
                 <div className="flex gap-4 justify-center md:justify-end">
                     <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>

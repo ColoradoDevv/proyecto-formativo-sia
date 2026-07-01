@@ -6,12 +6,13 @@ import useLoans from "../../hooks/useLoans";
 import { TailChase } from "ldrs/react";
 import { CloudAlert, Plus, Download } from "lucide-react";
 import Alert from "@mui/material/Alert";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/shared"
 
 
 
 export default function LoansListPage() {
+    const navigate = useNavigate();
     const { loans, loading, error } = useLoans();
     const [notification, setNotification] = useState(null);
 
@@ -68,7 +69,12 @@ export default function LoansListPage() {
                 </div>
             </div>
 
-            <DataTable data={loans} columns={loansColumns} />
+            {/* Doble click en una fila navega al detalle del préstamo */}
+            <DataTable
+                data={loans}
+                columns={loansColumns}
+                onRowDoubleClick={(loan) => navigate(`/prestamos/visualizar/${loan.id_loan}`)}
+            />
         </div>
     );
 }

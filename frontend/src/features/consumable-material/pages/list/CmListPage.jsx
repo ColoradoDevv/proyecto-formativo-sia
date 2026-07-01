@@ -1,5 +1,5 @@
 import { Button } from "@/shared";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DataTable from "@/shared/components/DataTable";
 import { materialColumns } from "../../table/materialColumns.jsx";
 import { consumablesReportConfig } from "../../reports/consumablesReportConfig.js";
@@ -12,6 +12,8 @@ import { useState } from "react";
 
 
 export default function ListCmPage() {
+
+    const navigate = useNavigate();
 
     // FETCH GET /api/users/
     const { CMs, loading, error } = useProducts();
@@ -69,7 +71,12 @@ export default function ListCmPage() {
                     </Button>
                 </div>
             </div>
-            <DataTable data={CMs} columns={materialColumns} />
+            {/* Doble click en una fila navega al detalle del material */}
+            <DataTable
+                data={CMs}
+                columns={materialColumns}
+                onRowDoubleClick={(cm) => navigate(`/consumibles/visualizar/${cm.id}`)}
+            />
         </div>
     );
 }

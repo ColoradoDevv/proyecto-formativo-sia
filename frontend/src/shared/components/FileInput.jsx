@@ -13,6 +13,7 @@ export default function FileInput({
     error,
     required,
     accept = "image/*,application/pdf",
+    maxFiles = 12,
 }) {
     const inputRef = useRef();
     const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +39,7 @@ export default function FileInput({
         const list = Array.from(files);
         await new Promise((r) => setTimeout(r, 500));
         const data = multiple ? [...value, ...list] : [list[0]];
-        onChange(data.slice(0, 12));
+        onChange(data.slice(0, maxFiles));
         setIsLoading(false);
     };
 

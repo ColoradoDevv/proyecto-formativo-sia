@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Button, SearchField, IconButton, ActiveSwitch } from '@/shared';
 import { Plus, ArrowLeft, ArrowRight, Pencil, CloudAlert } from 'lucide-react';
 import { TailChase } from 'ldrs/react';
 import Alert from '@mui/material/Alert';
 import useBrands from '../../hooks/useBrands';
 import { toggleBrandActive } from '../../services/brandService';
+import BrandModal from '../../components/BrandModal';
 
 export default function BrandListPage() {
     const { brands, setBrands, loading, error } = useBrands();
@@ -13,6 +13,31 @@ export default function BrandListPage() {
     const [currentPage, setCurrentPage] = useState(0);
     const [notification, setNotification] = useState(null);
     const itemsPerPage = 8;
+
+    // Estado del modal: abierto, marca seleccionada y modo (view | edit | create).
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedBrand, setSelectedBrand] = useState(null);
+    const [modalMode, setModalMode] = useState('view');
+
+    const openBrandModal = (brand, mode) => {
+        setSelectedBrand(brand);
+        setModalMode(mode);
+        setModalOpen(true);
+    };
+
+    const openCreateModal = () => {
+        setSelectedBrand(null);
+        setModalMode('create');
+        setModalOpen(true);
+    };
+
+    const handleBrandUpdated = (updated) => {
+        setBrands((prev) => prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b)));
+    };
+
+    const handleBrandCreated = (created) => {
+        setBrands((prev) => [...prev, created]);
+    };
 
     if (loading)
         return (
@@ -78,12 +103,10 @@ export default function BrandListPage() {
                         fullWidth
                         className="sm:flex-1"
                     />
-                    <Link to="/marcas/crear">
-                        <Button className="w-full flex gap-2">
-                            <Plus size={18} />
-                            Registrar Marca
-                        </Button>
-                    </Link>
+                    <Button className="w-full sm:w-auto flex gap-2 shrink-0" onClick={openCreateModal}>
+                        <Plus size={18} />
+                        Registrar Marca
+                    </Button>
                 </div>
             </div>
 
@@ -98,11 +121,14 @@ export default function BrandListPage() {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-small font-heading flex-1 truncate" title={brand.name}>{brand.name}</h3>
                                 <div className="flex gap-2 items-center">
-                                    <Link to={`/marcas/editar/${brand.id}`}>
-                                        <IconButton variant="ghost" hitSize={32} iconSize={16}>
-                                            <Pencil size={16} />
-                                        </IconButton>
-                                    </Link>
+                                    <IconButton
+                                        variant="ghost"
+                                        hitSize={32}
+                                        iconSize={16}
+                                        onClick={() => openBrandModal(brand, 'edit')}
+                                    >
+                                        <Pencil size={16} />
+                                    </IconButton>
                                     <ActiveSwitch
                                         id={brand.id}
                                         isActive={brand.is_active}
@@ -111,12 +137,13 @@ export default function BrandListPage() {
                                 </div>
                             </div>
 
-                            <Link
-                                to={`/marcas/visualizar/${brand.id}`}
-                                className="text-brand text-small hover:underline"
+                            <button
+                                type="button"
+                                onClick={() => openBrandModal(brand, 'view')}
+                                className="text-brand text-small hover:underline text-left w-fit cursor-pointer"
                             >
                                 Ver detalles
-                            </Link>
+                            </button>
                         </div>
                     ))}
                 </div>
@@ -142,6 +169,15 @@ export default function BrandListPage() {
                     </Button>
                 </div>
             )}
+
+            <BrandModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                brand={selectedBrand}
+                mode={modalMode}
+                onUpdated={handleBrandUpdated}
+                onCreated={handleBrandCreated}
+            />
         </div>
     );
 }

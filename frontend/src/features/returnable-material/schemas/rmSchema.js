@@ -30,38 +30,40 @@ function isValidDateString(value) {
     );
 }
 
+// Schema para CREACION. Usa la MISMA convencion de nombres que ReturnableForm
+// (name, senaPlate, brand, ...) para poder reutilizar el formulario.
 export const rmSchema = z.object({
-    rmSenaPlate: z
+    senaPlate: z
         .string()
         .trim()
         .min(3, "La placa SENA debe tener mínimo 3 caracteres")
         .max(20, "La placa SENA es demasiado larga"),
 
-    rmName: z
+    name: z
         .string()
         .trim()
         .min(3, "El nombre debe tener mínimo 3 caracteres")
         .max(100, "El nombre es demasiado largo"),
 
-    rmState: z
+    state: z
         .string()
         .min(1, "Debe seleccionar un estado"),
 
-    rmCategory: z
+    category: z
         .string()
         .min(1, "Debe seleccionar una categoría"),
 
-    rmBrand: z
+    brand: z
         .string()
         .min(1, "Debe seleccionar una marca"),
 
-    rmSerial: z
+    serial: z
         .string()
         .trim()
         .min(3, "El serial debe tener mínimo 3 caracteres")
         .max(20, "El serial es demasiado largo"),
 
-    rmQuantity: z
+    quantity: z
         .string()
         .trim()
         .min(1, "Debe ingresar la cantidad del material")
@@ -70,27 +72,32 @@ export const rmSchema = z.object({
             message: "La cantidad debe ser mayor a 0",
         }),
 
-    rmUnitValue: z
+    location: z
+        .string()
+        .trim()
+        .optional(),
+
+    unitPrice: z
         .string()
         .trim()
         .min(1, "Debe ingresar el valor unitario")
         .refine(isValidMoney, { message: "El valor unitario debe ser un número válido" })
         .refine((value) => Number(value) > 0, { message: "El valor unitario debe ser mayor a 0" }),
 
-    rmTotalValue: z
+    totalPrice: z
         .string()
         .trim()
         .min(1, "Debe ingresar el valor total")
         .refine(isValidMoney, { message: "El valor total debe ser un número válido" })
         .refine((value) => Number(value) > 0, { message: "El valor total debe ser mayor a 0" }),
 
-    rmDescription: z
+    description: z
         .string()
         .trim()
         .min(3, "La descripción debe tener mínimo 3 caracteres")
         .max(255, "La descripción es demasiado larga"),
 
-    rmPurchaseDate: z
+    purchaseDate: z
         .string()
         .min(1, "Debe ingresar la fecha de compra")
         .refine(isValidDateString, { message: "Debe ingresar una fecha válida" })
@@ -98,14 +105,14 @@ export const rmSchema = z.object({
             message: "La fecha de compra no puede ser futura",
         }),
 
-    rmTechnicalSheet: z.array(z.instanceof(File)).optional(),
+    technicalSheet: z.array(z.instanceof(File)).optional(),
 
-    rmPhoto: z.array(z.instanceof(File)).optional(),
+    photo: z.array(z.instanceof(File)).optional(),
 }).refine(
-    (data) => toCents(data.rmUnitValue) * Number(data.rmQuantity) === toCents(data.rmTotalValue),
+    (data) => toCents(data.unitPrice) * Number(data.quantity) === toCents(data.totalPrice),
     {
         message: "El valor total debe ser igual a cantidad × valor unitario",
-        path: ["rmTotalValue"],
+        path: ["totalPrice"],
     }
 );
 

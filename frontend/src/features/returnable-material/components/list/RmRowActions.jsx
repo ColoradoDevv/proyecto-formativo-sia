@@ -35,7 +35,6 @@ export default function RmRowActions({ Rm }) {
                 </DropdownTrigger>
 
                 <DropdownContent className="w-48">
-                    <DropdownItem onClick={() => navigate(`/devolutivos/editar/${Rm.consumable_id}`)}>Editar</DropdownItem>
                     <DropdownItem>Añadir Novedad</DropdownItem>
                     <DropdownItem>Deshabilitar</DropdownItem>
                 </DropdownContent>

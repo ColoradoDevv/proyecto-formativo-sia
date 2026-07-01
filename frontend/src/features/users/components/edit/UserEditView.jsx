@@ -1,18 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, SelectInputMultiple, ProfileFileInput, StatusBadge, showAlert, cancelAlert, EditCard } from "@/shared";
-import { Undo2 } from "lucide-react";
+import { Button, IconButton, Input, StatusLabel, showAlert, cancelAlert } from "@/shared";
+import { Undo2, ClipboardList } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
 import { getDocumentTypes, getUserGroups } from "../../services/selectServices";
 import { userEditSchema } from "../../schemas/userSchema";
 import { updateUser } from "../../services/userService";
+import { UserTasksModal } from "@/features/tasks";
+import UserForm from "../UserForm";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
-
-const STATUS_OPTIONS = [
-    { id: "true",  label: "Activo"   },
-    { id: "false", label: "Inactivo" },
-];
 
 // Componente externo: maneja el fetch, loading y error
 export default function UserEditView() {
@@ -60,6 +57,7 @@ function UserEditForm({ id, user, documentTypes, groups }) {
 
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [showTaskModal, setShowTaskModal] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -104,8 +102,6 @@ function UserEditForm({ id, user, documentTypes, groups }) {
         if (result.isConfirmed) navigate(-1);
     }
 
-    const isActive = formData.isActive === "true";
-
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
@@ -122,108 +118,15 @@ function UserEditForm({ id, user, documentTypes, groups }) {
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-                {/* Información Personal — foto lateral + campos */}
-                <EditCard title="Información Personal" cols={1}>
-
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
-
-                        {/* Foto + estado */}
-                        <div className="flex flex-col items-center gap-2 shrink-0">
-                            <ProfileFileInput
-                                className="w-24 h-24 rounded-[var(--radius-xl)]"
-                                value={formData.profilePicture}
-                                onChange={handlePhotoChange}
-                            />
-                            <StatusBadge active={isActive} />
-                        </div>
-
-                        {/* Campos personales */}
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
-                            <Input
-                                label="Nombres"
-                                name="firstName"
-                                placeholder="Ingresa el nombre"
-                                value={formData.firstName}
-                                onChange={handleChange}
-                                error={errors.firstName}
-                                required
-                            />
-                            <Input
-                                label="Apellidos"
-                                name="lastName"
-                                placeholder="Ingresa los apellidos"
-                                value={formData.lastName}
-                                onChange={handleChange}
-                                error={errors.lastName}
-                                required
-                            />
-                            <SelectInput
-                                label="Tipo de documento"
-                                name="documentType"
-                                options={documentTypes}
-                                value={formData.documentType}
-                                onChange={handleChange}
-                                error={errors.documentType}
-                                required
-                            />
-                            <Input
-                                label="Número de documento"
-                                name="documentNumber"
-                                placeholder="Ingresa el número"
-                                value={formData.documentNumber}
-                                onChange={handleChange}
-                                error={errors.documentNumber}
-                                required
-                            />
-                            <div className="sm:col-span-2">
-                                <Input
-                                    label="Dirección"
-                                    name="address"
-                                    placeholder="Ingresa la dirección"
-                                    value={formData.address}
-                                    onChange={handleChange}
-                                    error={errors.address}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                    </div>
-
-                </EditCard>
-
-                {/* Contacto y Sistema lado a lado */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-
-                    <EditCard title="Información de Contacto">
-                        <Input
-                            label="Correo electrónico"
-                            name="email"
-                            type="email"
-                            placeholder="correo@ejemplo.com"
-                            value={formData.email}
-                            onChange={handleChange}
-                            error={errors.email}
-                            required
-                        />
-                        <Input
-                            label="Correo institucional"
-                            name="institutionalEmail"
-                            type="email"
-                            placeholder="correo@sena.edu.co"
-                            value={formData.institutionalEmail}
-                            onChange={handleChange}
-                            error={errors.institutionalEmail}
-                        />
-                        <Input
-                            label="Teléfono"
-                            name="phone"
-                            placeholder="Número de teléfono"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            error={errors.phone}
-                            required
-                        />
+                <UserForm
+                    formData={formData}
+                    errors={errors}
+                    onChange={handleChange}
+                    onPhotoChange={handlePhotoChange}
+                    documentTypes={documentTypes}
+                    groups={groups}
+                    showStatus
+                    contactExtraSlot={
                         <Input
                             label="Teléfono adicional"
                             name="additionalPhone"
@@ -232,47 +135,24 @@ function UserEditForm({ id, user, documentTypes, groups }) {
                             onChange={handleChange}
                             error={errors.additionalPhone}
                         />
-                    </EditCard>
-
-                    <EditCard title="Información del Sistema">
-                        <SelectInputMultiple
-                            label="Tipo de usuario"
-                            name="groups"
-                            options={groups}
-                            value={formData.groups}
-                            onChange={handleChange}
-                            error={errors.groups}
-                            required
-                        />
-                        <SelectInput
-                            label="Estado"
-                            name="isActive"
-                            options={STATUS_OPTIONS}
-                            value={formData.isActive}
-                            onChange={handleChange}
-                            error={errors.isActive}
-                            required
-                        />
-                        <Input
-                            label="Fecha de inicio"
-                            name="startDate"
-                            type="date"
-                            value={formData.startDate}
-                            onChange={handleChange}
-                            error={errors.startDate}
-                            required
-                        />
-                        <Input
-                            label="Fecha de finalización"
-                            name="endDate"
-                            type="date"
-                            value={formData.endDate}
-                            onChange={handleChange}
-                            error={errors.endDate}
-                        />
-                    </EditCard>
-
-                </div>
+                    }
+                    systemExtraSlot={
+                        // Tareas del usuario: abre el modal con las tareas reales (BD)
+                        <div className="flex flex-col gap-2">
+                            <StatusLabel>Tareas</StatusLabel>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="md"
+                                className="flex gap-2 justify-center"
+                                onClick={() => setShowTaskModal(true)}
+                            >
+                                <ClipboardList size={16} />
+                                Ver / agregar tareas
+                            </Button>
+                        </div>
+                    }
+                />
 
                 <div className="flex gap-4 justify-center md:justify-end">
                     <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
@@ -284,6 +164,12 @@ function UserEditForm({ id, user, documentTypes, groups }) {
                 </div>
 
             </form>
+
+            <UserTasksModal
+                isOpen={showTaskModal}
+                onClose={() => setShowTaskModal(false)}
+                userId={id}
+            />
 
         </div>
     );

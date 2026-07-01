@@ -9,7 +9,7 @@ import { getCM } from "@/features/consumable-material/services/consumableService
 import { getRMs } from "@/features/returnable-material/services/returnableService"
 import { getLoans } from "@/features/loans/services/loanService"
 
-export default function HomeLayout(){
+export default function DashboardLayout(){
 
     // Estado para contar cantidad de usuarios
     const [userCount, setUserCount] = useState(0)

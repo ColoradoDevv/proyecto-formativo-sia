@@ -18,14 +18,22 @@ export const taskSchema = z.object({
     taskName: z
         .string()
         .trim()
-        .min(3, "El nombre de la tarea debe tener mínimo 3 caracteres")
-        .max(100, "El nombre de la tarea es demasiado largo"),
+        .min(3, "El título debe tener mínimo 3 caracteres")
+        .max(100, "El título es demasiado largo"),
 
     taskDescription: z
         .string()
         .trim()
-        .max(255, "La descripción no puede superar 255 caracteres")
-        .optional(),
+        .min(3, "La descripción debe tener mínimo 3 caracteres")
+        .max(255, "La descripción no puede superar 255 caracteres"),
+
+    taskUser: z
+        .string()
+        .min(1, "Debe seleccionar un usuario"),
+
+    taskState: z
+        .string()
+        .min(1, "Debe seleccionar un estado"),
 
     taskStartDate: z
         .string()
@@ -40,5 +48,13 @@ export const taskSchema = z.object({
 })
 .refine(
     (data) => !data.taskStartDate || !data.taskEndDate || data.taskEndDate >= data.taskStartDate,
-    { message: "La fecha de finalización no puede ser anterior a la de inicio", path: ["taskEndDate"] }
+    { message: "La fecha de fin no puede ser anterior a la de inicio", path: ["taskEndDate"] }
 );
+
+// Estados disponibles para una tarea (RFADMIN46). Reutilizable en selects.
+export const TASK_STATES = [
+    { id: "Pendiente", label: "Pendiente" },
+    { id: "En progreso", label: "En progreso" },
+    { id: "Completada", label: "Completada" },
+    { id: "Cancelada", label: "Cancelada" },
+];

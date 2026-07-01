@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Users, User } from "lucide-react";
-import { EditCard, SelectInput, Button } from "@/shared";
+import { EditCard, Select, Button } from "@/shared";
 import AccessContextCard from "./AccessContextCard";
 import { getGroups } from "../services/groupService";
 import { getGroupPermissions } from "../services/permissionService";
@@ -112,7 +112,7 @@ export default function AccessSidebar({
         </div>
 
         {mode === "group" ? (
-          <SelectInput
+          <Select
             label="Grupo de usuarios"
             name="groupId"
             value={selectedGroup}
@@ -121,7 +121,7 @@ export default function AccessSidebar({
             disabled={isEditing}
           />
         ) : (
-          <SelectInput
+          <Select
             label="Usuario individual"
             name="userId"
             value={selectedUser}

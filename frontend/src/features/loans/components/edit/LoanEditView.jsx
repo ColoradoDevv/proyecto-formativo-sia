@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, TextArea, StatusBadge, showAlert, cancelAlert, EditCard } from "@/shared";
+import { Button, IconButton, Input, showAlert, cancelAlert } from "@/shared";
 import { Undo2 } from "lucide-react";
 import useLoan from "../../hooks/useLoan";
 import { getUsers, getMaterials } from "../../services/selectServices";
 import { loanSchema } from "../../schemas/loanSchema";
 import { updateLoan } from "../../services/loanService";
+import LoanForm from "../LoanForm";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -103,76 +104,21 @@ function LoanEditForm({ loan, users, materials }) {
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-                <EditCard title="Información del Préstamo" cols={1}>
-                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
-                        {/* Campos del prestamo */}
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
-                            <SelectInput
-                                label="Usuario"
-                                name="loanUser"
-                                options={users}
-                                value={formData.loanUser}
-                                onChange={handleChange}
-                                error={errors.loanUser}
-                                required
-                            />
-                            <SelectInput
-                                label="Material"
-                                name="loanMaterial"
-                                options={materials}
-                                value={formData.loanMaterial}
-                                onChange={handleChange}
-                                error={errors.loanMaterial}
-                                required
-                            />
-                            <Input
-                                label="Cantidad Préstamo"
-                                name="loanAmount"
-                                type="number"
-                                min="1"
-                                step="1"
-                                value={formData.loanAmount}
-                                onChange={handleChange}
-                                error={errors.loanAmount}
-                                required
-                            />
-                            <Input
-                                label="Grupo"
-                                name="loanGroup"
-                                value={formData.loanGroup}
-                                onChange={handleChange}
-                                error={errors.loanGroup}
-                                required
-                            />
-                            <Input
-                                label="Fecha Devolución"
-                                name="loanReturnDate"
-                                type="date"
-                                value={formData.loanReturnDate}
-                                onChange={handleChange}
-                                error={errors.loanReturnDate}
-                                required
-                            />
-                            <Input
-                                label="Fecha Préstamo"
-                                value={loan.loan_date ?? ""}
-                                disabled
-                                readOnly
-                            />
-                            <div className="sm:col-span-2">
-                                <TextArea
-                                    label="Justificación de Uso"
-                                    name="loanJustification"
-                                    value={formData.loanJustification}
-                                    onChange={handleChange}
-                                    error={errors.loanJustification}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                    </div>
-                </EditCard>
+                <LoanForm
+                    formData={formData}
+                    errors={errors}
+                    onChange={handleChange}
+                    users={users}
+                    materials={materials}
+                    extraSlot={
+                        <Input
+                            label="Fecha Préstamo"
+                            value={loan.loan_date ?? ""}
+                            disabled
+                            readOnly
+                        />
+                    }
+                />
 
                 <div className="flex gap-4 justify-center md:justify-end">
                     <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>

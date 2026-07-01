@@ -1,5 +1,5 @@
-import HomeLayout from "../layouts/HomeLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 
-export default function HomePage(){
-    return <HomeLayout/>;
+export default function DashboardPage(){
+    return <DashboardLayout/>;
 }

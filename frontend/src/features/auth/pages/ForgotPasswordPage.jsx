@@ -1,58 +1,11 @@
-import bgLogin from "@/assets/images/auth/bg-login.png"
-import officeImg from "@/assets/images/auth/office-imagen.png"
-import senaLogo from "@/assets/images/auth/logo-sena-verde-png-2022 1.png"
+import { AuthLayout } from "@/shared"
 import ForgotForm from "../components/ForgotForm"
 
 
 export default function ForgotPasswordPage() {
     return (
-        <div className="relative w-full h-screen overflow-hidden flex items-center justify-center">
-
-            {/* Fondo */}
-            <img
-                src={bgLogin}
-                alt="Background"
-                className="absolute inset-0 w-full h-full object-cover"
-            />
-
-            {/* Tarjeta glassmorphism — contiene TODO */}
-            <div className="
-                relative z-10
-                w-[90%] max-w-md md:max-w-5xl
-                h-auto md:h-[85vh]
-                rounded-[var(--radius-3xl)]
-                flex flex-row
-                backdrop-blur-md
-                bg-white/25
-                border border-white/40
-                shadow-[var(--shadow-elevation-5)]
-                overflow-hidden
-            ">
-                {/* Logo SENA: SIEMPRE visible (incluido movil) */}
-                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
-                    <img
-                        src={senaLogo}
-                        alt="Logo SENA"
-                        className="h-12 sm:h-16 w-auto object-contain"
-                    />
-                </div>
-
-                {/* ── Lado izquierdo: ilustración (solo desde md) ── */}
-                <div className="relative flex-1 hidden md:flex items-center justify-center p-8">
-                    {/* Ilustración recepcionista */}
-                    <img
-                        src={officeImg}
-                        alt="Recepción SENA"
-                        className="max-w-full max-h-full object-contain"
-                    />
-                </div>
-
-                {/* ── Lado derecho: formulario blanco ── */}
-                <div className="flex-1 flex items-center justify-center p-6 pt-20 sm:pt-24 md:p-0">
-                    <ForgotForm />
-                </div>
-            </div>
-
-        </div>
+        <AuthLayout>
+            <ForgotForm />
+        </AuthLayout>
     )
 }

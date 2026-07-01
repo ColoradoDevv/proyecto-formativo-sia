@@ -42,6 +42,24 @@ export async function requestPasswordReset(email) {
     return response.json().catch(() => ({}));
 }
 
+// METODO POST - define la nueva contraseña usando el token del correo
+export async function resetPassword(token, password, confirmPassword) {
+    const response = await fetch("/api/users/reset-password/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password, confirm_password: confirmPassword }),
+    });
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "No se pudo restablecer la contraseña");
+        error.status = response.status;
+        throw error;
+    }
+
+    return response.json().catch(() => ({}));
+}
+
 // Cierra la sesion (borra el token guardado)
 export function logout() {
     clearSession();
