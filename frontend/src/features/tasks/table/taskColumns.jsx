@@ -1,7 +1,7 @@
 import TaskRowActions from "../components/TaskRowActions";
 import TaskStateBadge from "../components/TaskStateBadge";
 
-export const taskColumns = ({ onEdit, onDeleted, onNotify }) => [
+export const taskColumns = ({ onView, onEdit, onDeleted, onNotify }) => [
     {
         accessorKey: "name",
         header: "Título",
@@ -29,6 +29,7 @@ export const taskColumns = ({ onEdit, onDeleted, onNotify }) => [
         cell: ({ row }) => (
             <TaskRowActions
                 task={row.original}
+                onView={onView}
                 onEdit={onEdit}
                 onDeleted={onDeleted}
                 onNotify={onNotify}

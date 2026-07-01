@@ -1,16 +1,9 @@
-import {
-    IconButton,
-    Dropdown,
-    DropdownTrigger,
-    DropdownContent,
-    DropdownItem,
-    showAlert,
-    cancelAlert,
-} from "@/shared";
-import { EllipsisVertical, Pencil } from "lucide-react";
+import { IconButton, showAlert, cancelAlert } from "@/shared";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { deleteTask } from "../services/taskService";
 
-export default function TaskRowActions({ task, onEdit, onDeleted, onNotify }) {
+// Acciones de cada fila de tarea: visualizar, editar y eliminar (iconos, sin dropdown).
+export default function TaskRowActions({ task, onView, onEdit, onDeleted, onNotify }) {
 
     const handleDelete = async () => {
         const result = await cancelAlert({
@@ -35,16 +28,12 @@ export default function TaskRowActions({ task, onEdit, onDeleted, onNotify }) {
             <IconButton onClick={() => onEdit(task)} variant="ghost" hitSize={32} iconSize={16}>
                 <Pencil size={16} />
             </IconButton>
-
-            <Dropdown>
-                <DropdownTrigger className="inline-flex justify-center items-center w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] rounded-[var(--radius-full)] text-text-secondary hover:bg-surface-muted transition-colors duration-[var(--duration-base)]">
-                    <EllipsisVertical size={16} />
-                </DropdownTrigger>
-
-                <DropdownContent className="w-48">
-                    <DropdownItem onClick={handleDelete}>Eliminar</DropdownItem>
-                </DropdownContent>
-            </Dropdown>
+            <IconButton onClick={() => onView(task)} variant="ghost" hitSize={32} iconSize={16}>
+                <Eye size={16} />
+            </IconButton>
+            <IconButton onClick={handleDelete} variant="ghost" hitSize={32} iconSize={16}>
+                <Trash2 size={16} />
+            </IconButton>
         </div>
     );
 }

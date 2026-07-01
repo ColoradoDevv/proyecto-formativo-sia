@@ -12,19 +12,28 @@ export default function TaskListPage() {
     const { tasks, setTasks, loading, error } = useTasks();
     const [users, setUsers] = useState([]);
 
-    // Estado del modal: abierto y, si aplica, la tarea en edicion.
+    // Estado del modal: abierto, tarea seleccionada y si es solo lectura.
     const [modalOpen, setModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+    const [readOnly, setReadOnly] = useState(false);
 
     useEffect(() => { getUsers().then(setUsers).catch(() => setUsers([])); }, []);
 
     const openCreate = () => {
         setEditingTask(null);
+        setReadOnly(false);
         setModalOpen(true);
     };
 
     const openEdit = (task) => {
         setEditingTask(task);
+        setReadOnly(false);
+        setModalOpen(true);
+    };
+
+    const openView = (task) => {
+        setEditingTask(task);
+        setReadOnly(true);
         setModalOpen(true);
     };
 
@@ -39,7 +48,7 @@ export default function TaskListPage() {
         setTasks((prev) => prev.filter((t) => t.id !== id));
     };
 
-    const columns = taskColumns({ onEdit: openEdit, onDeleted: handleDeleted });
+    const columns = taskColumns({ onView: openView, onEdit: openEdit, onDeleted: handleDeleted });
 
     if (loading)
         return (
@@ -73,16 +82,17 @@ export default function TaskListPage() {
                 </Button>
             </div>
 
-            {/* Tabla (incluye buscador y paginacion propios) */}
-            <DataTable data={tasks} columns={columns} />
+            {/* Tabla (incluye buscador y paginacion propios). Doble click = ver */}
+            <DataTable data={tasks} columns={columns} onRowDoubleClick={openView} />
 
-            {/* Modal crear/editar */}
+            {/* Modal crear / editar / visualizar */}
             <TaskModal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
                 onSaved={handleSaved}
                 users={users}
                 task={editingTask}
+                readOnly={readOnly}
             />
         </div>
     );

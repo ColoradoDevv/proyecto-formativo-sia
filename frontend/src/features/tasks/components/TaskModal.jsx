@@ -15,8 +15,8 @@ const EMPTY_TASK = {
 // Modal de creacion/edicion de tareas.
 // - Sin `task` -> modo crear.
 // - Con `task` -> modo editar (el usuario asignado queda bloqueado: no se reasigna).
-export default function TaskModal({ isOpen, onClose, onSaved, users = [], task = null }) {
-    const isEdit = Boolean(task);
+export default function TaskModal({ isOpen, onClose, onSaved, users = [], task = null, readOnly = false }) {
+    const isEdit = Boolean(task) && !readOnly;
 
     const [formData, setFormData] = useState(EMPTY_TASK);
     const [errors, setErrors] = useState({});
@@ -88,7 +88,11 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
         }
     };
 
-    const footer = (
+    const footer = readOnly ? (
+        <Button type="button" variant="secondary" size="md" onClick={onClose}>
+            Cerrar
+        </Button>
+    ) : (
         <>
             <Button type="button" variant="secondary" size="md" onClick={onClose} disabled={submitting}>
                 Cancelar
@@ -99,11 +103,13 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
         </>
     );
 
+    const title = readOnly ? "Visualizar Tarea" : isEdit ? "Editar Tarea" : "Agregar Tarea";
+
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={isEdit ? "Editar Tarea" : "Agregar Tarea"}
+            title={title}
             footer={footer}
         >
             <form id="task-form" noValidate onSubmit={handleSubmit} className="flex flex-col gap-1">
@@ -116,6 +122,7 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
                     value={formData.taskName}
                     onChange={handleChange}
                     error={errors.taskName}
+                    disabled={readOnly}
                     required
                 />
 
@@ -126,6 +133,7 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
                     value={formData.taskDescription}
                     onChange={handleChange}
                     error={errors.taskDescription}
+                    disabled={readOnly}
                     required
                 />
 
@@ -136,7 +144,7 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
                     onChange={handleChange}
                     options={users}
                     error={errors.taskUser}
-                    disabled={isEdit}
+                    disabled={isEdit || readOnly}
                     required
                 />
                 {isEdit && (
@@ -152,6 +160,7 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
                     onChange={handleChange}
                     options={TASK_STATES}
                     error={errors.taskState}
+                    disabled={readOnly}
                     required
                 />
 
@@ -165,6 +174,7 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
                         value={formData.taskStartDate}
                         onChange={handleChange}
                         error={errors.taskStartDate}
+                        disabled={readOnly}
                         required
                     />
                     <Input
@@ -175,6 +185,7 @@ export default function TaskModal({ isOpen, onClose, onSaved, users = [], task =
                         value={formData.taskEndDate}
                         onChange={handleChange}
                         error={errors.taskEndDate}
+                        disabled={readOnly}
                         required
                     />
                 </div>

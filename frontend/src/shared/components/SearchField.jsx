@@ -6,7 +6,7 @@ const baseStyles = "search flex items-center rounded-[var(--radius-full)] px-4 t
 
 const sizeStyles = {
     sm: "h-[var(--size-control-sm)] text-small",
-    md: "h-[var(--size-control-xl)] text-body",
+    md: "h-[var(--size-control-md)] text-body",
     lg: "h-[var(--size-control-2xl)] text-body",
 };
 
