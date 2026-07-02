@@ -1,13 +1,17 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Undo2, CloudAlert } from "lucide-react";
-import { Button, IconButton, Input, TextArea, StatusBadge, EditCard } from "@/shared";
+import { Button, IconButton, Input, TextArea, EditCard } from "@/shared";
 import useLoan from "../../hooks/useLoan";
+import ReturnLoanModal from "../ReturnLoanModal";
+import LoanStateBadge from "../LoanStateBadge";
 import { TailChase } from "ldrs/react";
 
 export default function LoanDetailView() {
     const navigate = useNavigate();
     const { id } = useParams();
     const { loan, loading, error } = useLoan(id);
+    const [returnOpen, setReturnOpen] = useState(false);
 
     if (loading)
         return (
@@ -39,10 +43,11 @@ export default function LoanDetailView() {
                 <IconButton onClick={() => navigate(-1)} variant="ghost">
                     <Undo2 size={18}/>
                 </IconButton>
-                <div>
+                <div className="flex-1">
                     <h2 className="text-primary">Visualizar Préstamo</h2>
                     <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
                 </div>
+                <LoanStateBadge state={loan.state} />
             </div>
 
             <div className="flex flex-col gap-3">
@@ -71,12 +76,24 @@ export default function LoanDetailView() {
                     <Button variant="secondary" size="md" onClick={() => navigate("/prestamos")}>
                         Volver al listado
                     </Button>
+                    {loan.is_active && (
+                        <Button variant="secondary" size="md" onClick={() => setReturnOpen(true)}>
+                            Devolver material
+                        </Button>
+                    )}
                     <Button variant="primary" size="md" onClick={() => navigate(`/prestamos/editar/${loan.id_loan}`)}>
                         Editar
                     </Button>
                 </div>
 
             </div>
+
+            <ReturnLoanModal
+                isOpen={returnOpen}
+                onClose={() => setReturnOpen(false)}
+                loan={loan}
+                onReturned={() => navigate("/prestamos")}
+            />
 
         </div>
     );

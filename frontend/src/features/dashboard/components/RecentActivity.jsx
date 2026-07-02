@@ -7,7 +7,7 @@ import useRecentLoans from "../hooks/useRecentLoans";
 // Resumen de los ultimos prestamos registrados para el panel de inicio.
 // Sigue los mismos estados (loading/error) y estilos que LoansListPage.
 export default function RecentActivity() {
-    const { loans, loading, error } = useRecentLoans(5);
+    const { loans, loading, error } = useRecentLoans(4);
 
     return (
         <div className="flex flex-col gap-4">

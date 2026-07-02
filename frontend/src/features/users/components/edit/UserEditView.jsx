@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, IconButton, Input, StatusLabel, showAlert, cancelAlert } from "@/shared";
 import { Undo2, ClipboardList } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
-import { getDocumentTypes, getUserGroups } from "../../services/selectServices";
+import useUserGroups from "../../hooks/useUserGroups";
+import { getDocumentTypes } from "../../services/selectServices";
 import { userEditSchema } from "../../schemas/userSchema";
 import { updateUser } from "../../services/userService";
 import { UserTasksModal } from "@/features/tasks";
@@ -17,10 +18,9 @@ export default function UserEditView() {
     const { user, loading, error } = useUser(id);
 
     const [documentTypes, setDocumentTypes] = useState([]);
-    const [groups,        setGroups]        = useState([]);
+    const { groups, addGroup } = useUserGroups();
 
     useEffect(() => { getDocumentTypes().then(setDocumentTypes); }, []);
-    useEffect(() => { getUserGroups().then(setGroups);           }, []);
 
     if (loading)
         return (
@@ -31,11 +31,11 @@ export default function UserEditView() {
 
     if (error) return <p>Error al cargar usuario: {error.message}</p>;
 
-    return <UserEditForm id={id} user={user} documentTypes={documentTypes} groups={groups} />;
+    return <UserEditForm id={id} user={user} documentTypes={documentTypes} groups={groups} onCreateGroup={addGroup} />;
 }
 
 // Componente interno: recibe user ya cargado e inicializa el estado directamente
-function UserEditForm({ id, user, documentTypes, groups }) {
+function UserEditForm({ id, user, documentTypes, groups, onCreateGroup }) {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -112,7 +112,6 @@ function UserEditForm({ id, user, documentTypes, groups }) {
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Editar Usuario</h2>
-                    <p className="text-small text-text-muted">Modifica la información del usuario.</p>
                 </div>
             </div>
 
@@ -125,6 +124,7 @@ function UserEditForm({ id, user, documentTypes, groups }) {
                     onPhotoChange={handlePhotoChange}
                     documentTypes={documentTypes}
                     groups={groups}
+                    onCreateGroup={onCreateGroup}
                     showStatus
                     contactExtraSlot={
                         <Input

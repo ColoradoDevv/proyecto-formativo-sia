@@ -7,6 +7,15 @@ from modules.products.models import ConsumableMaterial  # FK a materiales de con
 
 class Loans(models.Model):
 
+    # Estados del prestamo. "Pendiente" queda para cuando exista la firma
+    # electronica. El flujo de devolucion pasa de Activo a Finalizado, o a
+    # Incompleto si un devolutivo se devuelve en menor cantidad a la prestada.
+    STATE_CHOICES = [
+        ('Activo', 'Activo'),
+        ('Finalizado', 'Finalizado'),
+        ('Incompleto', 'Incompleto'),
+    ]
+
     # id_loan: PK, AI, Único, obligatorio — Django lo genera automático con AutoField
     id_loan = models.AutoField(primary_key=True)
 
@@ -55,6 +64,13 @@ class Loans(models.Model):
     loan_date = models.DateField(
         null=False,
         auto_now_add=True   # se llena automático al crear, equivale a CURRENT_TIMESTAMP
+    )
+
+    # state: estado del prestamo. Se marca "Finalizado" al registrar la devolucion.
+    state = models.CharField(
+        max_length=20,
+        choices=STATE_CHOICES,
+        default='Activo',
     )
 
     class Meta:

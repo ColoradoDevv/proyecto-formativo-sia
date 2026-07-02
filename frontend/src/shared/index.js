@@ -32,3 +32,4 @@ export { default as AuthLayout } from "./layouts/AuthLayout"
 
 export { default as showAlert } from "./alerts/Alert"
 export { default as cancelAlert } from "./alerts/CancelAlert"
+export { default as promptAlert } from "./alerts/PromptAlert"

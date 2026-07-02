@@ -1,4 +1,6 @@
-import { Input, Select, SelectMultiple, ProfileFileInput, StatusBadge, EditCard } from "@/shared";
+import { Input, Select, SelectMultiple, ProfileFileInput, StatusBadge, EditCard, IconButton, showAlert, promptAlert } from "@/shared";
+import { Plus } from "lucide-react";
+
 
 const STATUS_OPTIONS = [
     { id: "true",  label: "Activo"   },
@@ -23,12 +25,40 @@ export default function UserForm({
     onPhotoChange,
     documentTypes = [],
     groups = [],
+    onCreateGroup = null,
     showStatus = false,
     confirmEmailSlot = null,
     contactExtraSlot = null,
     systemExtraSlot = null,
 }) {
     const isActive = formData.isActive === "true" || formData.isActive === true;
+
+    // Pide el nombre del nuevo grupo, lo crea en el backend y lo selecciona
+    // automáticamente en el SelectMultiple. `onCreateGroup` es responsabilidad
+    // de la página (crea el grupo y actualiza la lista de opciones).
+    const handleCreateGroup = async () => {
+        if (!onCreateGroup) return;
+
+        const result = await promptAlert({
+            title: "Nuevo grupo",
+            inputLabel: "Nombre del grupo",
+            inputPlaceholder: "Ej. Administradores",
+            confirmText: "Crear",
+            cancelText: "Cancelar",
+            inputValidator: (value) => {
+                if (!value || !value.trim()) return "El nombre del grupo es obligatorio";
+            },
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const newGroup = await onCreateGroup(result.value.trim());
+            onChange({ target: { name: "groups", value: [...formData.groups, String(newGroup.id)] } });
+        } catch (error) {
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "No se pudo crear el grupo", text: error.message });
+        }
+    };
 
     return (
         <>
@@ -137,26 +167,42 @@ export default function UserForm({
                 </EditCard>
 
                 <EditCard title="Información del Sistema">
-                    <SelectMultiple
-                        label="Tipo de usuario"
-                        name="groups"
-                        options={groups}
-                        value={formData.groups}
-                        onChange={onChange}
-                        error={errors.groups}
-                        required
-                    />
-                    {showStatus && (
-                        <Select
-                            label="Estado"
-                            name="isActive"
-                            options={STATUS_OPTIONS}
-                            value={formData.isActive}
+                    <div>
+                        <SelectMultiple
+                            label="Tipo de usuario"
+                            name="groups"
+                            options={groups}
+                            value={formData.groups}
                             onChange={onChange}
-                            error={errors.isActive}
+                            error={errors.groups}
                             required
+                            labelAction={
+                                onCreateGroup && (
+                                    <IconButton
+                                        type="button"
+                                        variant="ghost"
+                                        hitSize={28}
+                                        iconSize={16}
+                                        ariaLabel="Agregar nuevo grupo"
+                                        onClick={handleCreateGroup}
+                                    >
+                                        <Plus size={16} />
+                                    </IconButton>
+                                )
+                            }
                         />
-                    )}
+                        {showStatus && (
+                            <Select
+                                label="Estado"
+                                name="isActive"
+                                options={STATUS_OPTIONS}
+                                value={formData.isActive}
+                                onChange={onChange}
+                                error={errors.isActive}
+                                required
+                            />
+                        )}
+                    </div>
                     <Input
                         label="Fecha de inicio"
                         name="startDate"

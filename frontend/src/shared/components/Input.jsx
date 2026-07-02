@@ -33,7 +33,7 @@ export default function Input({
                     className={`
                         block
                         place-self-start
-                        text-medium
+                        text-small
                         mb-1
                         ${error ? "text-error" : "text-text-primary"}
                     `}

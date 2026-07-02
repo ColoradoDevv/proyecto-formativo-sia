@@ -94,9 +94,6 @@ export default function RmRegisterForm() {
 
             <div>
                 <h2 className="text-primary">Crear Material Devolutivo</h2>
-                <p className="text-small text-text-muted">
-                    Registra un material devolutivo con los datos correspondientes.
-                </p>
             </div>
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -118,7 +115,7 @@ export default function RmRegisterForm() {
                                 onChange={handleFileChange("photo")}
                                 error={errors.photo}
                                 accept="image/*"
-                                className="w-full h-[var(--size-preview-md)]"
+                                className="w-full h-25"
                             />
                             <FileInput
                                 label="Ficha Técnica (Opcional, máx. 3)"
@@ -130,7 +127,7 @@ export default function RmRegisterForm() {
                                 accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                 multiple
                                 maxFiles={3}
-                                className="w-full h-[var(--size-preview-sm)]"
+                                className="w-full h-25"
                             />
                         </div>
                     }

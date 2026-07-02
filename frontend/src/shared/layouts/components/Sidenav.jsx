@@ -7,11 +7,11 @@ function NavLinks({ onLinkClick }) {
     const navigate = useNavigate();
 
     const topLinks = [
-        { to: "/",            icon: <House size={18} />,  label: "Inicio" },
-        { to: "/usuarios",    icon: <Users size={18} />,  label: "Gestión de Usuarios" },
-        { to: "/consumibles", icon: <Wrench size={18} />, label: "Materiales de Consumo" },
-        { to: "/devolutivos", icon: <Scroll size={18} />, label: "Materiales Devolutivos" },
-        { to: "/prestamos",   icon: <Truck size={18} />,  label: "Préstamos" },
+        { to: "/",            icon: <House size={24} />,  label: "Inicio" },
+        { to: "/usuarios",    icon: <Users size={24} />,  label: "Gestión de Usuarios" },
+        { to: "/consumibles", icon: <Wrench size={24} />, label: "Materiales de Consumo" },
+        { to: "/devolutivos", icon: <Scroll size={24} />, label: "Materiales Devolutivos" },
+        { to: "/prestamos",   icon: <Truck size={24} />,  label: "Préstamos" },
     ];
 
     const linkClass = "flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors";
@@ -36,7 +36,7 @@ function NavLinks({ onLinkClick }) {
 
     return (
         <>
-            <ul className="flex flex-col gap-4">
+            <ul className="flex flex-col gap-5">
                 {topLinks.map(({ to, icon, label }) => (
                     <li key={to}>
                         <Link to={to} onClick={onLinkClick} className={linkClass}>
@@ -46,18 +46,18 @@ function NavLinks({ onLinkClick }) {
                 ))}
             </ul>
 
-            <ul className="flex flex-col gap-4">
+            <ul className="flex flex-col gap-5">
                 {/* Configuracion: navegacion normal */}
                 <li>
                     <Link to="/configuracion" onClick={onLinkClick} className={linkClass}>
-                        <Settings size={18} /> Configuración
+                        <Settings size={24} /> Configuración
                     </Link>
                 </li>
 
                 {/* Cerrar sesion: es una ACCION, no un enlace */}
                 <li>
                     <button type="button" onClick={handleLogout} className={`${linkClass} w-full text-left cursor-pointer`}>
-                        <LogOut size={18} /> Cerrar sesión
+                        <LogOut size={24} /> Cerrar sesión
                     </button>
                 </li>
             </ul>

@@ -91,8 +91,8 @@ export default function FileInput({
                             </div>
                         )}
                         <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100">
-                            <button className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] bg-surface-hover rounded-[var(--radius-full)] text-text-primary text-caption">↔</button>
-                            <button onClick={() => remove(i)} className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] bg-surface-hover rounded-[var(--radius-full)] text-text-primary text-caption">×</button>
+                            <button className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] bg-surface-hover rounded-[var(--radius-full)] text-text-primary text-small">↔</button>
+                            <button onClick={() => remove(i)} className="w-[var(--size-icon-sm)] h-[var(--size-icon-sm)] bg-surface-hover rounded-[var(--radius-full)] text-text-primary text-medium">×</button>
                         </div>
                     </div>
                 ))}
@@ -112,7 +112,7 @@ export default function FileInput({
                         />
                     ) : (
                         <span className="flex flex-col items-center gap-1 text-brand text-medium">
-                            <Upload size={28} />
+                            <Upload size={24} />
                             {placeholder}
                         </span>
                     )}

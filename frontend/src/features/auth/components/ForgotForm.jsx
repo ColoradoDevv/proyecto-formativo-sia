@@ -65,7 +65,7 @@ export default function ForgotForm() {
     };
 
     return (
-        <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-8 py-10 w-full sm:w-[var(--size-field-md)]">
+        <div className="bg-background rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-8 py-10 w-full sm:w-[var(--size-field-md)]">
             <h1 className="text-center text-h2 font-heading mb-2 text-text-primary">
                 Recuperar Contraseña
             </h1>
@@ -95,14 +95,14 @@ export default function ForgotForm() {
 
                     <Link
                         to="/iniciar-sesion"
-                        className="flex items-center gap-1 text-caption text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors"
+                        className="flex items-center gap-1 text-small text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors"
                     >
                         <ArrowLeft size={14} /> Volver a iniciar sesión
                     </Link>
                 </div>
             ) : (
                 <>
-                    <p className="text-center text-caption text-text-muted mb-7">
+                    <p className="text-center text-small text-text-muted mb-7">
                         Ingresa tu correo y te enviaremos un enlace para restablecerla.
                     </p>
 
@@ -128,7 +128,7 @@ export default function ForgotForm() {
                         <div className="text-center -mt-1">
                             <Link
                                 to="/iniciar-sesion"
-                                className="inline-flex items-center gap-1 text-caption text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors"
+                                className="inline-flex items-center gap-1 text-small text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors"
                             >
                                 <ArrowLeft size={14} /> Volver a iniciar sesión
                             </Link>

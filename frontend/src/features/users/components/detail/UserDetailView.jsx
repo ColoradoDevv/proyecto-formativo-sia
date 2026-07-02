@@ -38,7 +38,6 @@ export default function UserDetailView() {
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Visualizar Usuario</h2>
-                    <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
                 </div>
             </div>
 

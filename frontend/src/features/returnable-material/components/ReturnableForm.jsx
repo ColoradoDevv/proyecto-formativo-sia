@@ -66,16 +66,6 @@ export default function ReturnableForm({
                             error={errors.category}
                             required
                         />
-                        <Select
-                            label="Marca"
-                            name="brand"
-                            options={brands}
-                            value={formData.brand}
-                            onChange={onChange}
-                            error={errors.brand}
-                            required
-                        />
-                        <div className="sm:col-span-2">
                             <TextArea
                                 label="Descripción"
                                 name="description"
@@ -85,7 +75,15 @@ export default function ReturnableForm({
                                 error={errors.description}
                                 required
                             />
-                        </div>
+                        <Select
+                            label="Marca"
+                            name="brand"
+                            options={brands}
+                            value={formData.brand}
+                            onChange={onChange}
+                            error={errors.brand}
+                            required
+                        />
                     </div>
                 </div>
             </EditCard>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDocumentTypes, getUserGroups } from "../../services/selectServices";
-import { Input, Button, StatusLabel, showAlert, cancelAlert } from "@/shared";
+import { getDocumentTypes } from "../../services/selectServices";
+import useUserGroups from "../../hooks/useUserGroups";
+import { Input, Button, StatusLabel, showAlert, cancelAlert , Checkbox} from "@/shared";
 import { UserTasksModal } from "@/features/tasks";
 import { createTask } from "@/features/tasks/services/taskService";
 import { userSchema } from "../../schemas/userSchema";
@@ -42,10 +43,7 @@ export default function UserRegisterForm() {
         getDocumentTypes().then(setDocumentTypes);
     }, []);
 
-    const [userGroups, setUserGroups] = useState([]);
-    useEffect(() => {
-        getUserGroups().then(setUserGroups);
-    }, []);
+    const { groups: userGroups, addGroup } = useUserGroups();
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -123,9 +121,7 @@ export default function UserRegisterForm() {
 
                 <div>
                     <h2 className="text-primary">Registro de Usuarios</h2>
-                    <p className="text-small text-text-muted">
-                        Registra un usuario con los datos correspondientes.
-                    </p>
+
                 </div>
 
                 <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -137,6 +133,7 @@ export default function UserRegisterForm() {
                         onPhotoChange={handleProfileChange}
                         documentTypes={documentTypes}
                         groups={userGroups}
+                        onCreateGroup={addGroup}
                         confirmEmailSlot={
                             <Input
                                 label="Confirmar correo"
@@ -197,12 +194,11 @@ export default function UserRegisterForm() {
                             </div>
                         }
                     />
-
-                    <div className="flex gap-4 justify-center md:justify-end">
+                    
+                    <div className="flex gap-8 pb-6 justify-center md:justify-end md:pb-0">
                         <Button type="button" variant="secondary" size="md" onClick={handleCancel}>Cancelar</Button>
                         <Button type="submit" variant="primary" size="md">Crear</Button>
                     </div>
-
                 </form>
 
             </div>

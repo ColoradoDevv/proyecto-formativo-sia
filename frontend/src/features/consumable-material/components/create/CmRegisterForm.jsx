@@ -100,9 +100,6 @@ export default function CmRegisterForm() {
             {/* Titulos */}
             <div>
                 <h2 className="text-primary">Crear Material de Consumo</h2>
-                <p className="text-small text-text-muted">
-                    Registra un material consumible con los datos correspondientes.
-                </p>
             </div>
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">

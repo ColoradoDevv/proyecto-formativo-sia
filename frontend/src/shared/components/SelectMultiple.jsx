@@ -4,6 +4,7 @@ import Checkbox from "./Checkbox";
 
 export default function SelectMultiple({
     label,
+    labelAction,
     name,
     error,
     value = [],
@@ -26,18 +27,20 @@ export default function SelectMultiple({
     return (
         <div className={className || "w-full"}>
             {label && (
-                <label
-                    className={`
-                        block
-                        place-self-start
-                        text-medium
-                        mb-1
-                        ${error ? "text-error" : "text-text-primary"}
-                    `}
-                >
-                    {label}
-                    {required && <span className="text-error ml-1">*</span>}
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                    <label
+                        className={`
+                            block
+                            place-self-start
+                            text-medium
+                            ${error ? "text-error" : "text-text-primary"}
+                        `}
+                    >
+                        {label}
+                        {required && <span className="text-error ml-1">*</span>}
+                    </label>
+                    {labelAction}
+                </div>
             )}
 
             <Dropdown className="block w-full">

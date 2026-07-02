@@ -60,11 +60,17 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 class GroupViewSet(viewsets.ModelViewSet):
     """
     ViewSet para administrar grupos y sus permisos.
-    Solo superusuarios pueden crear/modificar/eliminar grupos.
+    Cualquier usuario autenticado puede listar/ver grupos (p. ej. para
+    asignarlos al crear un usuario). Solo superusuarios pueden
+    crear/modificar/eliminar grupos.
     """
 
     queryset = Group.objects.all()
-    permission_classes = [IsAuthenticated, IsSuperUser]
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), IsSuperUser()]
 
     def get_serializer_class(self):
         """Usa serializers diferentes según la acción"""

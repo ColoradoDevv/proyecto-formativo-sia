@@ -99,7 +99,7 @@ export default function LoginForm() {
 
                 {/* Olvidó contraseña */}
                 <div className="text-center -mt-1">
-                    <Link to="/forgot-password" className="text-caption text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors">
+                    <Link to="/forgot-password" className="text-small text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors">
                         ¿Olvidó su contraseña?
                     </Link>
                 </div>

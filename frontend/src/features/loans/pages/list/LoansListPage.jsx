@@ -8,13 +8,28 @@ import { CloudAlert, Plus, Download } from "lucide-react";
 import Alert from "@mui/material/Alert";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/shared"
+import ReturnLoanModal from "../../components/ReturnLoanModal";
 
 
 
 export default function LoansListPage() {
     const navigate = useNavigate();
-    const { loans, loading, error } = useLoans();
+    const { loans, setLoans, loading, error } = useLoans();
     const [notification, setNotification] = useState(null);
+
+    // Modal de devolución: préstamo seleccionado.
+    const [returningLoan, setReturningLoan] = useState(null);
+
+    // Tras devolver: marca el préstamo como finalizado en la lista.
+    const handleReturned = (loanId) => {
+        setLoans((prev) =>
+            prev.map((l) =>
+                l.id_loan === loanId ? { ...l, state: "Finalizado", is_active: false } : l
+            )
+        );
+    };
+
+    const columns = loansColumns({ onReturn: setReturningLoan });
 
     if (loading)
         return (
@@ -72,8 +87,15 @@ export default function LoansListPage() {
             {/* Doble click en una fila navega al detalle del préstamo */}
             <DataTable
                 data={loans}
-                columns={loansColumns}
+                columns={columns}
                 onRowDoubleClick={(loan) => navigate(`/prestamos/visualizar/${loan.id_loan}`)}
+            />
+
+            <ReturnLoanModal
+                isOpen={Boolean(returningLoan)}
+                onClose={() => setReturningLoan(null)}
+                loan={returningLoan}
+                onReturned={handleReturned}
             />
         </div>
     );

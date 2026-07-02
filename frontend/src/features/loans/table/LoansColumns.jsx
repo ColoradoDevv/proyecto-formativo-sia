@@ -1,7 +1,8 @@
-import { StatusBadge } from "@/shared";
 import LoansRowActions from "../components/list/LoansRowActions";
+import LoanStateBadge from "../components/LoanStateBadge";
 
-export const loansColumns = [
+// Factory: recibe onReturn para que la fila pueda abrir el modal de devolución.
+export const loansColumns = ({ onReturn } = {}) => [
     {
         accessorKey: "id_loan",
         header: "Id",
@@ -27,19 +28,13 @@ export const loansColumns = [
         header: "Fecha Devolución",
     },
     {
-        accessorKey: "is_active",
+        accessorKey: "state",
         header: "Estado",
-        cell: ({ row }) => (
-            <StatusBadge
-                active={row.original.is_active}
-                activeLabel="Prestado"
-                inactiveLabel="Devuelto"
-            />
-        ),
+        cell: ({ row }) => <LoanStateBadge state={row.original.state} />,
     },
     {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }) => <LoansRowActions loan={row.original} />,
+        cell: ({ row }) => <LoansRowActions loan={row.original} onReturn={onReturn} />,
     },
 ];
