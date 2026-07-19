@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getBrands, getUsers } from "../../services/selectServices";
+import { getBrands, getUsers, createBrand } from "../../services/selectServices";
 import { FileInput, Button, showAlert, cancelAlert } from "@/shared";
 import { cmSchema } from "../../schemas/cmSchema";
 import { createCm } from "../../services/consumableService";
@@ -59,6 +59,13 @@ export default function CmRegisterForm() {
         setFormData((prev) => ({ ...prev, [name]: files }));
     };
 
+    // Crea una marca nueva, la agrega a las opciones y la devuelve al form.
+    const handleCreateBrand = async (name) => {
+        const option = await createBrand(name);
+        setBrands((prev) => [...prev, option]);
+        return option;
+    };
+
     async function handleCancel() {
         const result = await cancelAlert();
         if (result.isConfirmed) navigate(-1);
@@ -110,6 +117,7 @@ export default function CmRegisterForm() {
                     onChange={handleChange}
                     brands={brands}
                     users={users}
+                    onCreateBrand={handleCreateBrand}
                     photoSlot={
                         <FileInput
                             label="Foto del Material"

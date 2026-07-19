@@ -34,7 +34,7 @@ export default function UserDetailView() {
             {/* Encabezado */}
             <div className="flex items-center gap-3">
                 <IconButton onClick={() => navigate(-1)} variant="ghost">
-                    <Undo2 size={18}/>
+                    <Undo2 size={20}/>
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Visualizar Usuario</h2>
@@ -91,7 +91,7 @@ export default function UserDetailView() {
 
                 </div>
 
-                <div className="flex gap-4 justify-center md:justify-end">
+                <div className="flex gap-8 pb-6 justify-center md:justify-end md:pb-0">
                     <Button variant="secondary" size="md" onClick={() => navigate(`/usuarios`)}>
                         Volver al inicio
                     </Button>

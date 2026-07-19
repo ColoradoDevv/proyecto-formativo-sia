@@ -52,7 +52,6 @@ export default function RmDetailView() {
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Visualizar Material Devolutivo</h2>
-                    <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
                 </div>
             </div>
 

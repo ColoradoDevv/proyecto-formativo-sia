@@ -6,6 +6,21 @@ export async function getBrands() {
     return data.filter((brand) => brand.is_active).map((brand) => ({ id: brand.id, label: brand.name }))
 }
 
+// Crea una marca nueva desde el formulario y la devuelve como opcion {id,label}.
+export async function createBrand(name) {
+    const response = await apiFetch("/api/products/brands/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+    })
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data.name?.[0] || data.detail || "No se pudo crear la marca")
+    }
+    const brand = await response.json()
+    return { id: brand.id, label: brand.name }
+}
+
 export function getStates() {
     return Promise.resolve([
         { id: "Disponible",     label: "Disponible"     },

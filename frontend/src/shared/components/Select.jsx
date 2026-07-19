@@ -1,5 +1,13 @@
+const MAX_OPTION_LENGTH = 40;
+
+function truncateLabel(label, max = MAX_OPTION_LENGTH) {
+    if (typeof label !== "string" || label.length <= max) return label;
+    return `${label.slice(0, max)}…`;
+}
+
 export default function Select({
     label,
+    labelAction,
     name,
     error,
     value,
@@ -12,18 +20,20 @@ export default function Select({
     return(
         <div className={className || "w-full"}>
             {label && (
-                <label
-                    className={`
-                        block
-                        place-self-start
-                        text-small
-                        mb-1
-                        ${error ? "text-error" : "text-text-primary"}
-                    `}
-                >
-                    {label}
-                    {required && <span className="text-error ml-1">*</span>}
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                    <label
+                        className={`
+                            block
+                            place-self-start
+                            text-small
+                            ${error ? "text-error" : "text-text-primary"}
+                        `}
+                    >
+                        {label}
+                        {required && <span className="text-error ml-1">*</span>}
+                    </label>
+                    {labelAction}
+                </div>
             )}
 
             <select
@@ -35,11 +45,13 @@ export default function Select({
                 className={`
                     relative
                     w-full
+                    max-w-full
                     h-[var(--size-control-md)]
                     rounded-[var(--radius-md)]
                     border
                     px-8
                     bg-surface-hover
+                    truncate
                     focus:outline-none
                     focus:ring-2
                     focus:border-focus-border
@@ -57,8 +69,9 @@ export default function Select({
                     <option
                         key={opt.id}
                         value={opt.id}
+                        title={opt.label}
                     >
-                        {opt.label}
+                        {truncateLabel(opt.label)}
                     </option>
                 ))}
 

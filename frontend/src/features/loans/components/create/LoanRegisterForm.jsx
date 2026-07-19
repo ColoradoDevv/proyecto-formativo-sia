@@ -74,14 +74,9 @@ export default function LoanRegisterForm() {
 
     return (
         <>
-            <div className="flex flex-col p-4 sm:p-6">
-                <div className="mb-4 w-full">
-                    <h1 className="text-h2 font-heading">
-                        Crear Prestamo
-                    </h1>
-                    <p className="text-small text-text-muted">
-                        Aca podras crear un prestamo con los datos correspondientes
-                    </p>
+            <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
+                <div>
+                    <h2 className="text-primary">Crear Préstamo</h2>
                 </div>
 
                 <form

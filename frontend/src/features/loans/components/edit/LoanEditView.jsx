@@ -98,7 +98,6 @@ function LoanEditForm({ loan, users, materials }) {
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Editar Préstamo</h2>
-                    <p className="text-small text-text-muted">Modifica la información del préstamo.</p>
                 </div>
             </div>
 

@@ -45,7 +45,6 @@ export default function LoanDetailView() {
                 </IconButton>
                 <div className="flex-1">
                     <h2 className="text-primary">Visualizar Préstamo</h2>
-                    <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
                 </div>
                 <LoanStateBadge state={loan.state} />
             </div>

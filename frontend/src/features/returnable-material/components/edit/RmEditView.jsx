@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useRm from "../../hooks/useRm";
-import { getBrands, getCategories, getStates } from "../../services/selectServices";
+import { getBrands, getCategories, getStates, createBrand, createCategory } from "../../services/selectServices";
 import { rmEditSchema } from "../../schemas/rmSchema";
 import { updateRM } from "../../services/returnableService";
 import ReturnableForm from "../ReturnableForm";
@@ -23,6 +23,18 @@ export default function RmEditView() {
     useEffect(() => { getBrands().then(setBrands);         }, []);
     useEffect(() => { getStates().then(setStates);         }, []);
 
+    // Crea marca/categoria nueva, la agrega a las opciones y la devuelve al form.
+    const handleCreateBrand = async (name) => {
+        const option = await createBrand(name);
+        setBrands((prev) => [...prev, option]);
+        return option;
+    };
+    const handleCreateCategory = async (name) => {
+        const option = await createCategory(name);
+        setCategories((prev) => [...prev, option]);
+        return option;
+    };
+
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
@@ -32,11 +44,11 @@ export default function RmEditView() {
 
     if (error) return <p>Error al cargar material: {error.message}</p>;
 
-    return <RmEditForm RM={RM} categories={categories} brands={brands} states={states} />;
+    return <RmEditForm RM={RM} categories={categories} brands={brands} states={states} onCreateBrand={handleCreateBrand} onCreateCategory={handleCreateCategory} />;
 }
 
 // Componente interno: recibe RM ya cargado e inicializa el estado directamente
-function RmEditForm({ RM, categories, brands, states }) {
+function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCategory }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
@@ -129,7 +141,6 @@ function RmEditForm({ RM, categories, brands, states }) {
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Editar Material Devolutivo</h2>
-                    <p className="text-small text-text-muted">Modifica la información del material.</p>
                 </div>
             </div>
 
@@ -142,6 +153,8 @@ function RmEditForm({ RM, categories, brands, states }) {
                     categories={categories}
                     brands={brands}
                     states={states}
+                    onCreateBrand={onCreateBrand}
+                    onCreateCategory={onCreateCategory}
                     photoSlot={
                         <>
                             <div className="relative">

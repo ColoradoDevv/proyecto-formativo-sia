@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useCm from "../../hooks/useCm";
-import { getBrands, getUsers } from "../../services/selectServices";
+import { getBrands, getUsers, createBrand } from "../../services/selectServices";
 import { updateCm } from "../../services/consumableService";
 import { cmEditSchema } from "../../schemas/cmSchema";
 import ConsumableForm from "../ConsumableForm";
@@ -21,6 +21,13 @@ export default function CmEditView() {
     useEffect(() => { getBrands().then(setBrands); }, []);
     useEffect(() => { getUsers().then(setUsers);   }, []);
 
+    // Crea una marca nueva, la agrega a las opciones y la devuelve al form.
+    const handleCreateBrand = async (name) => {
+        const option = await createBrand(name);
+        setBrands((prev) => [...prev, option]);
+        return option;
+    };
+
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
@@ -30,11 +37,11 @@ export default function CmEditView() {
 
     if (error) return <p>Error al cargar material: {error.message}</p>;
 
-    return <CmEditForm id={id} CM={CM} brands={brands} users={users} />;
+    return <CmEditForm id={id} CM={CM} brands={brands} users={users} onCreateBrand={handleCreateBrand} />;
 }
 
 // Componente interno: recibe CM ya cargado e inicializa el estado directamente
-function CmEditForm({ id, CM, brands, users }) {
+function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
@@ -128,7 +135,6 @@ function CmEditForm({ id, CM, brands, users }) {
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Editar Material de Consumo</h2>
-                    <p className="text-small text-text-muted">Modifica la información del material.</p>
                 </div>
             </div>
 
@@ -140,6 +146,7 @@ function CmEditForm({ id, CM, brands, users }) {
                     onChange={handleChange}
                     brands={brands}
                     users={users}
+                    onCreateBrand={onCreateBrand}
                     photoSlot={
                         <>
                             <div className="relative">

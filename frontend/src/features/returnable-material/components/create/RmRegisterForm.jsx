@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getBrands, getStates, getCategories } from "../../services/selectServices";
+import { getBrands, getStates, getCategories, createBrand, createCategory } from "../../services/selectServices";
 import { createRM } from "../../services/returnableService";
 import { FileInput, Button, showAlert, cancelAlert } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
@@ -55,6 +55,18 @@ export default function RmRegisterForm() {
         setFormData((prev) => ({ ...prev, [name]: files }));
     };
 
+    // Crea marca/categoria nueva, la agrega a las opciones y la devuelve al form.
+    const handleCreateBrand = async (name) => {
+        const option = await createBrand(name);
+        setBrands((prev) => [...prev, option]);
+        return option;
+    };
+    const handleCreateCategory = async (name) => {
+        const option = await createCategory(name);
+        setCategories((prev) => [...prev, option]);
+        return option;
+    };
+
     async function handleCancel() {
         const result = await cancelAlert();
         if (result.isConfirmed) navigate(-1);
@@ -105,6 +117,8 @@ export default function RmRegisterForm() {
                     categories={categories}
                     brands={brands}
                     states={states}
+                    onCreateBrand={handleCreateBrand}
+                    onCreateCategory={handleCreateCategory}
                     photoSlot={
                         <div className="w-full sm:w-[var(--size-field-sm)] flex flex-col gap-4">
                             <FileInput

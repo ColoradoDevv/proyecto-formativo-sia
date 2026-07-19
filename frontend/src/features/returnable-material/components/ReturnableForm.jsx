@@ -1,4 +1,4 @@
-import { Input, Select, TextArea, EditCard } from "@/shared";
+import { Input, Select, TextArea, EditCard, CreateOptionButton } from "@/shared";
 
 // Campos de material devolutivo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange, las opciones de selects
@@ -13,8 +13,15 @@ export default function ReturnableForm({
     categories = [],
     brands = [],
     states = [],
+    onCreateBrand = null,
+    onCreateCategory = null,
     photoSlot = null,
 }) {
+    // Al crear marca/categoria nueva: se selecciona automaticamente en el form.
+    const handleBrandCreated = (option) =>
+        onChange({ target: { name: "brand", value: String(option.id) } });
+    const handleCategoryCreated = (option) =>
+        onChange({ target: { name: "category", value: String(option.id) } });
     return (
         <>
             {/* Información General — foto lateral + campos */}
@@ -65,6 +72,17 @@ export default function ReturnableForm({
                             onChange={onChange}
                             error={errors.category}
                             required
+                            labelAction={
+                                <CreateOptionButton
+                                    onCreate={onCreateCategory}
+                                    onCreated={handleCategoryCreated}
+                                    title="Nueva categoría"
+                                    inputLabel="Nombre de la categoría"
+                                    inputPlaceholder="Ej. Herramienta"
+                                    errorTitle="No se pudo crear la categoría"
+                                    ariaLabel="Agregar nueva categoría"
+                                />
+                            }
                         />
                             <TextArea
                                 label="Descripción"
@@ -83,6 +101,17 @@ export default function ReturnableForm({
                             onChange={onChange}
                             error={errors.brand}
                             required
+                            labelAction={
+                                <CreateOptionButton
+                                    onCreate={onCreateBrand}
+                                    onCreated={handleBrandCreated}
+                                    title="Nueva marca"
+                                    inputLabel="Nombre de la marca"
+                                    inputPlaceholder="Ej. Bosch"
+                                    errorTitle="No se pudo crear la marca"
+                                    ariaLabel="Agregar nueva marca"
+                                />
+                            }
                         />
                     </div>
                 </div>

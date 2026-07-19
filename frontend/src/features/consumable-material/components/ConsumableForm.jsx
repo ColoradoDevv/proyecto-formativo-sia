@@ -1,4 +1,4 @@
-import { Input, Select, TextArea, EditCard } from "@/shared";
+import { Input, Select, TextArea, EditCard, CreateOptionButton } from "@/shared";
 
 const CM_STATE_OPTIONS = [
     { id: "Disponible",    label: "Disponible"    },
@@ -20,9 +20,15 @@ export default function ConsumableForm({
     onChange,
     brands = [],
     users = [],
+    onCreateBrand = null,
     photoSlot = null,
 }) {
     const hasSenaPlate = (formData.senaPlate ?? "").trim() !== "";
+
+    // Al crear una marca nueva: la selecciona automáticamente en el form.
+    const handleBrandCreated = (option) => {
+        onChange({ target: { name: "brand", value: String(option.id) } });
+    };
 
     return (
         <>
@@ -64,6 +70,17 @@ export default function ConsumableForm({
                             onChange={onChange}
                             error={errors.brand}
                             required
+                            labelAction={
+                                <CreateOptionButton
+                                    onCreate={onCreateBrand}
+                                    onCreated={handleBrandCreated}
+                                    title="Nueva marca"
+                                    inputLabel="Nombre de la marca"
+                                    inputPlaceholder="Ej. Bosch"
+                                    errorTitle="No se pudo crear la marca"
+                                    ariaLabel="Agregar nueva marca"
+                                />
+                            }
                         />
                         <Select
                             label="Cuentadante"

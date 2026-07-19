@@ -38,7 +38,6 @@ export default function CmDetailView() {
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Visualizar Material de Consumo</h2>
-                    <p className="text-small text-text-muted">Información completa en modo solo lectura.</p>
                 </div>
             </div>
 

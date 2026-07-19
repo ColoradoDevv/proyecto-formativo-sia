@@ -2,6 +2,13 @@ import { ChevronDown } from "lucide-react";
 import { Dropdown, DropdownTrigger, DropdownContent } from "./Dropdown";
 import Checkbox from "./Checkbox";
 
+const MAX_OPTION_LENGTH = 40;
+
+function truncateLabel(label, max = MAX_OPTION_LENGTH) {
+    if (typeof label !== "string" || label.length <= max) return label;
+    return `${label.slice(0, max)}…`;
+}
+
 export default function SelectMultiple({
     label,
     labelAction,
@@ -72,10 +79,11 @@ export default function SelectMultiple({
                             key={opt.id}
                             id={`${name}-${opt.id}`}
                             name={name}
-                            label={opt.label}
+                            label={truncateLabel(opt.label)}
+                            title={opt.label}
                             checked={value.includes(String(opt.id))}
                             onChange={() => toggle(String(opt.id))}
-                            className="px-3 py-2 hover:bg-surface-muted rounded-sm"
+                            className="px-3 py-2 hover:bg-surface-muted rounded-sm w-full"
                         />
                     ))}
                 </DropdownContent>

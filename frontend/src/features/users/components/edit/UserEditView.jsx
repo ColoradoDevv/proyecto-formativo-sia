@@ -108,7 +108,7 @@ function UserEditForm({ id, user, documentTypes, groups, onCreateGroup }) {
             {/* Encabezado */}
             <div className="flex items-center gap-3">
                 <IconButton onClick={() => navigate(-1)} variant="ghost">
-                    <Undo2 size={18}/>
+                    <Undo2 size={20}/>
                 </IconButton>
                 <div>
                     <h2 className="text-primary">Editar Usuario</h2>
@@ -154,7 +154,7 @@ function UserEditForm({ id, user, documentTypes, groups, onCreateGroup }) {
                     }
                 />
 
-                <div className="flex gap-4 justify-center md:justify-end">
+                <div className="flex gap-8 pb-6 justify-center md:justify-end md:pb-0">
                     <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
                         Cancelar
                     </Button>
