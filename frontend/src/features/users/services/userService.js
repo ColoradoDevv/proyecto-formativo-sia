@@ -3,17 +3,17 @@ import { apiFetch, throwApiError } from "@/shared/services/api";
 // Mapea los nombres de campo que devuelve el backend a las keys del formData
 // del formulario de usuarios, para poder mostrar el error junto al input correcto.
 const FIELD_MAP = {
-    first_name: "userName",
-    last_name: "userLastName",
-    document_type_id: "userDocumentType",
-    document_number: "userDocumentNumber",
-    email: "userEmail",
-    phone_number: "userPhone",
-    second_phone_number: "userAdditionalPhone",
-    institutional_email: "userInstitutionalEmail",
-    address: "userAddress",
-    start_date: "userStartDate",
-    end_date: "userEndDate",
+    first_name: "firstName",
+    last_name: "lastName",
+    document_type_id: "documentType",
+    document_number: "documentNumber",
+    email: "email",
+    phone_number: "phone",
+    second_phone_number: "additionalPhone",
+    institutional_email: "institutionalEmail",
+    address: "address",
+    start_date: "startDate",
+    end_date: "endDate",
 };
 
 // METODO GET (obtener lista de usuarios)
@@ -34,24 +34,24 @@ export async function getUserById(id) {
 export async function createUser(userData) {
     const formData = new FormData();
 
-    formData.append("first_name", userData.userName);
-    formData.append("last_name", userData.userLastName);
-    formData.append("document_type_id", userData.userDocumentType);
-    formData.append("document_number", userData.userDocumentNumber);
-    formData.append("email", userData.userEmail);
-    formData.append("phone_number", userData.userPhone);
-    formData.append("address", userData.userAddress);
-    formData.append("start_date", userData.userStartDate);
-    formData.append("end_date", userData.userEndDate);
+    formData.append("first_name", userData.firstName);
+    formData.append("last_name", userData.lastName);
+    formData.append("document_type_id", userData.documentType);
+    formData.append("document_number", userData.documentNumber);
+    formData.append("email", userData.email);
+    formData.append("phone_number", userData.phone);
+    formData.append("address", userData.address);
+    formData.append("start_date", userData.startDate);
+    formData.append("end_date", userData.endDate);
 
-    if (userData.userAdditionalPhone)
-        formData.append("second_phone_number", userData.userAdditionalPhone);
+    if (userData.additionalPhone)
+        formData.append("second_phone_number", userData.additionalPhone);
 
-    if (userData.userInstitutionalEmail)
-        formData.append("institutional_email", userData.userInstitutionalEmail);
+    if (userData.institutionalEmail)
+        formData.append("institutional_email", userData.institutionalEmail);
 
-    if (userData.userProfile?.[0])
-        formData.append("profile_picture", userData.userProfile[0]);
+    if (userData.profilePicture?.[0])
+        formData.append("profile_picture", userData.profilePicture[0]);
 
     const response = await apiFetch("/api/users/", {
         method: "POST",
@@ -62,8 +62,65 @@ export async function createUser(userData) {
     const user = await response.json();
 
     // Si se especificaron grupos, asignarlos al usuario recién creado
-    if (userData.userGroups && userData.userGroups.length > 0) {
-        await assignUserGroups(user.id, userData.userGroups);
+    if (userData.groups && userData.groups.length > 0) {
+        await assignUserGroups(user.id, userData.groups);
+    }
+
+    return user;
+}
+
+// METODO PATCH (editar un usuario existente).
+// Recibe los nombres de campo locales del UserEditView y los mapea al backend.
+// Tambien sincroniza los grupos del usuario si se enviaron.
+const EDIT_FIELD_MAP = {
+    first_name: "firstName",
+    last_name: "lastName",
+    document_type_id: "documentType",
+    document_number: "documentNumber",
+    email: "email",
+    phone_number: "phone",
+    second_phone_number: "additionalPhone",
+    institutional_email: "institutionalEmail",
+    address: "address",
+    start_date: "startDate",
+    end_date: "endDate",
+    is_active: "isActive",
+};
+
+export async function updateUser(id, userData) {
+    const formData = new FormData();
+
+    formData.append("first_name", userData.firstName);
+    formData.append("last_name", userData.lastName);
+    formData.append("document_type_id", userData.documentType);
+    formData.append("document_number", userData.documentNumber);
+    formData.append("email", userData.email);
+    formData.append("phone_number", userData.phone);
+    formData.append("address", userData.address);
+    formData.append("start_date", userData.startDate);
+    formData.append("is_active", userData.isActive);
+
+    // end_date es opcional: solo se envia si tiene valor.
+    if (userData.endDate) formData.append("end_date", userData.endDate);
+
+    formData.append("second_phone_number", userData.additionalPhone || "");
+    formData.append("institutional_email", userData.institutionalEmail || "");
+
+    // La foto solo se reemplaza si el usuario subio un archivo nuevo (File).
+    const picture = userData.profilePicture?.[0];
+    if (picture instanceof File) formData.append("profile_picture", picture);
+
+    const response = await apiFetch(`/api/users/${id}/`, {
+        method: "PATCH",
+        body: formData,
+    });
+
+    if (!response.ok) await throwApiError(response, EDIT_FIELD_MAP);
+    const user = await response.json();
+
+    // Sincronizar grupos (agrega los nuevos, quita los que ya no estan).
+    if (Array.isArray(userData.groups)) {
+        await updateUserGroups(id, userData.groups.map(Number));
     }
 
     return user;
@@ -82,7 +139,7 @@ export async function toggleUserActive(id, isActive) {
 
 // METODO GET (obtener grupos de un usuario)
 export async function getUserGroups(userId) {
-  const response = await apiFetch(`/api/users/${userId}/groups/`);
+  const response = await apiFetch(`/api/permissions/users/${userId}/groups/`);
   if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();
 }
@@ -98,7 +155,7 @@ export async function assignUserGroups(userId, groupIds) {
     const group = await groupResponse.json();
 
     // Luego asignamos el usuario al grupo
-    const response = await apiFetch(`/api/users/${userId}/groups/`, {
+    const response = await apiFetch(`/api/permissions/users/${userId}/groups/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ group_name: group.name }),
@@ -118,7 +175,7 @@ export async function removeUserFromGroup(userId, groupId) {
   const group = await groupResponse.json();
 
   // Removemos el usuario del grupo
-  const response = await apiFetch(`/api/users/${userId}/groups/`, {
+  const response = await apiFetch(`/api/permissions/users/${userId}/groups/`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ group_name: group.name }),

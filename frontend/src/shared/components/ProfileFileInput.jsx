@@ -6,7 +6,7 @@ export default function ProfileFileInput({
     value = [],
     onChange,
     label,
-    placeholder = "Subir foto de perfil",
+    placeholder = "Subir foto",
     className = "w-full h-58",
     error,
     accept = ".jpg,.jpeg,.png",
@@ -73,8 +73,8 @@ export default function ProfileFileInput({
                         </div>
                     </>
                 ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-brand text-medium">
-                        <Upload size={28} />
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-brand text-medium p-1">
+                        <Upload size={24} />
                         {placeholder}
                     </div>
                 )}

@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import DataTable from "@/shared/components/DataTable";
 import { userColumns } from "../../table/UserColumns.jsx";
-import { RegisterButton, DownloadReportButton } from "../../../../shared/index.js";
 import { usersReportConfig } from "../../reports/usersReportConfig.js";
 import useUsers from "../../hooks/useUsers.js";
 import { TailChase } from 'ldrs/react'
@@ -11,6 +10,8 @@ import { Button } from "@/shared"
 
 
 export default function ListUserPage() {
+
+    const navigate = useNavigate();
 
     // FETCH GET /api/users/
     const { users, loading, error } = useUsers();
@@ -41,10 +42,10 @@ export default function ListUserPage() {
                     Listado de Usuarios
                 </h2>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <Link to="/usuarios/crear">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Link to="/usuarios/crear" className="w-full">
                         <Button
-                            className="self-start md:self-auto"
+                            className="w-full"
                             variant="soft"
                             icon={Plus}
                         >
@@ -53,16 +54,21 @@ export default function ListUserPage() {
                     </Link>
                     <Button
                         data={users}
-                        reportConfig={usersReportConfig}
-                        className="self-start md:self-auto"
                         icon={Download}
+                        reportConfig={usersReportConfig}
+                        className="w-full"
                     >
                         Descargar Reporte
                     </Button>
                 </div>
             </div>
 
-            <DataTable data={users} columns={userColumns} />
+            {/* Doble click en una fila navega al detalle del usuario */}
+            <DataTable
+                data={users}
+                columns={userColumns}
+                onRowDoubleClick={(user) => navigate(`/usuarios/visualizar/${user.id}`)}
+            />
         </div>
     );
 }

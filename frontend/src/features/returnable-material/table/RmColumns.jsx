@@ -62,6 +62,7 @@ export const RmColumns = (setRMs, setNotification) => [
     },
     {
         id: "actions",
+        header: "Acciones",
         cell: ({ row }) => <RmRowActions Rm={row.original} />,
     },
 ];

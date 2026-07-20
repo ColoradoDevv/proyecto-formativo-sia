@@ -73,7 +73,7 @@ class ReturnableMaterialSerializer(serializers.ModelSerializer):
         fields = ['consumable', 'category', 'model', 'serial', 'technical_sheet', 'dimensions']
         extra_kwargs = {
             "dimensions": {"required": False, "allow_null": True},
-            "technical_sheet": {"required": False, "allow_blank": True},
+            "technical_sheet": {"required": False},
         }
 
     def to_representation(self, instance):

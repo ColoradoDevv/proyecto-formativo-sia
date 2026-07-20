@@ -1,6 +1,5 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react";
-import { RegisterButton, DownloadReportButton } from "@/shared";
 import { RmColumns } from "../../table/RmColumns";
 import DataTable from "@/shared/components/DataTable";
 import { returnablesReportConfig } from "../../reports/returnablesReportConfig.js";
@@ -11,6 +10,7 @@ import Alert from "@mui/material/Alert";
 import { Button } from "@/shared"
 
 export default function RmListPage() {
+    const navigate = useNavigate();
     const { RMs, setRMs, loading, error } = useRMs();
     const [notification, setNotification] = useState(null);
 
@@ -35,7 +35,7 @@ export default function RmListPage() {
         );
 
     return (
-        <div className="h-full p-6 text-text-primary">
+        <div className="h-full p-4 sm:p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h2 className="text-h3 font-heading">
                     Listado de Materiales Devolutivos
@@ -45,29 +45,34 @@ export default function RmListPage() {
                         {notification.message}
                     </Alert>
                 )}
-                
-                <div className="grid grid-cols-2 gap-4">
-                    <Link to="/devolutivos/crear">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Link to="/devolutivos/crear" className="w-full">
                         <Button
-                            className="self-start md:self-auto"
+                            className="w-full"
                             variant="soft"
                             icon={Plus}
                         >
                             Registrar Material
                         </Button>
-                         </Link>
-                        <Button
-                            data={RMs}
-                            reportConfig={returnablesReportConfig}
-                            className="self-start md:self-auto"
-                            icon={Download}
-                        >
-                            Descargar Reporte
-                        </Button>
+                    </Link>
+                    <Button
+                        data={RMs}
+                        reportConfig={returnablesReportConfig}
+                        className="w-full"
+                        icon={Download}
+                    >
+                        Descargar Reporte
+                    </Button>
                 </div>
             </div>
             
-            <DataTable data={RMs} columns={RmColumns(setRMs, setNotification)} />
+            {/* Doble click en una fila navega al detalle del material */}
+            <DataTable
+                data={RMs}
+                columns={RmColumns(setRMs, setNotification)}
+                onRowDoubleClick={(rm) => navigate(`/devolutivos/visualizar/${rm.consumable_id}`)}
+            />
         </div>
     );
 }
