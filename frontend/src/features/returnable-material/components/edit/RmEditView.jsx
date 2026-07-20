@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, cancelAlert } from "@/shared";
-import EditCard from "./EditCard.jsx";
+import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useRm from "../../hooks/useRm";
-import { getBrands, getCategories, getStates } from "../../services/selectServices";
+import { getBrands, getCategories, getStates, createBrand, createCategory } from "../../services/selectServices";
+import { rmEditSchema } from "../../schemas/rmSchema";
+import { updateRM } from "../../services/returnableService";
+import ReturnableForm from "../ReturnableForm";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -21,6 +23,18 @@ export default function RmEditView() {
     useEffect(() => { getBrands().then(setBrands);         }, []);
     useEffect(() => { getStates().then(setStates);         }, []);
 
+    // Crea marca/categoria nueva, la agrega a las opciones y la devuelve al form.
+    const handleCreateBrand = async (name) => {
+        const option = await createBrand(name);
+        setBrands((prev) => [...prev, option]);
+        return option;
+    };
+    const handleCreateCategory = async (name) => {
+        const option = await createCategory(name);
+        setCategories((prev) => [...prev, option]);
+        return option;
+    };
+
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
@@ -30,15 +44,17 @@ export default function RmEditView() {
 
     if (error) return <p>Error al cargar material: {error.message}</p>;
 
-    return <RmEditForm RM={RM} categories={categories} brands={brands} states={states} />;
+    return <RmEditForm RM={RM} categories={categories} brands={brands} states={states} onCreateBrand={handleCreateBrand} onCreateCategory={handleCreateCategory} />;
 }
 
 // Componente interno: recibe RM ya cargado e inicializa el estado directamente
-function RmEditForm({ RM, categories, brands, states }) {
+function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCategory }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
     const [photoPreview, setPhotoPreview] = useState(RM.image ?? null);
+    const [photoFile,    setPhotoFile]    = useState(null);
+    const [submitting,   setSubmitting]   = useState(false);
 
     const [formData, setFormData] = useState({
         name:         RM.name ?? "",
@@ -54,6 +70,8 @@ function RmEditForm({ RM, categories, brands, states }) {
         totalPrice:   RM.total_price != null ? String(RM.total_price) : "",
         purchaseDate: RM.purchase_date ?? "",
     });
+
+    const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -71,12 +89,39 @@ function RmEditForm({ RM, categories, brands, states }) {
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) setPhotoPreview(URL.createObjectURL(file));
+        if (file) {
+            setPhotoFile(file);
+            setPhotoPreview(URL.createObjectURL(file));
+        }
     };
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
-        navigate(-1);
+
+        const result = rmEditSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                fieldErrors[issue.path[0]] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+        setSubmitting(true);
+
+        try {
+            await updateRM(RM.consumable_id, { ...formData, photo: photoFile ? [photoFile] : null });
+            await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material devolutivo actualizado exitosamente" });
+            navigate(-1);
+        } catch (error) {
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar material devolutivo", text: error.message });
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     async function handleCancel() {
@@ -87,186 +132,65 @@ function RmEditForm({ RM, categories, brands, states }) {
     const isActive = RM.is_active;
 
     return (
-        <div className="h-full p-4 text-text-primary flex flex-col gap-4">
+        <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
             {/* Encabezado */}
             <div className="flex items-center gap-3">
                 <IconButton onClick={() => navigate(-1)} variant="ghost">
-                    <Undo2 />
+                    <Undo2 size={18}/>
                 </IconButton>
                 <div>
-                    <h2 className="text-h3">Editar Material Devolutivo</h2>
-                    <p className="text-small text-text-muted">Modifica la información del material.</p>
+                    <h2 className="text-primary">Editar Material Devolutivo</h2>
                 </div>
             </div>
 
-            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-                {/* Información General — 3 columnas con foto integrada */}
-                <EditCard title="Información General" cols={3}>
-
-                    {/* Col 1 */}
-                    <div className="flex flex-col gap-3">
-                        <Input
-                            label="Nombre"
-                            name="name"
-                            placeholder="Nombre del material"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Placa SENA"
-                            name="senaPlate"
-                            placeholder="Placa SENA"
-                            value={formData.senaPlate}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Serial"
-                            name="serial"
-                            placeholder="Serial del material"
-                            value={formData.serial}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    {/* Col 2 */}
-                    <div className="flex flex-col gap-3">
-                        <SelectInput
-                            label="Categoría"
-                            name="category"
-                            options={categories}
-                            value={formData.category}
-                            onChange={handleChange}
-                            required
-                        />
-                        <SelectInput
-                            label="Marca"
-                            name="brand"
-                            options={brands}
-                            value={formData.brand}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    {/* Col 3 — foto ocupa fila 1 y 2 */}
-                    <div className="row-span-2 flex flex-col items-center justify-center gap-3">
-                        <div className="relative">
-                            <div className="size-32 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                                {photoPreview
-                                    ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-cover" />
-                                    : <ImageOff size={48} className="text-text-muted" />
-                                }
+                <ReturnableForm
+                    formData={formData}
+                    errors={errors}
+                    onChange={handleChange}
+                    categories={categories}
+                    brands={brands}
+                    states={states}
+                    onCreateBrand={onCreateBrand}
+                    onCreateCategory={onCreateCategory}
+                    photoSlot={
+                        <>
+                            <div className="relative">
+                                <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                                    {photoPreview
+                                        ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-cover" />
+                                        : <ImageOff size={40} className="text-text-muted" />
+                                    }
+                                </div>
+                                <button
+                                    type="button"
+                                    aria-label="Cambiar foto del material"
+                                    onClick={() => photoInputRef.current.click()}
+                                    className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
+                                >
+                                    <Pencil size={13} />
+                                </button>
+                                <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    hidden
+                                    accept=".jpg,.jpeg,.png,.svg"
+                                    onChange={handlePhotoChange}
+                                />
                             </div>
-                            <button
-                                type="button"
-                                aria-label="Cambiar foto del material"
-                                onClick={() => photoInputRef.current.click()}
-                                className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
-                            >
-                                <Pencil size={13} />
-                            </button>
-                            <input
-                                ref={photoInputRef}
-                                type="file"
-                                hidden
-                                accept=".jpg,.jpeg,.png,.svg"
-                                onChange={handlePhotoChange}
-                            />
-                        </div>
-                        <span className={`px-3 py-0.5 rounded-[var(--radius-full)] text-caption font-medium ${isActive ? "bg-success-soft text-success" : "bg-error-soft text-error"}`}>
-                            {isActive ? "Activo" : "Inactivo"}
-                        </span>
-                    </div>
+                            <StatusBadge active={isActive} />
+                        </>
+                    }
+                />
 
-                    {/* Descripción — ocupa cols 1 y 2 en fila 2 */}
-                    <div className="col-span-2">
-                        <Input
-                            label="Descripción"
-                            name="description"
-                            placeholder="Descripción del material"
-                            value={formData.description}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                </EditCard>
-
-                {/* Inventario y Valores lado a lado */}
-                <div className="grid grid-cols-2 gap-6 ">
-
-                    <EditCard title="Inventario">
-                        <SelectInput
-                            label="Estado"
-                            name="state"
-                            options={states}
-                            value={formData.state}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Cantidad"
-                            name="quantity"
-                            type="number"
-                            min="1"
-                            step="1"
-                            placeholder="Cantidad"
-                            value={formData.quantity}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Ubicación"
-                            name="location"
-                            placeholder="Ubicación del material"
-                            value={formData.location}
-                            onChange={handleChange}
-                        />
-                        <Input
-                            label="Fecha de compra"
-                            name="purchaseDate"
-                            type="date"
-                            value={formData.purchaseDate}
-                            onChange={handleChange}
-                            required
-                        />
-                    </EditCard>
-
-                    <EditCard title="Valores">
-                        <Input
-                            label="Valor Unitario"
-                            name="unitPrice"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="Valor unitario"
-                            value={formData.unitPrice}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Valor Total"
-                            name="totalPrice"
-                            type="number"
-                            placeholder="Calculado automáticamente"
-                            value={formData.totalPrice}
-                            readOnly
-                        />
-                    </EditCard>
-
-                </div>
-
-                <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
+                <div className="flex gap-4 justify-center md:justify-end">
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary" size="md">
-                        Guardar cambios
+                    <Button type="submit" variant="primary" size="md" disabled={submitting}>
+                        {submitting ? "Guardando..." : "Guardar cambios"}
                     </Button>
                 </div>
 

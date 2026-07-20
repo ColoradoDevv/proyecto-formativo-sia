@@ -185,3 +185,24 @@ STATIC_URL = 'static/'
 # MEDIA_URL: prefijo de la URL para acceder a ellos desde el navegador.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# URL base del frontend.
+# Se usa para construir enlaces que se envian por correo (ej. reset de contrasena).
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+
+# Configuracion de correo.
+# Por defecto usamos el backend de consola: los correos NO se envian,
+# se imprimen en la terminal donde corre el servidor. Ideal para desarrollo.
+# En produccion, define EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+# junto con EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, etc.
+EMAIL_BACKEND = os.getenv(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '25'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@sia.local')

@@ -25,8 +25,12 @@ class LoanReturn(models.Model):
         null=False
     )
 
-    # Cantidad sobrante: obligatoria SOLO si el material es de consumo, opcional si es devolutivo
+    # Cantidad sobrante: aplica a materiales de consumo (se reintegra al stock).
     leftover_quantity = models.IntegerField(null=True)
+
+    # Cantidad devuelta: aplica a materiales devolutivos. Si es menor a la
+    # prestada, la devolucion queda "Incompleta".
+    returned_quantity = models.IntegerField(null=True)
 
     # Observaciones del receptor de la devolucion - obligatorio segun diccionario
     observations = models.CharField(max_length=255)

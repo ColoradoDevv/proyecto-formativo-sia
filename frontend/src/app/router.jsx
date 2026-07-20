@@ -4,10 +4,10 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // Imports Auth
-import { LoginPage, ProtectedRoute } from "@/features/auth"
+import { LoginPage, ProtectedRoute, ForgotPasswordPage, ResetPasswordPage } from "@/features/auth"
 
 // Imports Inicio
-import { HomePage } from "@/features/home";
+import { DashboardPage } from "@/features/dashboard";
 
 // Imports Usuarios 
 import { UserHomePage, UserCreatePage, UserDetailPage, UserEditPage} from "@/features/users";
@@ -19,9 +19,8 @@ import { CmHomePage, CmCreatePage, CmDetailPage, CmEditPage } from "@/features/c
 import { RmHomePage, RmCreatePage, RmDetailPage, RmEditPage } from "@/features/returnable-material";
 
 // Imports de Prestamos
-import { LoansHomePage, LoansCreatePage } from "@/features/loans";
+import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage } from "@/features/loans";
 
-import { TmCreatePage, BrandDetailPage, BrandEditPage } from "@/features/trademarks";
 import { ConfigLayout, MainLayout } from "@/shared";
 
 
@@ -30,13 +29,15 @@ export default function AppRouter() {
         <Routes>
             {/* ───────── Rutas PUBLICAS ───────── */}
             <Route path="/iniciar-sesion" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* ───────── Rutas PRIVADAS (requieren sesion) ───────── */}
             <Route element={<ProtectedRoute />}>
 
                 {/* Inicio - Home */}
                 <Route path="/" element={<MainLayout />}>
-                    <Route index element={<HomePage />} />
+                    <Route index element={<DashboardPage />} />
                 </Route>
 
                 {/* CRUD de Usuario */}
@@ -67,14 +68,13 @@ export default function AppRouter() {
                 <Route path="/prestamos" element={<MainLayout />}>
                     <Route index element={<LoansHomePage />} />
                     <Route path="crear" element={<LoansCreatePage />} />
+                    <Route path="visualizar/:id" element={<LoansDetailPage />} />
+                    <Route path="editar/:id" element={<LoansEditPage />} />
                 </Route>
 
-                {/* Marcas */}
+                {/* Marcas: se gestionan desde la pestaña de configuración (modales) */}
                 <Route path="/marcas" element={<MainLayout />}>
                     <Route index element={<Navigate to="/configuracion" replace />} />
-                    <Route path="crear" element={<TmCreatePage />} />
-                    <Route path="visualizar/:id" element={<BrandDetailPage />} />
-                    <Route path="editar/:id" element={<BrandEditPage />} />
                 </Route>
 
 

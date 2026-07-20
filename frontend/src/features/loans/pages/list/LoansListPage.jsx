@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { RegisterButton, DownloadReportButton } from "@/shared";
 import DataTable from "@/shared/components/DataTable";
 import { loansColumns } from "../../table/LoansColumns";
 import { loansReportConfig } from "../../reports/loansReportConfig.js";
@@ -7,14 +6,30 @@ import useLoans from "../../hooks/useLoans";
 import { TailChase } from "ldrs/react";
 import { CloudAlert, Plus, Download } from "lucide-react";
 import Alert from "@mui/material/Alert";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/shared"
+import ReturnLoanModal from "../../components/ReturnLoanModal";
 
 
 
 export default function LoansListPage() {
-    const { loans, loading, error } = useLoans();
+    const navigate = useNavigate();
+    const { loans, setLoans, loading, error } = useLoans();
     const [notification, setNotification] = useState(null);
+
+    // Modal de devolución: préstamo seleccionado.
+    const [returningLoan, setReturningLoan] = useState(null);
+
+    // Tras devolver: marca el préstamo como finalizado en la lista.
+    const handleReturned = (loanId) => {
+        setLoans((prev) =>
+            prev.map((l) =>
+                l.id_loan === loanId ? { ...l, state: "Finalizado", is_active: false } : l
+            )
+        );
+    };
+
+    const columns = loansColumns({ onReturn: setReturningLoan });
 
     if (loading)
         return (
@@ -37,7 +52,7 @@ export default function LoansListPage() {
         );
 
     return (
-        <div className="h-full p-6 text-text-primary">
+        <div className="h-full p-4 sm:p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h2 className="text-h3 font-heading">
                     Listado de Préstamos
@@ -47,10 +62,10 @@ export default function LoansListPage() {
                         {notification.message}
                     </Alert>
                 )}
-                <div className="grid grid-cols-2 gap-4">
-                    <Link to="/prestamos/crear">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Link to="/prestamos/crear" className="w-full">
                         <Button
-                            className="self-start md:self-auto"
+                            className="w-full"
                             variant="soft"
                             icon={Plus}
                         >
@@ -61,7 +76,7 @@ export default function LoansListPage() {
                     <Button
                         data={loans}
                         reportConfig={loansReportConfig}
-                        className="self-start md:self-auto"
+                        className="w-full"
                         icon={Download}
                     >
                         Descargar Reporte
@@ -69,7 +84,19 @@ export default function LoansListPage() {
                 </div>
             </div>
 
-            <DataTable data={loans} columns={loansColumns} />
+            {/* Doble click en una fila navega al detalle del préstamo */}
+            <DataTable
+                data={loans}
+                columns={columns}
+                onRowDoubleClick={(loan) => navigate(`/prestamos/visualizar/${loan.id_loan}`)}
+            />
+
+            <ReturnLoanModal
+                isOpen={Boolean(returningLoan)}
+                onClose={() => setReturningLoan(null)}
+                loan={returningLoan}
+                onReturned={handleReturned}
+            />
         </div>
     );
 }

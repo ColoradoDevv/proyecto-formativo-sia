@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Switch, cancelAlert } from "@/shared";
 
-export default function ActiveSwitch({ id, isActive, toggleFn, entity = "material" }) {
+export default function ActiveSwitch({ id, isActive, toggleFn, entity = "material", size = "md" }) {
     const [active, setActive] = useState(isActive);
 
     const handleChange = async (value) => {
@@ -24,5 +24,5 @@ export default function ActiveSwitch({ id, isActive, toggleFn, entity = "materia
         }
     };
 
-    return <Switch checked={active} onChange={handleChange} className="inline-flex" />;
+    return <Switch checked={active} onChange={handleChange} size={size} className="inline-flex" />;
 }

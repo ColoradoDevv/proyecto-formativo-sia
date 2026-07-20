@@ -10,6 +10,7 @@ class LoanSerializer(serializers.ModelSerializer):
 
     usuario = serializers.SerializerMethodField()
     material = serializers.SerializerMethodField()
+    material_type = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
 
     class Meta:
@@ -23,13 +24,17 @@ class LoanSerializer(serializers.ModelSerializer):
             'justification_use',
             'return_date',
             'loan_date',
+            'state',
             'usuario',
             'material',
+            'material_type',
             'is_active',
         ]
         extra_kwargs = {
             # return_date no tiene auto_now_add, el frontend debe enviarlo
             'return_date': {'required': True},
+            # state no se envia al crear; se gestiona por el flujo de devolucion
+            'state': {'read_only': True},
         }
 
     def get_usuario(self, obj):
@@ -38,6 +43,11 @@ class LoanSerializer(serializers.ModelSerializer):
     def get_material(self, obj):
         return obj.id_material.name
 
+    def get_material_type(self, obj):
+        # "devolutivo" si el material tiene su registro ReturnableMaterial; si no, "consumo".
+        return "devolutivo" if hasattr(obj.id_material, "returnablematerial") else "consumo"
+
     def get_is_active(self, obj):
-        # Un prestamo sigue activo mientras no tenga un retorno registrado
-        return not obj.loanreturn_set.exists()
+        # Un prestamo esta activo solo mientras siga en estado "Activo"
+        # (Finalizado o Incompleto significan que ya fue devuelto).
+        return obj.state == 'Activo'

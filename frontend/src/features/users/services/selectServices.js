@@ -1,4 +1,4 @@
-import { apiFetch } from "@/shared/services/api";
+import { apiFetch, throwApiError } from "@/shared/services/api";
 
 export async function getDocumentTypes(){
     const response = await apiFetch("/api/users/document-types/");
@@ -57,4 +57,18 @@ export async function getUserGroups(){
         label: item.name,
     }));
 
+}
+
+// METODO POST (crear un nuevo grupo de usuario)
+export async function createUserGroup(name){
+    const response = await apiFetch("/api/permissions/groups/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+    });
+
+    if (!response.ok) await throwApiError(response, { name: "groups" });
+
+    const data = await response.json();
+    return { id: data.id, label: data.name };
 }

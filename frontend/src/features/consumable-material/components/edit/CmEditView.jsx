@@ -1,22 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, SelectInput, TextArea, showAlert, cancelAlert } from "@/shared";
-import EditCard from "./EditCard.jsx";
+import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useCm from "../../hooks/useCm";
-import { getBrands, getUsers } from "../../services/selectServices";
+import { getBrands, getUsers, createBrand } from "../../services/selectServices";
 import { updateCm } from "../../services/consumableService";
+import { cmEditSchema } from "../../schemas/cmSchema";
+import ConsumableForm from "../ConsumableForm";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
-
-const STATE_OPTIONS = [
-    { id: "Disponible",    label: "Disponible"    },
-    { id: "No Disponible", label: "No Disponible" },
-    { id: "Mantenimiento", label: "Mantenimiento" },
-    { id: "Traslado",      label: "Traslado"      },
-    { id: "En prestamo",   label: "En prestamo"   },
-    { id: "Baja",          label: "Baja"          },
-];
 
 // Componente externo: maneja el fetch, loading y error
 export default function CmEditView() {
@@ -29,6 +21,13 @@ export default function CmEditView() {
     useEffect(() => { getBrands().then(setBrands); }, []);
     useEffect(() => { getUsers().then(setUsers);   }, []);
 
+    // Crea una marca nueva, la agrega a las opciones y la devuelve al form.
+    const handleCreateBrand = async (name) => {
+        const option = await createBrand(name);
+        setBrands((prev) => [...prev, option]);
+        return option;
+    };
+
     if (loading)
         return (
             <div className="h-full flex items-center justify-center">
@@ -38,11 +37,11 @@ export default function CmEditView() {
 
     if (error) return <p>Error al cargar material: {error.message}</p>;
 
-    return <CmEditForm id={id} CM={CM} brands={brands} users={users} />;
+    return <CmEditForm id={id} CM={CM} brands={brands} users={users} onCreateBrand={handleCreateBrand} />;
 }
 
 // Componente interno: recibe CM ya cargado e inicializa el estado directamente
-function CmEditForm({ id, CM, brands, users }) {
+function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
@@ -62,6 +61,8 @@ function CmEditForm({ id, CM, brands, users }) {
         user:         CM.user?.id != null ? String(CM.user.id) : "",
         purchaseDate: CM.purchase_date ?? "",
     });
+
+    const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -83,8 +84,6 @@ function CmEditForm({ id, CM, brands, users }) {
         });
     };
 
-    const hasSenaPlate = formData.senaPlate.trim() !== "";
-
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -96,11 +95,25 @@ function CmEditForm({ id, CM, brands, users }) {
     async function handleSubmit(e) {
         e.preventDefault();
 
+        const result = cmEditSchema.safeParse(formData);
+
+        if (!result.success) {
+            const fieldErrors = {};
+            result.error.issues.forEach((issue) => {
+                fieldErrors[issue.path[0]] = issue.message;
+            });
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+
         try {
             await updateCm(id, { ...formData, photo: photoFile });
             await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material de consumo actualizado exitosamente" });
             navigate(-1);
         } catch (error) {
+            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
             showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar material de consumo", text: error.message });
         }
     }
@@ -113,173 +126,58 @@ function CmEditForm({ id, CM, brands, users }) {
     const isActive = CM.is_active;
 
     return (
-        <div className="h-full p-4 text-text-primary flex flex-col gap-4">
+        <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
             {/* Encabezado */}
             <div className="flex items-center gap-3">
-                <IconButton onClick={() => navigate(-1)} variant="ghost">
-                    <Undo2 />
+                <IconButton onClick={handleCancel} variant="ghost">
+                    <Undo2 size={18}/>
                 </IconButton>
                 <div>
-                    <h2 className="text-h3">Editar Material de Consumo</h2>
-                    <p className="text-small text-text-muted">Modifica la información del material.</p>
+                    <h2 className="text-primary">Editar Material de Consumo</h2>
                 </div>
             </div>
 
-            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-                {/* Información General — 3 columnas con foto integrada */}
-                <EditCard title="Información General" cols={3}>
-
-                    {/* Col 1 */}
-                    <div className="flex flex-col gap-3">
-                        <Input
-                            label="Nombre"
-                            name="name"
-                            placeholder="Nombre del material"
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Placa SENA"
-                            name="senaPlate"
-                            placeholder="Placa SENA (opcional)"
-                            value={formData.senaPlate}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* Col 2 */}
-                    <div className="flex flex-col gap-3">
-                        <SelectInput
-                            label="Marca"
-                            name="brand"
-                            options={brands}
-                            value={formData.brand}
-                            onChange={handleChange}
-                            required
-                        />
-                        <SelectInput
-                            label="Cuentadante"
-                            name="user"
-                            options={users}
-                            value={formData.user}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    {/* Col 3 — foto ocupa fila 1 y 2 */}
-                    <div className="row-span-2 flex flex-col items-center justify-center gap-3">
-                        <div className="relative">
-                            <div className="size-32 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                                {photoPreview
-                                    ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-cover" />
-                                    : <ImageOff size={48} className="text-text-muted" />
-                                }
+                <ConsumableForm
+                    formData={formData}
+                    errors={errors}
+                    onChange={handleChange}
+                    brands={brands}
+                    users={users}
+                    onCreateBrand={onCreateBrand}
+                    photoSlot={
+                        <>
+                            <div className="relative">
+                                <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
+                                    {photoPreview
+                                        ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-cover" />
+                                        : <ImageOff size={40} className="text-text-muted" />
+                                    }
+                                </div>
+                                <button
+                                    type="button"
+                                    aria-label="Cambiar foto del material"
+                                    onClick={() => photoInputRef.current.click()}
+                                    className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
+                                >
+                                    <Pencil size={13} />
+                                </button>
+                                <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    hidden
+                                    accept=".jpg,.jpeg,.png,.svg"
+                                    onChange={handlePhotoChange}
+                                />
                             </div>
-                            <button
-                                type="button"
-                                aria-label="Cambiar foto del material"
-                                onClick={() => photoInputRef.current.click()}
-                                className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
-                            >
-                                <Pencil size={13} />
-                            </button>
-                            <input
-                                ref={photoInputRef}
-                                type="file"
-                                hidden
-                                accept=".jpg,.jpeg,.png,.svg"
-                                onChange={handlePhotoChange}
-                            />
-                        </div>
-                        <span className={`px-3 py-0.5 rounded-[var(--radius-full)] text-caption font-medium ${isActive ? "bg-success-soft text-success" : "bg-error-soft text-error"}`}>
-                            {isActive ? "Activo" : "Inactivo"}
-                        </span>
-                    </div>
+                            <StatusBadge active={isActive} />
+                        </>
+                    }
+                />
 
-                    {/* Descripción — ocupa cols 1 y 2 en fila 2 */}
-                    <div className="col-span-2">
-                        <TextArea
-                            label="Descripción"
-                            name="description"
-                            placeholder="Descripción del material"
-                            value={formData.description}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                </EditCard>
-
-                {/* Inventario y Valores lado a lado */}
-                <div className="grid grid-cols-2 gap-6 ">
-
-                    <EditCard title="Inventario">
-                        <Input
-                            label="Cantidad"
-                            name="quantity"
-                            type="number"
-                            min="1"
-                            step="1"
-                            placeholder="Cantidad"
-                            value={formData.quantity}
-                            onChange={handleChange}
-                            disabled={hasSenaPlate}
-                            hint={hasSenaPlate ? "La cantidad es 1 porque el material tiene placa SENA, no es editable." : undefined}
-                        />
-                        <Input
-                            label="Ubicación"
-                            name="location"
-                            placeholder="Ubicación del material"
-                            value={formData.location}
-                            onChange={handleChange}
-                        />
-                        <SelectInput
-                            label="Estado"
-                            name="state"
-                            options={STATE_OPTIONS}
-                            value={formData.state}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Fecha de compra"
-                            name="purchaseDate"
-                            type="date"
-                            value={formData.purchaseDate}
-                            onChange={handleChange}
-                            required
-                        />
-                    </EditCard>
-
-                    <EditCard title="Valores">
-                        <Input
-                            label="Valor Unitario"
-                            name="unitPrice"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="Valor unitario"
-                            value={formData.unitPrice}
-                            onChange={handleChange}
-                            required
-                        />
-                        <Input
-                            label="Valor Total"
-                            name="totalPrice"
-                            type="number"
-                            placeholder="Calculado automáticamente"
-                            value={formData.totalPrice}
-                            readOnly
-                        />
-                    </EditCard>
-
-                </div>
-
-                <div className="flex gap-4 justify-end">
+                <div className="flex gap-4 justify-center md:justify-end">
                     <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
                         Cancelar
                     </Button>

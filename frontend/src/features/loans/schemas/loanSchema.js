@@ -9,6 +9,19 @@ function getTodayDateString() {
     return `${year}-${month}-${day}`;
 }
 
+// Comprueba que el string sea una fecha real (rechaza "2024-13-40", "0000-00-00").
+function isValidDateString(value) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [y, m, d] = value.split("-").map(Number);
+    const date = new Date(`${value}T00:00:00`);
+    return (
+        !Number.isNaN(date.getTime()) &&
+        date.getFullYear() === y &&
+        date.getMonth() + 1 === m &&
+        date.getDate() === d
+    );
+}
+
 export const loanSchema = z.object({
     loanUser: z
         .string()
@@ -46,6 +59,7 @@ export const loanSchema = z.object({
     loanReturnDate: z
         .string()
         .min(1, "Debe ingresar la fecha de devolucion")
+        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" })
         .refine((value) => value >= getTodayDateString(), {
             message: "La fecha de devolucion no puede ser anterior a hoy",
         }),

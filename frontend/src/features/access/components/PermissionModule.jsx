@@ -1,73 +1,113 @@
-import { Checkbox, Select, Switch, Button, Input } from "@/shared";
+import { Pencil } from "lucide-react";
+import { Checkbox, AccordionItem, Button, IconButton } from "@/shared";
+import { PERMISSION_MODULES } from "../constants/permissionModules";
 
+// Contador "X/Y" mostrado junto al título de cada módulo.
+function ModuleHeader({ title, active, total }) {
+  return (
+    <span className="flex items-center gap-3">
+      <span>{title}</span>
+      <span
+        className={`text-caption font-medium px-2 py-0.5 rounded-[var(--radius-full)] ${
+          active === 0
+            ? "bg-surface-muted text-text-muted"
+            : "bg-text-primary text-text-inverse"
+        }`}
+      >
+        {active}/{total}
+      </span>
+    </span>
+  );
+}
 
-export default function PermissionModule({   
-  groupPermissions }) {
+export default function PermissionModule({
+  selectedGroup,
+  selectedUser,
+  isEditing,
+  saving,
+  permissionsDraft,
+  setPermissionsDraft,
+  onEdit,
+  onCancel,
+  onSave,
+}) {
+  const target = selectedGroup || selectedUser;
 
+  const hasPermission = (codename) =>
+    permissionsDraft.some((permission) => permission.codename === codename);
+
+  const countActive = (permissions) =>
+    permissions.filter((permission) => hasPermission(permission.codename)).length;
+
+  // En modo edicion solo se toca el borrador; nada se persiste hasta "Guardar".
+  function handlePermissionChange(codename, checked) {
+    setPermissionsDraft((prev) =>
+      checked
+        ? [...prev, { codename }]
+        : prev.filter((permission) => permission.codename !== codename)
+    );
+  }
+
+  if (!target) {
+    return (
+      <div className="rounded-[var(--radius-2xl)] border border-border bg-surface-hover p-8 text-center text-text-muted">
+        Seleccione un grupo o usuario para ver y editar sus permisos.
+      </div>
+    );
+  }
 
   return (
-    <section className="border rounded-lg p-6">
-      <h2 className="text-h3 font-heading mb-4">Gestión usuarios</h2>
-
-
-      <div className="flex flex-wrap gap-6">
-        <Checkbox
-          id="create_user"
-          name="create_user"
-          label="Crear usuarios"
-          checked={groupPermissions.some(
-            (permission) => permission.permission_codename === "create_user",
-          )}
-          onChange={() => {}}
-        />
-
-
-        <Checkbox
-          id="list_user"
-          name="list_user"
-          label="Listar usuarios"
-          checked={groupPermissions.some(
-            (permission) => permission.permission_codename === "list_user",
-          )}
-          onChange={() => {}}
-        />
-        <Checkbox
-          id="update_user"
-          name="update_user"
-          label="Actualizar usuarios"
-          checked={groupPermissions.some(
-            (permission) => permission.permission_codename === "update_user",
-          )}
-          onChange={() => {}}
-        />
-        <Checkbox
-          id="deactivate_user"
-          name="deactivate_user"
-          label="Deshabilitar usuarios"
-          checked={groupPermissions.some(
-            (permission) => permission.permission_codename === "deactivate_user",
-          )}
-          onChange={() => {}}
-        />
-        <Checkbox
-          id="view_user"
-          name="view_user"
-          label="Ver usuarios"
-          checked={groupPermissions.some(
-            (permission) => permission.permission_codename === "view_user",
-          )}
-          onChange={() => {}}
-        />
-        <Checkbox
-          id="generate_report_user"
-          name="generate_report_user"
-          label="Generar reporte de usuarios"
-          checked={groupPermissions.some(
-            (permission) => permission.permission_codename === "generate_report_user",
-          )}
-          onChange={() => {}}
-        />
+    <div className="flex flex-col gap-4">
+      {/* Barra de acciones: editar / cancelar / guardar */}
+      <div className="flex items-center justify-between gap-3 min-h-[var(--size-control-xl)]">
+        <p className="text-medium text-text-secondary">
+          {isEditing ? "Editando permisos" : "Permisos asignados"}
+        </p>
+        {!isEditing ? (
+          <IconButton ariaLabel="Editar permisos" onClick={onEdit} variant="primary">
+            <Pencil size={20} />
+          </IconButton>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Button variant="secondary" size="md" onClick={onCancel} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button variant="primary" size="md" onClick={onSave} disabled={saving}>
+              {saving ? "Guardando..." : "Guardar"}
+            </Button>
+          </div>
+        )}
       </div>
-    </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 max-h-[75vh] overflow-y-auto pr-2">
+        {PERMISSION_MODULES.map((module) => (
+          <AccordionItem
+            key={module.title}
+            title={
+              <ModuleHeader
+                title={module.title}
+                active={countActive(module.permissions)}
+                total={module.permissions.length}
+              />
+            }
+            defaultOpen={module.title === "Gestión usuarios"}
+          >
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 pt-4">
+              {module.permissions.map(({ codename, label }) => (
+                <Checkbox
+                  key={codename}
+                  id={codename}
+                  name={codename}
+                  label={label}
+                  checked={hasPermission(codename)}
+                  disable={!isEditing}
+                  onChange={(e) => handlePermissionChange(codename, e.target.checked)}
+                />
+              ))}
+            </div>
+          </AccordionItem>
+        ))}
+      </div>
+    </div>
   );
 }

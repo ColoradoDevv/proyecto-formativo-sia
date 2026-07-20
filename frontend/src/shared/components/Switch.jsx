@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Check, X } from "lucide-react";
 
 export default function StatusSwitch({
@@ -9,18 +8,10 @@ export default function StatusSwitch({
     size = "md",
 }){
 
-    const [ isActive, setIsActive ] = useState(checked)
-
-    useEffect(() => {
-        setIsActive(checked);
-    }, [checked]);
-
     const handleToggle = () => {
         if(disabled) return;
-        const newValue = !isActive;
-        setIsActive(newValue);
         if (onChange){
-            onChange(newValue);
+            onChange(!checked);
         }
     };
 
@@ -43,8 +34,9 @@ export default function StatusSwitch({
             className={`
                 relative items-center
                 rounded-full transition-colors
+                
                 ${sizes[size]}
-                ${isActive ? "bg-brand" : "bg-surface-muted"}
+                ${checked ? "bg-brand" : "bg-surface-muted border"}
                 ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                 ${className}
             `}
@@ -52,13 +44,13 @@ export default function StatusSwitch({
             <span
                 className={`
                     absolute left-0.5 flex items-center justify-center
-                    rounded-full bg-surface-hover shadow
+                    rounded-full bg-surface-hover sh
                     transition-transform
                     ${knobSizes[size]}
-                    ${isActive ? "translate-x-full" : "translate-x-0"}
+                    ${checked ? "translate-x-full" : "translate-x-0"}
                 `}
             >
-                {isActive ? (
+                {checked ? (
                     <Check size={12} className="text-brand"/>
                 ) : (
                     <X size={12} className="text-text-muted"/>

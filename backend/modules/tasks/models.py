@@ -5,32 +5,39 @@ from django.conf import settings
 
 
 class Task(models.Model):
-    # Tarea asignada a un usuario dentro del sistema.
+    # Tarea asignada a un usuario dentro del sistema (RFADMIN46-49).
 
-    # Estados permitidos segun diccionario (Activa / Inactiva)
+    # Estados permitidos segun requerimiento.
     STATE_CHOICES = [
-        ('Activa', 'Activa'),
-        ('Inactiva', 'Inactiva'),
+        ('Pendiente', 'Pendiente'),
+        ('En progreso', 'En progreso'),
+        ('Completada', 'Completada'),
+        ('Cancelada', 'Cancelada'),
     ]
 
     # PK, AI, unico — generado automaticamente por Django
     id = models.AutoField(primary_key=True)
 
-    # FK al usuario al que le pertenece la tarea — obligatorio segun diccionario
+    # FK al usuario asignado — obligatorio. Una tarea se asigna a un solo
+    # usuario y no puede reasignarse una vez creada.
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.RESTRICT,  # No se puede borrar usuario si tiene tareas
         null=False
     )
 
-    # Nombre de la tarea — obligatorio segun diccionario
+    # Titulo de la tarea — obligatorio.
     name = models.CharField(max_length=100)
 
-    # Descripcion de la tarea — obligatorio segun diccionario
+    # Descripcion de la tarea — obligatorio.
     description = models.CharField(max_length=255)
 
-    # Estado actual de la tarea — obligatorio segun diccionario
-    state = models.CharField(max_length=20, choices=STATE_CHOICES)
+    # Fechas de la tarea. La fecha de fin no puede ser anterior a la de inicio.
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    # Estado actual de la tarea — por defecto "Pendiente".
+    state = models.CharField(max_length=20, choices=STATE_CHOICES, default='Pendiente')
 
     class Meta:
         db_table = 'Tareas'

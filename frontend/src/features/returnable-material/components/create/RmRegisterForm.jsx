@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-import { getBrands, getStates, getCategories } from "../../services/selectServices";
+import { getBrands, getStates, getCategories, createBrand, createCategory } from "../../services/selectServices";
 import { createRM } from "../../services/returnableService";
-
-import { Input, FileInput, Button, SelectInput, TextArea, showAlert, cancelAlert } from "@/shared";
+import { FileInput, Button, showAlert, cancelAlert } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
+import ReturnableForm from "../ReturnableForm";
 
 export default function RmRegisterForm() {
     const navigate = useNavigate();
@@ -14,20 +13,22 @@ export default function RmRegisterForm() {
     const [states, setStates] = useState([]);
     const [submitting, setSubmitting] = useState(false);
 
+    // Convencion de nombres unificada con ReturnableForm y el edit.
     const [formData, setFormData] = useState({
-        rmSenaPlate: "",
-        rmName: "",
-        rmState: "",
-        rmCategory: "",
-        rmBrand: "",
-        rmSerial: "",
-        rmQuantity: "",
-        rmUnitValue: "",
-        rmTotalValue: "",
-        rmDescription: "",
-        rmPurchaseDate: "",
-        rmTechnicalSheet: [],
-        rmPhoto: [],
+        senaPlate: "",
+        name: "",
+        state: "",
+        category: "",
+        brand: "",
+        serial: "",
+        quantity: "",
+        location: "",
+        unitPrice: "",
+        totalPrice: "",
+        description: "",
+        purchaseDate: "",
+        technicalSheet: [],
+        photo: [],
     });
     const [errors, setErrors] = useState({});
 
@@ -37,11 +38,33 @@ export default function RmRegisterForm() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData((prev) => {
+            const updated = { ...prev, [name]: value };
+            // Calcular total automaticamente
+            const quantity  = name === "quantity"  ? value : updated.quantity;
+            const unitPrice = name === "unitPrice" ? value : updated.unitPrice;
+            if (quantity && unitPrice) {
+                const total = (parseFloat(quantity) * parseFloat(unitPrice)).toFixed(2);
+                updated.totalPrice = isNaN(total) ? "" : total;
+            }
+            return updated;
+        });
     };
 
     const handleFileChange = (name) => (files) => {
-        setFormData({ ...formData, [name]: files });
+        setFormData((prev) => ({ ...prev, [name]: files }));
+    };
+
+    // Crea marca/categoria nueva, la agrega a las opciones y la devuelve al form.
+    const handleCreateBrand = async (name) => {
+        const option = await createBrand(name);
+        setBrands((prev) => [...prev, option]);
+        return option;
+    };
+    const handleCreateCategory = async (name) => {
+        const option = await createCategory(name);
+        setCategories((prev) => [...prev, option]);
+        return option;
     };
 
     async function handleCancel() {
@@ -79,164 +102,60 @@ export default function RmRegisterForm() {
     };
 
     return (
-        <>
-            <div className="grid grid-cols-1 my-2 mx-4 justify-items-center p-4">
-                <div className="grid lg:grid-cols-3 justify-items-center">
-                    <div className="grid gap-2 justify-items-left">
-                        <h1 className="text-h2">Crear Material Devolutivo</h1>
-                        <h1 className="hidden lg:block text-small text-text-muted">
-                            Acá podrás crear un material devolutivo con los datos correspondientes
-                        </h1>
-                    </div>
-                </div>
+        <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
-                <form noValidate onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full">
-                    <div className="grid grid-cols-1 lg:flex gap-8 items-start w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-x-8 gap-y-4">
-                            <Input
-                                label="Placa Sena"
-                                name="rmSenaPlate"
-                                placeholder="Ingrese la Placa Sena"
-                                value={formData.rmSenaPlate}
-                                onChange={handleChange}
-                                error={errors.rmSenaPlate}
-                                required
-                            />
-                            <Input
-                                label="Nombre"
-                                name="rmName"
-                                placeholder="Ingrese nombre del Material"
-                                value={formData.rmName}
-                                onChange={handleChange}
-                                error={errors.rmName}
-                                required
-                            />
-                            <SelectInput
-                                label="Estado"
-                                name="rmState"
-                                options={states}
-                                value={formData.rmState}
-                                onChange={handleChange}
-                                error={errors.rmState}
-                                required
-                            />
-                            <SelectInput
-                                label="Categoría"
-                                name="rmCategory"
-                                options={categories}
-                                value={formData.rmCategory}
-                                onChange={handleChange}
-                                error={errors.rmCategory}
-                                required
-                            />
-                            <SelectInput
-                                label="Marca"
-                                name="rmBrand"
-                                options={brands}
-                                value={formData.rmBrand}
-                                onChange={handleChange}
-                                error={errors.rmBrand}
-                                required
-                            />
-                            <Input
-                                label="Serial"
-                                name="rmSerial"
-                                placeholder="Ingrese el Serial del Material"
-                                value={formData.rmSerial}
-                                onChange={handleChange}
-                                error={errors.rmSerial}
-                                required
-                            />
-                            <Input
-                                label="Cantidad"
-                                name="rmQuantity"
-                                type="number"
-                                placeholder="Ingrese la cantidad"
-                                min="1"
-                                step="1"
-                                value={formData.rmQuantity}
-                                onChange={handleChange}
-                                error={errors.rmQuantity}
-                                required
-                            />
-                            <Input
-                                label="Valor Unitario"
-                                name="rmUnitValue"
-                                type="number"
-                                placeholder="Ingrese el valor unitario"
-                                min="0"
-                                step="0.01"
-                                value={formData.rmUnitValue}
-                                onChange={handleChange}
-                                error={errors.rmUnitValue}
-                                required
-                            />
-                            <Input
-                                label="Valor Total"
-                                name="rmTotalValue"
-                                type="number"
-                                placeholder="Ingrese el valor total"
-                                min="0"
-                                step="0.01"
-                                value={formData.rmTotalValue}
-                                onChange={handleChange}
-                                error={errors.rmTotalValue}
-                                required
-                            />
-                            <Input
-                                label="Fecha de Compra"
-                                name="rmPurchaseDate"
-                                type="date"
-                                value={formData.rmPurchaseDate}
-                                onChange={handleChange}
-                                error={errors.rmPurchaseDate}
-                                required
-                            />
-                            <TextArea
-                                label="Descripción"
-                                name="rmDescription"
-                                placeholder="Descripción del material"
-                                value={formData.rmDescription}
-                                onChange={handleChange}
-                                error={errors.rmDescription}
-                                required
-                            />
-                        </div>
-
-                        <div className="grid justify-items-center md:flex-row lg:flex-col md:flex gap-4">
-                            <FileInput
-                                label="Foto del Producto (Opcional)"
-                                name="rmPhoto"
-                                placeholder="Subir foto"
-                                value={formData.rmPhoto}
-                                onChange={handleFileChange("rmPhoto")}
-                                error={errors.rmPhoto}
-                                accept="image/*"
-                                className="w-[var(--size-field-sm)] h-[var(--size-preview-md)]"
-                            />
-                            <FileInput
-                                label="Ficha Técnica (Opcional)"
-                                name="rmTechnicalSheet"
-                                placeholder="Ingrese la ficha técnica"
-                                value={formData.rmTechnicalSheet}
-                                onChange={handleFileChange("rmTechnicalSheet")}
-                                error={errors.rmTechnicalSheet}
-                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                className="w-[var(--size-field-sm)] h-[var(--size-preview-sm)]"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
-                            Cancelar
-                        </Button>
-                        <Button type="submit" variant="primary" size="md" disabled={submitting}>
-                            {submitting ? "Guardando..." : "Crear"}
-                        </Button>
-                    </div>
-                </form>
+            <div>
+                <h2 className="text-primary">Crear Material Devolutivo</h2>
             </div>
-        </>
+
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
+
+                <ReturnableForm
+                    formData={formData}
+                    errors={errors}
+                    onChange={handleChange}
+                    categories={categories}
+                    brands={brands}
+                    states={states}
+                    onCreateBrand={handleCreateBrand}
+                    onCreateCategory={handleCreateCategory}
+                    photoSlot={
+                        <div className="w-full sm:w-[var(--size-field-sm)] flex flex-col gap-4">
+                            <FileInput
+                                label="Foto del Material (Opcional)"
+                                name="photo"
+                                placeholder="Subir foto"
+                                value={formData.photo}
+                                onChange={handleFileChange("photo")}
+                                error={errors.photo}
+                                accept="image/*"
+                                className="w-full h-25"
+                            />
+                            <FileInput
+                                label="Ficha Técnica (Opcional, máx. 3)"
+                                name="technicalSheet"
+                                placeholder="Ingrese la ficha técnica"
+                                value={formData.technicalSheet}
+                                onChange={handleFileChange("technicalSheet")}
+                                error={errors.technicalSheet}
+                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                multiple
+                                maxFiles={3}
+                                className="w-full h-25"
+                            />
+                        </div>
+                    }
+                />
+
+                <div className="flex gap-4 justify-center md:justify-end">
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" variant="primary" size="md" disabled={submitting}>
+                        {submitting ? "Guardando..." : "Crear"}
+                    </Button>
+                </div>
+            </form>
+        </div>
     );
 }
