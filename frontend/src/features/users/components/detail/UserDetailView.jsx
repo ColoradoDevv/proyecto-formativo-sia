@@ -50,8 +50,8 @@ export default function UserDetailView() {
                         {/* Foto + estado */}
                         <div className="flex flex-col items-center gap-2 shrink-0">
                             <div className="w-24 h-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                                {user.profilePicture
-                                    ? <img src={user.profilePicture} alt={user.first_name} className="w-full h-full object-cover" />
+                                {user.profile_picture
+                                    ? <img src={user.profile_picture} alt={user.first_name} className="w-full h-full object-cover" />
                                     : <span className="text-h1 font-heading text-text-muted">{(user.first_name ?? "?")[0].toUpperCase()}</span>
                                 }
                             </div>

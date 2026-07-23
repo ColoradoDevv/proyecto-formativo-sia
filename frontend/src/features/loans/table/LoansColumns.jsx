@@ -4,10 +4,6 @@ import LoanStateBadge from "../components/LoanStateBadge";
 // Factory: recibe onReturn para que la fila pueda abrir el modal de devolución.
 export const loansColumns = ({ onReturn } = {}) => [
     {
-        accessorKey: "id_loan",
-        header: "Id",
-    },
-    {
         accessorKey: "usuario",
         header: "Usuario",
     },

@@ -4,10 +4,6 @@ import UserRowActions from "../components/list/UserRowActions";
 
 export const userColumns = [
     {
-        accessorKey: "id",
-        header: "ID",
-    },
-    {
         accessorFn: (row) => `${row.first_name} ${row.last_name}`,
         id: "nombre",
         header: "Nombre",

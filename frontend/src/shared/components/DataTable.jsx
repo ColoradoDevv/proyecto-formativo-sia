@@ -67,7 +67,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
       {/* ================== TOOLBAR ================== */}
       {/* Barra superior con buscador y selector de filas */}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between">
         {/* ================== BUSCADOR ================== */}
         {/* Filtra todas las columnas de la tabla */}
         <SearchField
@@ -84,7 +84,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
         <select
           value={table.getState().pagination.pageSize}
           onChange={(e) => table.setPageSize(Number(e.target.value))}
-          className="border border-border rounded px-2 py-2 bg-surface-hover shrink-0"
+          className="border border-border rounded-2xl px-2 py-2 bg-surface-hover shrink-0"
         >
           {[5, 10, 20, 30, 50].map((size) => (
             <option key={size} value={size}>
@@ -95,7 +95,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
       </div>
 
       {/* ================== TABLA ================== */}
-      <div className="overflow-x-auto border rounded">
+      <div className="overflow-x-auto border-border rounded-2xl">
         <table className="w-full">
           {/* ================== CABECERA ================== */}
           <thead className="bg-surface-muted">
@@ -128,11 +128,11 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
               <tr
                 key={row.id}
                 onDoubleClick={onRowDoubleClick ? () => onRowDoubleClick(row.original) : undefined}
-                className={`bg-surface-hover hover:bg-surface-muted ${onRowDoubleClick ? "cursor-pointer select-none" : ""}`}
+                className={`bg-surface-hover hover:bg-background ${onRowDoubleClick ? "cursor-pointer select-none" : ""}`}
               >
                 {/* Celdas visibles de cada fila */}
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="p-2 border-b mx-auto">
+                  <td key={cell.id} className="p-2 border-b border-border mx-auto">
                     {/* Render dinámico del contenido de la celda */}
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -209,7 +209,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
 
         {/* ================== IR A PÁGINA ================== */}
         {/* Permite navegar directamente a una página específica */}
-        <div className="flex items-center gap-2 text-small">
+        <div className="flex items-center gap-2 text-small rounded-2xl">
           <span>Ir a página:</span>
 
           <input
