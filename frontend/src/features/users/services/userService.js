@@ -228,3 +228,12 @@ export async function restoreUser(id) {
   if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();
 }
+
+// METODO POST (reenviar credenciales - genera nueva password y la envia por correo)
+export async function resendCredentials(id) {
+  const response = await apiFetch(`/api/users/${id}/resend-credentials/`, {
+    method: "POST",
+  });
+  if (!response.ok) await throwApiError(response, FIELD_MAP);
+  return response.json();
+}

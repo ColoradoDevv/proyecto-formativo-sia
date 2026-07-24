@@ -4,11 +4,14 @@
 # 
 
 from rest_framework import serializers
+from django.db import transaction
 
 from .models import User
 from .models import Role
 from .models import DocumentType
+from .utils import generate_secure_password, send_welcome_email
 from modules.permissions.models import Group
+
 
 class RoleSerializer(serializers.ModelSerializer):
     # Serializer para el modelo Role.
@@ -68,16 +71,31 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        # Al crear: sacamos la contraseña y la guardamos HASHEADA
-        password = validated_data.pop("password", None)
-        user = User(**validated_data)
-        if password:
-            user.set_password(password)   # hashea
-        user.save()
+        # Ignoramos cualquier password que llegue del frontend: siempre se genera
+        # automaticamente y se envia por correo, nunca la define el usuario.
+        validated_data.pop("password", None)
+        plain_password = generate_secure_password()
+
+        with transaction.atomic():
+            user = User(**validated_data)
+            user.set_password(plain_password)
+            user.save()
+
+            try:
+                send_welcome_email(user, plain_password)
+            except Exception:
+                # Si el correo falla, revertimos la creacion del usuario:
+                # de lo contrario quedaria una cuenta sin que nadie conozca su contraseña.
+                raise serializers.ValidationError(
+                    {"email": "No se pudo enviar el correo con las credenciales. Verifica el correo o intenta nuevamente."}
+                )
+
         return user
+    
 
     def update(self, instance, validated_data):
-        # Al actualizar: si viene contraseña, también se hashea
+        # El flujo de edicion no cambia: aqui si se respeta una password
+        # si el admin decide asignarla manualmente al editar.
         password = validated_data.pop("password", None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

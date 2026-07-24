@@ -16,6 +16,8 @@ from .serializers import UserSerializer
 from .serializers import RoleSerializer
 from .serializers import DocumentTypeSerializer
 from .serializers import UserTrashSerializer 
+from .utils import generate_secure_password, send_welcome_email
+
 
 class LoginView(APIView):
     # El login debe ser PUBLICO: nadie tiene token todavia al iniciar sesion.
@@ -261,7 +263,7 @@ class UserDocumentTypesListView(generics.ListAPIView):
 
 class UserTrashListView(generics.ListAPIView):
     # Lista de usuarios eliminados (papelera)
-    queryset = User.objects.all().filter(is_deleted=True).order_by("-deleted_at")
+    queryset = User.all_objects.filter(is_deleted=True).order_by("-deleted_at")
     serializer_class = UserTrashSerializer
 
 
@@ -277,5 +279,38 @@ class UserRestoreView(APIView):
         user.restore()
         return Response(
             {"mensaje": f"{user.first_name} {user.last_name} fue restaurado."},
+            status=status.HTTP_200_OK,
+        )
+        
+class ResendCredentialsView(APIView):
+    # Genera una nueva contraseña para un usuario existente y se la reenvia por correo.
+    # Util cuando el correo original no llego, fue a spam, o se corrigio un email mal escrito.
+
+    def post(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Usuario no encontrado"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        new_password = generate_secure_password()
+
+        try:
+            send_welcome_email(user, new_password)
+        except Exception:
+            return Response(
+                {"error": "No se pudo enviar el correo. Verifica el correo del usuario e intenta nuevamente."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Solo guardamos la nueva contrasena si el correo se envio con exito,
+        # para no dejar al usuario con una contrasena que nadie conoce.
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+
+        return Response(
+            {"mensaje": f"Credenciales reenviadas a {user.email}"},
             status=status.HTTP_200_OK,
         )

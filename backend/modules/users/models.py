@@ -96,7 +96,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     # Conecta el manager de arriba con este modelo
     objects = UserManager()        # manager que devuelve solo los usuarios activos (is_deleted=False)
-    allObjects = models.Manager()  # manager que devuelve todos los usuarios, incluso los borrados
+    all_objects = models.Manager()  # manager que devuelve todos los usuarios, incluso los borrados
 
     def soft_delete(self):
         # Elimina logica del usuario (no lo borra de la base de datos).

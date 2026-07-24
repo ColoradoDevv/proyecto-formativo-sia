@@ -18,6 +18,7 @@ export default function SelectMultiple({
     className = "",
     onChange,
     required,
+    optional,
     options = [],
 }) {
     const toggle = (id) => {
@@ -34,20 +35,20 @@ export default function SelectMultiple({
     return (
         <div className={className || "w-full"}>
             {label && (
-                <div className="flex items-center justify-between gap-2 mb-1">
-                    <label
-                        className={`
-                            block
-                            place-self-start
-                            text-medium
-                            ${error ? "text-error" : "text-text-primary"}
-                        `}
-                    >
-                        {label}
-                        {required && <span className="text-error ml-1">*</span>}
-                    </label>
-                    {labelAction}
-                </div>
+            <div className="flex items-center justify-between gap-2">
+                <label
+                    className={`
+                        flex items-center
+                        text-small leading-none
+                        ${error ? "text-error" : "text-text-primary"}
+                    `}
+                >
+                    {label}
+                    {required && <span className="text-error ml-1">*</span>}
+                    {optional && <span className="text-text-muted ml-1">(opcional)</span>}
+                </label>
+                {labelAction}
+            </div>
             )}
 
             <Dropdown className="block w-full">
