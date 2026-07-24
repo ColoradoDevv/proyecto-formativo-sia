@@ -243,6 +243,10 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     # Detalle: obtiene, actualiza y elimina un usuario.
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    
+    def perform_destroy(self, instance):
+        # En vez de instance.delete(), hacemos un borrado logico: marcamos is_deleted y fecha.
+        instance.soft_delete()  # metodo definido en el modelo User
 
 class UserRolesListView(generics.ListAPIView):
     # Lista de roles para dropdowns, etc.
@@ -253,4 +257,24 @@ class UserDocumentTypesListView(generics.ListAPIView):
     # Lista de tipos de documento para dropdowns, etc.
     queryset = DocumentType.objects.all().order_by("name")
     serializer_class = DocumentTypeSerializer  
-    
+
+class UserTrashListView(generics.ListAPIView):
+    # Lista de usuarios eliminados (papelera)
+    queryset = User.all_objects.filter(is_deleted=True).order_by("-deleted_at")
+    serializer_class = UserSerializer
+
+
+class UserRestoreView(APIView):
+    # Restaura un usuario eliminado
+    def post(self, request, pk):
+        user = User.all_objects.filter(pk=pk, is_deleted=True).first()
+        if not user:
+            return Response(
+                {"error": "Usuario no encontrado en la papelera"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        user.restore()
+        return Response(
+            {"mensaje": f"{user.first_name} {user.last_name} fue restaurado."},
+            status=status.HTTP_200_OK,
+        )

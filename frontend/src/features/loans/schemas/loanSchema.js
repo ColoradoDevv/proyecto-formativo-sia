@@ -22,45 +22,68 @@ function isValidDateString(value) {
     );
 }
 
-export const loanSchema = z.object({
-    loanUser: z
-        .string()
-        .min(1, "Debe seleccionar un usuario"),
+// Antes era un objeto estatico `loanSchema`; ahora es una funcion porque la
+// validacion de cantidad depende del stock disponible de cada material,
+// que solo se conoce en tiempo de ejecucion (viene de `materials`).
+export default function loanSchema(materials = []) {
+    return z.object({
+        loanResponsableUser: z
+            .string()
+            .min(1, "Debe seleccionar un usuario responsable"),
 
-    loanMaterial: z
-        .string()
-        .min(1, "Debe seleccionar un material"),
+        loanReceptorUser: z
+            .string()
+            .min(1, "Debe seleccionar un usuario receptor"),
 
-    loanAmount: z
-        .string()
-        .trim()
-        .min(1, "Debe ingresar la cantidad del prestamo")
-        .regex(/^\d+$/, "La cantidad debe ser un numero entero")
-        .refine((value) => Number(value) > 0, {
-            message: "La cantidad debe ser mayor a 0",
-        })
-        .refine((value) => Number(value) <= 999999, {
-            message: "La cantidad no puede superar 999999",
-        }),
+        loanMaterial: z
+            .string()
+            .min(1, "Debe seleccionar un material"),
 
-    loanGroup: z
-        .string()
-        .trim()
-        .min(1, "Debe ingresar el grupo")
-        .regex(/^\d+$/, "El grupo debe contener solo numeros")
-        .max(10, "El grupo no puede tener mas de 10 caracteres"),
+        loanAmount: z
+            .string()
+            .trim()
+            .min(1, "Debe ingresar la cantidad del prestamo")
+            .regex(/^\d+$/, "La cantidad debe ser un numero entero")
+            .refine((value) => Number(value) > 0, {
+                message: "La cantidad debe ser mayor a 0",
+            })
+            .refine((value) => Number(value) <= 999999, {
+                message: "La cantidad no puede superar 999999",
+            }),
 
-    loanJustification: z
-        .string()
-        .trim()
-        .min(10, "La justificacion debe tener minimo 10 caracteres")
-        .max(255, "La justificacion es demasiado larga"),
+        loanGroup: z
+            .string()
+            .trim()
+            .min(1, "Debe ingresar el grupo")
+            .regex(/^\d+$/, "El grupo debe contener solo numeros")
+            .max(10, "El grupo no puede tener mas de 10 caracteres"),
 
-    loanReturnDate: z
-        .string()
-        .min(1, "Debe ingresar la fecha de devolucion")
-        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" })
-        .refine((value) => value >= getTodayDateString(), {
-            message: "La fecha de devolucion no puede ser anterior a hoy",
-        }),
-});
+        loanJustification: z
+            .string()
+            .trim()
+            .min(10, "La justificacion debe tener minimo 10 caracteres")
+            .max(255, "La justificacion es demasiado larga"),
+
+        loanReturnDate: z
+            .string()
+            .min(1, "Debe ingresar la fecha de devolucion")
+            .refine(isValidDateString, { message: "Debe ingresar una fecha válida" })
+            .refine((value) => value >= getTodayDateString(), {
+                message: "La fecha de devolucion no puede ser anterior a hoy",
+            }),
+    }).superRefine((data, ctx) => {
+        const material = materials.find((m) => String(m.id) === String(data.loanMaterial));
+
+        if (
+            material &&
+            material.available_quantity != null &&
+            Number(data.loanAmount) > material.available_quantity
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["loanAmount"],
+                message: `Solo hay ${material.available_quantity} unidades disponibles de este material.`,
+            });
+        }
+    });
+}

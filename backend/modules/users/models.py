@@ -32,6 +32,9 @@ class DocumentType(models.Model):
 class UserManager(BaseUserManager):
     # Django EXIGE un manager con estos metodos cuando el User es custom.
     # Es el encargado de "fabricar" usuarios correctamente.
+    def get_queryset(self):
+        # Por defecto, el manager devuelve solo los usuarios activos (is_deleted=False).
+        return super().get_queryset().filter(is_deleted=False)
 
     def create_user(self, email, password=None, **extra_fields):
         # Crea un usuario normal.
@@ -86,9 +89,28 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)   # si esta en False, no puede entrar
     is_staff = models.BooleanField(default=False)   # si puede entrar al panel /admin
 
+    # --- Campos que Django necesita para el control de acceso ---
+    is_deleted = models.BooleanField(default=False)  # si esta en True, no puede entrar y se oculta de la lista
+    deleted_at = models.DateTimeField(null=True, blank=True)  # fecha de eliminacion logica
+    
     # Conecta el manager de arriba con este modelo
-    objects = UserManager()
+    objects = UserManager()        # manager que devuelve solo los usuarios activos (is_deleted=False)
+    allObjects = models.Manager()  # manager que devuelve todos los usuarios, incluso los borrados
 
+    def soft_delete(self):
+        # Elimina logica del usuario (no lo borra de la base de datos).
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.is_active = False  # Desactiva el usuario para que no pueda iniciar sesión
+        self.save(update_fields=['is_deleted', 'deleted_at', 'is_active'])
+    
+    def restore(self):
+        # Restaura un usuario eliminado logicamente.
+        self.is_deleted = False
+        self.deleted_at = None
+        self.is_active = True  # Reactiva el usuario para que pueda iniciar sesión
+        self.save(update_fields=['is_deleted', 'deleted_at'])
+    
     # El campo que se usa para iniciar sesion (en vez del username de Django)
     USERNAME_FIELD = "email"
     # Campos que se piden al crear un superusuario por consola (ademas de email y password)

@@ -5,10 +5,10 @@ import { PERMISSION_MODULES } from "../constants/permissionModules";
 // Contador "X/Y" mostrado junto al título de cada módulo.
 function ModuleHeader({ title, active, total }) {
   return (
-    <span className="flex items-center gap-3">
+    <span className="flex items-center gap-3 text-medium text-text-primary ">
       <span>{title}</span>
       <span
-        className={`text-caption font-medium px-2 py-0.5 rounded-[var(--radius-full)] ${
+        className={`text-small font-medium px-2 py-0.5 rounded-2xl ${
           active === 0
             ? "bg-surface-muted text-text-muted"
             : "bg-text-primary text-text-inverse"

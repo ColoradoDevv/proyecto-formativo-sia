@@ -209,7 +209,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
 
         {/* ================== IR A PÁGINA ================== */}
         {/* Permite navegar directamente a una página específica */}
-        <div className="flex items-center gap-2 text-small rounded-2xl">
+        <div className="flex items-center gap-2 text-small ">
           <span>Ir a página:</span>
 
           <input
@@ -223,7 +223,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
               // Cambia la página
               table.setPageIndex(page);
             }}
-            className="border rounded px-2 py-1 w-16"
+            className="border rounded-2xl px-2 py-1 w-16 text-center"
           />
         </div>
       </div>

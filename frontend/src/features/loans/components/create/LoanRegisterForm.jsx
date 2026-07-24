@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, showAlert, cancelAlert } from "@/shared";
-import { loanSchema } from "../../schemas/loanSchema";
+import  loanSchema  from "../../schemas/loanSchema";
 import { createLoan } from "../../services/loanService";
 import { getUsers, getMaterials } from "../../services/selectServices";
 import LoanForm from "../LoanForm";
@@ -13,7 +13,8 @@ export default function LoanRegisterForm() {
     const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
-        loanUser: "",
+        loanResponsableUser: "",
+        loanReceptorUser: "",
         loanMaterial: "",
         loanAmount: "",
         loanGroup: "",
@@ -43,7 +44,8 @@ export default function LoanRegisterForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const result = loanSchema.safeParse(formData);
+        const schema = loanSchema(materials);
+        const result = schema.safeParse(formData);
 
         if (!result.success) {
             const fieldErrors = {};

@@ -12,7 +12,7 @@ export default function RecentActivity() {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-h3 font-heading text-text-primary">Actividad reciente</h3>
+                <h3 className="text-h3 text-text-primary">Actividad reciente</h3>
                 <Link
                     to="/prestamos"
                     className="inline-flex items-center gap-1 text-small text-text-muted hover:text-text-secondary transition-colors"
@@ -56,7 +56,7 @@ export default function RecentActivity() {
                                     <span className="text-text-secondary shrink-0"><ClipboardList size={18} /></span>
                                     <div className="min-w-0">
                                         <p className="text-medium text-text-primary truncate">
-                                            {loan.usuario}
+                                            {loan.usuario_responsable} prestó a {loan.usuario_receptor}
                                         </p>
                                         <p className="text-small text-text-muted truncate">
                                             {loan.material} · {loan.amount_lent} und.

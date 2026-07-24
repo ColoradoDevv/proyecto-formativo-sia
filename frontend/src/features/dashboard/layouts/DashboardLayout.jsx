@@ -52,7 +52,7 @@ export default function DashboardLayout(){
     return (
         <div className="p-4 sm:p-6 flex flex-col gap-6">
             <div>
-                <h2 className="text-h3">¡Hola!  {userPlaceholder}.</h2>
+                <h2 className="text-h3 text-text-primary">¡Hola!  {userPlaceholder}.</h2>
                 <p className="text-small text-text-muted">Bienvenido al Sistema de Gestion Inventario SIA.</p>
             </div>
 

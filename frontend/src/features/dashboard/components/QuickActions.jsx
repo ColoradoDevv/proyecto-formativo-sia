@@ -16,7 +16,7 @@ const actions = [
 export default function QuickActions() {
     return (
         <div className="flex flex-col gap-4">
-            <h3 className="text-h3 font-heading text-text-primary">Accesos rápidos</h3>
+            <h3 className="text-h3 text-text-primary">Accesos rápidos</h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {actions.map((action) => (

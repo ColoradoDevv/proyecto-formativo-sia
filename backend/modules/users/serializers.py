@@ -59,7 +59,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # Ocultamos los campos internos de Django que no deben salir
-        exclude = ["is_superuser", "user_permissions", "last_login"]
+        exclude = ["is_superuser", "user_permissions", "last_login", "is_deleted", "deleted_at"]
         extra_kwargs = {
             "is_active": {"required": False, "default": True},
             "second_phone_number": {"required": False, "allow_null": True},
@@ -85,3 +85,7 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+    
+class UserTrashSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        exclude = ["is_superuser", "user_permissions", "last_login"]  # sin excluir borrado logico

@@ -5,7 +5,7 @@ export function AccordionItem({ title, defaultOpen = false, children }) {
     const [open, setOpen] = useState(defaultOpen);
 
     return (
-        <section className="border border-border rounded-[var(--radius-md)] overflow-hidden">
+        <section className="border border-border rounded-2xl overflow-hidden">
             <button
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
