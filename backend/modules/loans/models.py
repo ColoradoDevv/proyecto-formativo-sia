@@ -11,6 +11,8 @@ class Loans(models.Model):
     # electronica. El flujo de devolucion pasa de Activo a Finalizado, o a
     # Incompleto si un devolutivo se devuelve en menor cantidad a la prestada.
     STATE_CHOICES = [
+        # ('Pendiente', 'Pendiente'),  # FUTURO: activar cuando se implemente firma electrónica.
+        #   El préstamo nacería en Pendiente y pasaría a Activo solo tras la firma del receptor.
         ('Activo', 'Activo'),
         ('Finalizado', 'Finalizado'),
         ('Incompleto', 'Incompleto'),

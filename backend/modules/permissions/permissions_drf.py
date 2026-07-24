@@ -9,18 +9,33 @@ from .services import PermissionService
 
 class HasPermission(BasePermission):
     """
-    Permission class base para verificar un permiso específico.
+    Permission class configurable que verifica un permiso específico.
 
-    Uso en ViewSet:
+    Uso como factory (recomendado):
+        class MiViewSet(viewsets.ModelViewSet):
+            def get_permissions(self):
+                if self.action == 'list':
+                    return [HasPermission('list_users')]
+                elif self.action == 'create':
+                    return [HasPermission('create_user')]
+                return [IsSuperUser()]
+
+    Uso con atributo (alternativo):
         class MiViewSet(viewsets.ModelViewSet):
             permission_classes = [HasPermission]
             required_permission = 'list_users'
-
-    Uso en APIView:
-        class MiAPIView(APIView):
-            permission_classes = [HasPermission]
-            required_permission = 'list_users'
     """
+
+    def __init__(self, codename=None):
+        """
+        Inicializa la clase de permiso con un código específico.
+
+        Args:
+            codename: str - Código del permiso (ej: 'list_users'). 
+                      Si es None, se busca en view.required_permission
+        """
+        self.codename = codename
+        super().__init__()
 
     message = "No tienes permiso para realizar esta acción"
 
@@ -28,12 +43,17 @@ class HasPermission(BasePermission):
         """
         Verifica si el usuario tiene el permiso requerido.
 
-        El permiso requerido se define en:
-        1. request.required_permission (si se asigna dinámicamente), O
+        Orden de búsqueda del permiso:
+        1. self.codename (pasado al constructor)
         2. view.required_permission (atributo de la vista)
+        3. Si no hay permiso definido, permite acceso
         """
-        # Obtener permiso requerido de la solicitud o la vista
-        required_permission = getattr(request, "required_permission", None)
+        # Superusuarios siempre pasan
+        if request.user and request.user.is_superuser:
+            return True
+
+        # Obtener permiso requerido
+        required_permission = self.codename
         if required_permission is None:
             required_permission = getattr(view, "required_permission", None)
 

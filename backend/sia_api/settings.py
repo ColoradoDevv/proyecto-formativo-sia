@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'coreapi',
+    'django_filters',
 
 
     #Apps de django
@@ -148,6 +149,14 @@ REST_FRAMEWORK={
         # Por defecto, TODAS las rutas exigen estar autenticado
         'DEFAULT_PERMISSION_CLASSES': [
             'rest_framework.permissions.IsAuthenticated',
+        ],
+
+        # Backends de filtrado globales: django-filter para filtros exactos/rango,
+        # SearchFilter para búsqueda libre de texto, OrderingFilter para ordenación.
+        'DEFAULT_FILTER_BACKENDS': [
+            'django_filters.rest_framework.DjangoFilterBackend',
+            'rest_framework.filters.SearchFilter',
+            'rest_framework.filters.OrderingFilter',
         ],
 
 }

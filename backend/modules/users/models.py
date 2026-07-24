@@ -110,7 +110,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.is_deleted = False
         self.deleted_at = None
         self.is_active = True  # Reactiva el usuario para que pueda iniciar sesión
-        self.save(update_fields=['is_deleted', 'deleted_at'])
+        # BUG FIX: is_active debe incluirse en update_fields o el cambio nunca
+        # se persiste en la base de datos y el usuario queda inactivo para siempre.
+        self.save(update_fields=['is_deleted', 'deleted_at', 'is_active'])
     
     # El campo que se usa para iniciar sesion (en vez del username de Django)
     USERNAME_FIELD = "email"
@@ -119,3 +121,31 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+
+class BlacklistedToken(models.Model):
+    """
+    Tokens JWT que han sido invalidados explícitamente vía logout.
+    Cuando un usuario cierra sesión, su token se almacena aquí hasta
+    que expire, momento en que el management command cleanup_blacklisted_tokens
+    lo elimina para mantener la tabla pequeña.
+    """
+    token_hash = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text="SHA-256 del token JWT en crudo. Nunca se guarda el token completo."
+    )
+    expires_at = models.DateTimeField(
+        help_text="Momento en que el token expira según su claim 'exp'. "
+                  "Usado por el comando de limpieza para descartar entradas obsoletas."
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'blacklisted_tokens'
+        verbose_name = 'Token en lista negra'
+        verbose_name_plural = 'Tokens en lista negra'
+
+    def __str__(self):
+        return f"BlacklistedToken {self.token_hash[:16]}… expira {self.expires_at}"

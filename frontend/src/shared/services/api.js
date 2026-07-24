@@ -5,6 +5,7 @@
 
 const TOKEN_KEY = "sia_token";
 const USER_KEY = "sia_user";
+const PERMISSIONS_KEY = "sia_permissions";
 
 // --- Manejo de la sesion en sessionStorage ---
 
@@ -20,11 +21,23 @@ export function setSession(token, user) {
 export function clearSession() {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(PERMISSIONS_KEY);
 }
 
 export function getStoredUser() {
     const raw = sessionStorage.getItem(USER_KEY);
     return raw ? JSON.parse(raw) : null;
+}
+
+export function setStoredPermissions(permissions) {
+    sessionStorage.setItem(PERMISSIONS_KEY, JSON.stringify(permissions));
+    // Notifica a usePermissions (y cualquier suscriptor) que los permisos cambiaron.
+    window.dispatchEvent(new Event("sia:permissions-updated"));
+}
+
+export function getStoredPermissions() {
+    const raw = sessionStorage.getItem(PERMISSIONS_KEY);
+    return raw ? JSON.parse(raw) : [];
 }
 
 export function isAuthenticated() {

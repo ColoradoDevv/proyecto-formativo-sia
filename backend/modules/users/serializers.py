@@ -36,18 +36,10 @@ class UserGroupSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     # Para leer - devuelve el objeto completo en GET
-    role = RoleSerializer(read_only=True)
     document_type = DocumentTypeSerializer(read_only=True)
     groups = UserGroupSerializer(source='user_groups', many=True, read_only=True)
 
     # Para escribir - acepta solo el ID en POST
-    role_id = serializers.PrimaryKeyRelatedField(
-        queryset=Role.objects.all(),
-        source='role',
-        write_only=True,
-        required=False,
-        allow_null=True
-    )
     document_type_id = serializers.PrimaryKeyRelatedField(
         queryset=DocumentType.objects.all(),
         source='document_type',
@@ -97,12 +89,53 @@ class UserSerializer(serializers.ModelSerializer):
         # El flujo de edicion no cambia: aqui si se respeta una password
         # si el admin decide asignarla manualmente al editar.
         password = validated_data.pop("password", None)
+
+        # Campos unique+nullable: convertir string vacío a None para no romper
+        # la constraint UNIQUE (la BD acepta múltiples NULL pero no múltiples '').
+        nullable_unique_fields = {
+            "institutional_email", "phone_number", "document_number",
+            "second_phone_number",
+        }
         for attr, value in validated_data.items():
+            if attr in nullable_unique_fields and value == "":
+                value = None
             setattr(instance, attr, value)
+
         if password:
             instance.set_password(password)
         instance.save()
         return instance
+
+    def validate(self, attrs):
+        """
+        Valida manualmente los campos unique contra la BD excluyendo la instancia
+        actual, para que un PATCH con el mismo email/teléfono del propio usuario
+        no lance un falso error de unicidad.
+        """
+        instance = self.instance  # None en creación, User en edición
+        if instance is None:
+            return attrs
+
+        # Mapa campo_validado -> campo_en_modelo (para los que son distintos)
+        unique_fields = {
+            "email": "email",
+            "institutional_email": "institutional_email",
+            "phone_number": "phone_number",
+            "document_number": "document_number",
+        }
+
+        for field_name, model_field in unique_fields.items():
+            value = attrs.get(field_name)
+            # Ignorar si no viene en el payload o es vacío/None
+            if not value:
+                continue
+            qs = User.objects.filter(**{model_field: value}).exclude(pk=instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError(
+                    {field_name: f"Ya existe un usuario con este {field_name.replace('_', ' ')}."}
+                )
+
+        return attrs
     
 class UserTrashSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):

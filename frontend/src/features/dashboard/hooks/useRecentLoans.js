@@ -2,13 +2,20 @@ import { useEffect, useState } from "react";
 import { getLoans } from "@/features/loans/services/loanService";
 
 // Trae los prestamos y devuelve los mas recientes para el panel de inicio.
-// Mismo contrato { data, loading, error } que el resto de hooks del proyecto.
+// Si limit es 0 (usuario sin permiso) no hace ningún fetch.
 function useRecentLoans(limit = 5) {
     const [loans, setLoans] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(limit > 0);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        // No hacer fetch si no hay permiso (limit === 0)
+        if (limit === 0) {
+            setLoading(false);
+            setLoans([]);
+            return;
+        }
+
         const fetchLoans = async () => {
             try {
                 setLoading(true);

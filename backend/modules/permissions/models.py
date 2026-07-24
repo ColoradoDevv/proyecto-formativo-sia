@@ -58,6 +58,10 @@ class Group(models.Model):
         blank=True,
         help_text="Permisos asignados a este grupo"
     )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Indica si el grupo está activo. Los grupos inactivos no pueden recibir nuevos usuarios."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

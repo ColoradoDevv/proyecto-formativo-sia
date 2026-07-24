@@ -1,23 +1,79 @@
 # Vistas del CRUD de usuarios.
 import jwt
+import hashlib
 import datetime
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
+from django.core.cache import cache
 from django.core.mail import send_mail
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
+from rest_framework.filters import SearchFilter, OrderingFilter
+import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import User
-from .models import Role
-from .models import DocumentType
+from .models import User, Role, DocumentType, BlacklistedToken
+from modules.permissions.models import UserGroup as PermUserGroup
 from .serializers import UserSerializer
 from .serializers import RoleSerializer
 from .serializers import DocumentTypeSerializer
-from .serializers import UserTrashSerializer 
+from .serializers import UserTrashSerializer
 from .utils import generate_secure_password, send_welcome_email
+from modules.permissions.permissions_drf import HasPermission
 
+
+# ---------------------------------------------------------------------------
+# Helpers de protección contra fuerza bruta
+# ---------------------------------------------------------------------------
+_RATE_LIMIT_MAX      = 5          # intentos fallidos antes de bloquear
+_RATE_LIMIT_WINDOW   = 60 * 15   # segundos de bloqueo (15 minutos)
+_TOO_MANY_MSG        = "Demasiados intentos fallidos. Intenta nuevamente en 15 minutos."
+
+
+def _rate_limit_key(request, prefix: str) -> str:
+    """Genera la clave de caché para el contador de la IP del cliente."""
+    ip = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "unknown"))
+    # HTTP_X_FORWARDED_FOR puede contener una lista "ip1, ip2, ..."; tomamos la primera.
+    ip = ip.split(",")[0].strip()
+    return f"{prefix}_{ip}"
+
+
+def _check_rate_limit(request, prefix: str):
+    """
+    Devuelve un Response 429 si la IP superó el límite, o None si puede continuar.
+    No incrementa el contador — eso lo hace _record_failed_attempt().
+    """
+    key = _rate_limit_key(request, prefix)
+    attempts = cache.get(key, 0)
+    if attempts >= _RATE_LIMIT_MAX:
+        return Response(
+            {"error": _TOO_MANY_MSG},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+    return None
+
+
+def _record_failed_attempt(request, prefix: str) -> int:
+    """
+    Registra un intento fallido y devuelve el total acumulado.
+    Usa add() para inicializar el TTL solo en el primer intento del ciclo.
+    """
+    key = _rate_limit_key(request, prefix)
+    # cache.add() solo escribe si la clave no existe, preservando el TTL original.
+    cache.add(key, 0, timeout=_RATE_LIMIT_WINDOW)
+    attempts = cache.incr(key)
+    return attempts
+
+
+def _reset_rate_limit(request, prefix: str) -> None:
+    """Elimina el contador tras un intento exitoso."""
+    cache.delete(_rate_limit_key(request, prefix))
+
+
+# ---------------------------------------------------------------------------
 
 class LoginView(APIView):
     # El login debe ser PUBLICO: nadie tiene token todavia al iniciar sesion.
@@ -28,37 +84,56 @@ class LoginView(APIView):
         email = request.data.get("email")
         password = request.data.get("password")
 
-        # 1. Validar que llegaron los dos datos
+        # 1. Verificar si la IP está bloqueada por exceso de intentos fallidos
+        blocked = _check_rate_limit(request, "login_attempts")
+        if blocked:
+            return blocked
+
+        # 2. Validar que llegaron los dos datos
         if not email or not password:
             return Response(
                 {"error": "Email y contraseña son obligatorios"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 2. Buscar el usuario por email
+        # 3. Buscar el usuario por email.
+        # all_objects incluye eliminados para dar un mensaje apropiado en cada caso.
         try:
-            user = User.objects.get(email=email)
+            user = User.all_objects.get(email=email)
         except User.DoesNotExist:
+            _record_failed_attempt(request, "login_attempts")
             return Response(
                 {"error": "Credenciales inválidas"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # 3. Verificar la contraseña contra el hash guardado
+        # 4. Verificar la contraseña contra el hash guardado
         if not check_password(password, user.password):
+            _record_failed_attempt(request, "login_attempts")
             return Response(
                 {"error": "Credenciales inválidas"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # 4. Verificar que la cuenta este activa
+        # 5. Verificar que la cuenta no esté eliminada ni desactivada
+        if user.is_deleted:
+            _record_failed_attempt(request, "login_attempts")
+            return Response(
+                {"error": "Esta cuenta ha sido eliminada"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         if not user.is_active:
+            _record_failed_attempt(request, "login_attempts")
             return Response(
                 {"error": "La cuenta está desactivada"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # 5. Construir el contenido del token (payload)
+        # 6. Login exitoso — resetear contador de intentos fallidos
+        _reset_rate_limit(request, "login_attempts")
+
+        # 7. Construir el contenido del token (payload)
         payload = {
             "user_id": user.id,
             "email": user.email,
@@ -66,10 +141,10 @@ class LoginView(APIView):
             "iat": datetime.datetime.utcnow(),
         }
 
-        # 6. Firmar el token con la clave secreta
+        # 8. Firmar el token con la clave secreta
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
-        # 7. Devolver el token y algunos datos utiles para el frontend
+        # 9. Devolver el token y algunos datos utiles para el frontend
         # Obtener el primer grupo del usuario (si tiene)
         user_groups = user.user_groups.all()
         primary_group = user_groups.first().group.name if user_groups.exists() else None
@@ -85,10 +160,66 @@ class LoginView(APIView):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
+                "is_superuser": user.is_superuser,  # Para que el frontend pueda usar usePermissions()
                 "role": primary_group,  # Devuelve el nombre del grupo principal
                 "groups": [g.group.name for g in user_groups],  # Lista todos los grupos
             },
         })
+
+class LogoutView(APIView):
+    """
+    Invalida el token JWT actual añadiéndolo a la blacklist.
+    POST /api/users/logout/
+    Header: Authorization: Bearer <token>
+    """
+
+    def post(self, request):
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return Response(
+                {"error": "No se proporcionó un token de autenticación."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        raw_token = auth_header.split(" ")[1]
+
+        # Decodificar sin verificar expiración para poder procesar tokens
+        # que expiran exactamente en este instante.
+        try:
+            payload = jwt.decode(
+                raw_token,
+                settings.SECRET_KEY,
+                algorithms=["HS256"],
+                options={"verify_exp": False},
+            )
+        except jwt.InvalidTokenError:
+            return Response(
+                {"error": "Token inválido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Calcular hash SHA-256 del token crudo (nunca guardamos el token completo)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+
+        # Obtener la fecha de expiración del claim 'exp'
+        exp_timestamp = payload.get("exp")
+        if exp_timestamp:
+            expires_at = datetime.datetime.fromtimestamp(exp_timestamp, tz=datetime.timezone.utc)
+        else:
+            # Si no hay claim exp, fijamos expiración a 8h desde ahora (igual que LoginView)
+            expires_at = timezone.now() + datetime.timedelta(hours=8)
+
+        # Idempotente: si el token ya estaba en blacklist, logout sigue siendo exitoso
+        BlacklistedToken.objects.get_or_create(
+            token_hash=token_hash,
+            defaults={"expires_at": expires_at},
+        )
+
+        return Response(
+            {"message": "Sesión cerrada correctamente."},
+            status=status.HTTP_200_OK,
+        )
+
 
 class ForgetPasswordView(APIView):
     # Solicitar recuperacion de contrasena: tambien debe ser PUBLICO.
@@ -98,36 +229,43 @@ class ForgetPasswordView(APIView):
     def post(self, request):
         email = request.data.get("email")
 
-        # 1. Validar que llego el email
+        # 1. Verificar si la IP está bloqueada por exceso de solicitudes
+        blocked = _check_rate_limit(request, "forgot_attempts")
+        if blocked:
+            return blocked
+
+        # 2. Validar que llego el email
         if not email:
             return Response(
                 {"error": "El email es obligatorio"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 2. Respuesta generica: NO revelamos si el email existe o no.
+        # 3. Respuesta generica: NO revelamos si el email existe o no.
         # Asi evitamos que alguien use este endpoint para descubrir cuentas.
         generic_response = Response(
             {"message": "Si el correo está registrado, enviaremos un enlace para restablecer la contraseña."},
             status=status.HTTP_200_OK,
         )
 
-        # 3. Buscar el usuario. Si no existe (o esta inactivo), respondemos igual.
+        # 4. Buscar el usuario. Si no existe (o esta inactivo), registramos el
+        # intento (evita enumerar correos por timing) y respondemos igual.
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
+            _record_failed_attempt(request, "forgot_attempts")
             return generic_response
 
         if not user.is_active:
             return generic_response
 
-        # 4. Construir un token de reset de vida corta.
+        # 4. Construir un token de reset de vida corta (15 minutos según RFADMIN28).
         # El "scope" lo distingue del token de login para que no se pueda
         # reutilizar uno por el otro.
         payload = {
             "user_id": user.id,
             "scope": "password_reset",
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
             "iat": datetime.datetime.utcnow(),
         }
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
@@ -142,7 +280,7 @@ class ForgetPasswordView(APIView):
             message=(
                 f"Hola {user.first_name},\n\n"
                 "Recibimos una solicitud para restablecer tu contraseña.\n"
-                f"Haz clic en el siguiente enlace para crear una nueva (válido por 1 hora):\n\n"
+                f"Haz clic en el siguiente enlace para crear una nueva (válido por 15 minutos):\n\n"
                 f"{reset_link}\n\n"
                 "Si no solicitaste este cambio, puedes ignorar este correo."
             ),
@@ -150,6 +288,9 @@ class ForgetPasswordView(APIView):
             recipient_list=[user.email],
             fail_silently=False,
         )
+
+        # 7. Solicitud legítima completada — resetear el contador de la IP
+        _reset_rate_limit(request, "forgot_attempts")
 
         return generic_response
 
@@ -191,7 +332,7 @@ class ResetPasswordView(APIView):
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         except jwt.ExpiredSignatureError:
             return Response(
-                {"error": "El enlace ha expirado. Solicita uno nuevo."},
+                {"error": "El enlace ha expirado (válido por 15 minutos). Solicita uno nuevo."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except jwt.InvalidTokenError:
@@ -206,7 +347,15 @@ class ResetPasswordView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 5. Buscar al usuario del token
+        # 5. Verificar que el token no haya sido usado ya (uso único)
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        if BlacklistedToken.objects.filter(token_hash=token_hash).exists():
+            return Response(
+                {"error": "Este enlace ya fue utilizado. Solicita uno nuevo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 6. Buscar al usuario del token
         try:
             user = User.objects.get(id=payload["user_id"])
         except User.DoesNotExist:
@@ -215,9 +364,23 @@ class ResetPasswordView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 6. Guardar la nueva contrasena (hasheada) y confirmar
+        # 7. Guardar la nueva contrasena (hasheada) y confirmar
         user.set_password(password)
         user.save(update_fields=["password"])
+
+        # 8. Invalidar el token para que no pueda reutilizarse
+        exp_timestamp = payload.get("exp")
+        if exp_timestamp:
+            expires_at = datetime.datetime.fromtimestamp(
+                exp_timestamp, tz=datetime.timezone.utc
+            )
+        else:
+            expires_at = timezone.now() + datetime.timedelta(minutes=15)
+
+        BlacklistedToken.objects.get_or_create(
+            token_hash=token_hash,
+            defaults={"expires_at": expires_at},
+        )
 
         return Response(
             {"message": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."},
@@ -236,17 +399,61 @@ class ResetPasswordView(APIView):
         )
 
 
+class UserFilter(django_filters.FilterSet):
+    """
+    FilterSet personalizado para User.
+    Soporta filtros exactos en campos directos y filtro por nombre de grupo
+    (join con UserGroup → Group) que no es un campo directo del modelo.
+    """
+    first_name  = django_filters.CharFilter(lookup_expr='icontains')
+    last_name   = django_filters.CharFilter(lookup_expr='icontains')
+    document_number = django_filters.CharFilter(lookup_expr='icontains')
+    is_active   = django_filters.BooleanFilter()
+    # ?group=Administrador  →  filtra por nombre del grupo vía UserGroup
+    group = django_filters.CharFilter(
+        field_name='user_groups__group__name',
+        lookup_expr='iexact',
+        label='Nombre del grupo',
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'document_number', 'is_active', 'group']
+
+
 class UserListCreateView(generics.ListCreateAPIView):
     # Lista y crea usuarios.
     queryset = User.objects.all().order_by("id")
     serializer_class = UserSerializer
+    filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class  = UserFilter
+    # ?search=  busca libremente en nombre, apellido, email y documento
+    search_fields    = ['first_name', 'last_name', 'email', 'document_number']
+    ordering_fields  = ['first_name', 'last_name', 'email', 'id']
+
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [HasPermission("create_user")]
+        # GET (list) — cualquier usuario autenticado puede listar
+        return [HasPermission("view_user")]
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     # Detalle: obtiene, actualiza y elimina un usuario.
-    queryset = User.objects.all()
+    # Usa all_objects para que un administrador pueda acceder al registro
+    # aunque esté marcado como eliminado (p.ej. para restaurarlo o auditarlo).
+    queryset = User.all_objects.all()
     serializer_class = UserSerializer
-    
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [HasPermission("view_user")]
+        if self.request.method in ("PUT", "PATCH"):
+            return [HasPermission("edit_user")]
+        if self.request.method == "DELETE":
+            return [HasPermission("delete_user")]
+        return [HasPermission("view_user")]
+
     def perform_destroy(self, instance):
         # En vez de instance.delete(), hacemos un borrado logico: marcamos is_deleted y fecha.
         instance.soft_delete()  # metodo definido en el modelo User

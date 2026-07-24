@@ -14,6 +14,16 @@ from modules.users.models import User
 class BrandSerializer(serializers.ModelSerializer):
     # Serializer simple para marcas.
 
+    def validate_name(self, value):
+        # Unicidad insensible a mayúsculas/minúsculas (SQLite es case-sensitive
+        # en UNIQUE, por lo que "SENA" y "sena" coexistirían sin esta guarda).
+        qs = Brand.objects.filter(name__iexact=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Ya existe una marca con ese nombre.")
+        return value
+
     class Meta:
         model = Brand
         fields = "__all__"
@@ -51,11 +61,18 @@ class ConsumableMaterialSerializer(serializers.ModelSerializer):
     )
     
     def validate(self, data):
+        # Obligatoriedad condicional: si no hay placa SENA debe haber cantidad
         if 'sena_plate' in data or 'quantity' in data:
             sena_plate = data.get('sena_plate')
             quantity = data.get('quantity')
             if not sena_plate and quantity is None:
                 raise serializers.ValidationError({"quantity": "La cantidad es obligatoria si no hay placa SENA."})
+
+        # El stock no puede ser negativo
+        quantity = data.get('quantity')
+        if quantity is not None and quantity < 0:
+            raise serializers.ValidationError({'quantity': 'El stock no puede ser negativo.'})
+
         return data
 
     def get_available_quantity(self, obj):

@@ -40,6 +40,9 @@ class LoanSerializer(serializers.ModelSerializer):
             'return_date': {'required': True},
             # state no se envia al crear; se gestiona por el flujo de devolucion
             'state': {'read_only': True},
+            # loan_date se rellena automáticamente (auto_now_add); nunca debe
+            # aceptarse desde el cliente aunque llegue en el payload.
+            'loan_date': {'read_only': True},
         }
 
     def get_usuario_responsable(self, obj):
@@ -63,6 +66,12 @@ class LoanSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         material = attrs.get('id_material') or getattr(self.instance, 'id_material', None)
         amount_lent = attrs.get('amount_lent', getattr(self.instance, 'amount_lent', None))
+
+        # Validar que el material esté activo antes de crear o editar un préstamo
+        if material is not None and not material.is_active:
+            raise serializers.ValidationError({
+                'id_material': 'Este material está deshabilitado y no puede prestarse.'
+            })
 
         if material is not None and amount_lent is not None:
             if material.quantity is not None:

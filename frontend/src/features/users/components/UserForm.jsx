@@ -190,7 +190,7 @@ export default function UserForm({
                         error={errors.endDate}
                     />
                     <div>
-                        <Select
+                        <SelectMultiple
                             label="Tipo de usuario"
                             name="groups"
                             options={groups}
