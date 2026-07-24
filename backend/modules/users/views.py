@@ -15,6 +15,7 @@ from .models import DocumentType
 from .serializers import UserSerializer
 from .serializers import RoleSerializer
 from .serializers import DocumentTypeSerializer
+from .serializers import UserTrashSerializer 
 
 class LoginView(APIView):
     # El login debe ser PUBLICO: nadie tiene token todavia al iniciar sesion.
@@ -260,8 +261,8 @@ class UserDocumentTypesListView(generics.ListAPIView):
 
 class UserTrashListView(generics.ListAPIView):
     # Lista de usuarios eliminados (papelera)
-    queryset = User.all_objects.filter(is_deleted=True).order_by("-deleted_at")
-    serializer_class = UserSerializer
+    queryset = User.objects.all().filter(is_deleted=True).order_by("-deleted_at")
+    serializer_class = UserTrashSerializer
 
 
 class UserRestoreView(APIView):

@@ -202,3 +202,29 @@ export async function updateUserGroups(userId, groupIds) {
     await assignUserGroups(userId, toAdd);
   }
 }
+
+// METODO DELETE (eliminar un usuario - borrado logico)
+export async function deleteUser(id) {
+  const response = await apiFetch(`/api/users/${id}/`, {
+    method: "DELETE",
+  });
+  if (!response.ok) await throwApiError(response, FIELD_MAP);
+  // El backend responde 204 No Content, no hay body que parsear
+  return true;
+}
+
+// METODO GET (obtener usuarios eliminados - papelera)
+export async function getTrashUsers() {
+  const response = await apiFetch("/api/users/trash/");
+  if (!response.ok) await throwApiError(response, FIELD_MAP);
+  return response.json();
+}
+
+// METODO POST (restaurar un usuario eliminado)
+export async function restoreUser(id) {
+  const response = await apiFetch(`/api/users/${id}/restore/`, {
+    method: "POST",
+  });
+  if (!response.ok) await throwApiError(response, FIELD_MAP);
+  return response.json();
+}

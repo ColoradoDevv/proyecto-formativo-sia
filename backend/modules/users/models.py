@@ -4,6 +4,7 @@
 #
 
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import (
     AbstractBaseUser,      # esqueleto de usuario: trae password y last_login
     PermissionsMixin,      # agrega is_superuser, groups y user_permissions
