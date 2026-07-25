@@ -65,7 +65,16 @@ const HTTP_ERROR_MESSAGES = {
 // devuelve errores por campo (ej. { name: ["brand with this name already exists."] }),
 // el Error incluye `fieldErrors` -mapeados a los nombres de campo del formulario
 // via `fieldMap`- y un mensaje legible que junta esos mensajes en vez del genérico.
+// Los 401 lanzan un error silencioso: apiFetch ya disparó sia:session-expired y el
+// modal global guía al usuario — no queremos que la UI muestre un error adicional.
 export async function throwApiError(response, fieldMap = {}) {
+    if (response.status === 401) {
+        // Error marcado como silencioso para que los hooks no lo muestren en pantalla.
+        const silent = new Error("session_expired");
+        silent.silent = true;
+        throw silent;
+    }
+
     const fallback = HTTP_ERROR_MESSAGES[response.status] ?? `Error inesperado del servidor (código ${response.status}).`;
 
     let body = null;
@@ -110,9 +119,19 @@ export async function apiFetch(url, options = {}) {
 
     const response = await fetch(url, { ...options, headers });
 
-    // Si el token expiro o es invalido, limpiamos la sesion
+    // Si el token expiró o es inválido, disparamos un evento global para que
+    // SessionExpiredModal muestre el aviso al usuario antes de limpiar la sesión.
+    // La limpieza real ocurre cuando el usuario confirma el modal.
+    // También limpiamos aquí para que isAuthenticated() devuelva false de inmediato
+    // y ProtectedRoute redirija si se recarga la página.
     if (response.status === 401) {
+        const alreadyExpired = !getToken(); // ya fue limpiado por una petición anterior
         clearSession();
+        if (!alreadyExpired) {
+            // Solo disparamos el evento la primera vez que detectamos el 401
+            // (las peticiones paralelas no deben abrir el modal varias veces).
+            window.dispatchEvent(new CustomEvent("sia:session-expired"));
+        }
     }
 
     return response;

@@ -26,7 +26,8 @@ function useRecentLoans(limit = 5) {
                     .slice(0, limit);
                 setLoans(recent);
             } catch (err) {
-                setError(err);
+                // Ignorar errores de sesión expirada: el modal global ya los gestiona.
+                if (!err?.silent) setError(err);
             } finally {
                 setLoading(false);
             }
