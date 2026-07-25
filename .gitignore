@@ -6,6 +6,7 @@ node_modules/
 .vscode/
 .mcp.json
 .CLAUDE.md
+requerimientos
 
 # Build outputs
 dist/
