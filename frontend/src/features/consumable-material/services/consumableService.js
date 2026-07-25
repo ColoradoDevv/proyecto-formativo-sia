@@ -105,3 +105,4 @@ export async function toggleCmActive(id, isActive) {
   if (!response.ok) await throwApiError(response);
   return response.json();
 }
+

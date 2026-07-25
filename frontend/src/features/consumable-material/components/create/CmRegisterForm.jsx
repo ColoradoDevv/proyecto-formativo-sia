@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBrands, getUsers, createBrand } from "../../services/selectServices";
-import { FileInput, Button, showAlert, cancelAlert } from "@/shared";
+import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput } from "@/shared";
 import { cmSchema } from "../../schemas/cmSchema";
 import { createCm } from "../../services/consumableService";
 import ConsumableForm from "../ConsumableForm";
@@ -119,16 +119,15 @@ export default function CmRegisterForm() {
                     users={users}
                     onCreateBrand={handleCreateBrand}
                     photoSlot={
-                        <FileInput
-                            label="Foto del Material"
-                            name="photo"
-                            placeholder="Subir foto"
+                        <ProfileFileInput
+                            className="w-32 h-40 rounded-[var(--radius-xl)]"
                             value={formData.photo}
                             onChange={handleFileChange("photo")}
                             error={errors.photo}
-                            accept="image/*"
+                            label="Foto del Material"
+                            name="photo"
                             required
-                            className="w-full h-[var(--size-preview-md)]"
+                            description="Formato JPG o PNG. Tamaño máximo: 2MB."
                         />
                     }
                 />

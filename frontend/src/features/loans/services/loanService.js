@@ -1,7 +1,8 @@
 import { apiFetch, throwApiError } from "@/shared/services/api";
 
 const FIELD_MAP = {
-    id_user: "loanUser",
+    id_responsable_user: "loanResponsableUser",
+    id_receptor_user: "loanReceptorUser",
     id_material: "loanMaterial",
     amount_lent: "loanAmount",
     apprentice_group: "loanGroup",
@@ -26,7 +27,8 @@ export async function createLoan(loanData) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            id_user: loanData.loanUser,
+            id_responsable_user: loanData.loanResponsableUser,
+            id_receptor_user: loanData.loanReceptorUser,
             id_material: loanData.loanMaterial,
             amount_lent: loanData.loanAmount,
             apprentice_group: loanData.loanGroup,
@@ -44,7 +46,8 @@ export async function updateLoan(id, loanData) {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            id_user: loanData.loanUser,
+            id_responsable_user: loanData.loanResponsableUser,
+            id_receptor_user: loanData.loanReceptorUser,
             id_material: loanData.loanMaterial,
             amount_lent: loanData.loanAmount,
             apprentice_group: loanData.loanGroup,

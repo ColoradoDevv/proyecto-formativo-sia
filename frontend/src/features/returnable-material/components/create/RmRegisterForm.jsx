@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBrands, getStates, getCategories, createBrand, createCategory } from "../../services/selectServices";
 import { createRM } from "../../services/returnableService";
-import { FileInput, Button, showAlert, cancelAlert } from "@/shared";
+import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
 import ReturnableForm from "../ReturnableForm";
 
@@ -121,27 +121,30 @@ export default function RmRegisterForm() {
                     onCreateCategory={handleCreateCategory}
                     photoSlot={
                         <div className="w-full sm:w-[var(--size-field-sm)] flex flex-col gap-4">
-                            <FileInput
-                                label="Foto del Material (Opcional)"
+                            <ProfileFileInput
+                                label="Foto del Material"
+                                required
                                 name="photo"
                                 placeholder="Subir foto"
                                 value={formData.photo}
                                 onChange={handleFileChange("photo")}
                                 error={errors.photo}
                                 accept="image/*"
-                                className="w-full h-25"
+                                className="w-full h-25 rounded-2xl"
                             />
                             <FileInput
-                                label="Ficha Técnica (Opcional, máx. 3)"
+                                label="Ficha Técnica"
                                 name="technicalSheet"
-                                placeholder="Ingrese la ficha técnica"
+                                placeholder="Subir ficha técnica"
                                 value={formData.technicalSheet}
                                 onChange={handleFileChange("technicalSheet")}
                                 error={errors.technicalSheet}
                                 accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                 multiple
+                                required
                                 maxFiles={3}
-                                className="w-full h-25"
+                                maxSixeMB={3}
+                                className="w-full h-14 rounded-2xl"
                             />
                         </div>
                     }

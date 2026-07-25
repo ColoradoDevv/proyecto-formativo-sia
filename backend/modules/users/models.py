@@ -4,6 +4,7 @@
 #
 
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import (
     AbstractBaseUser,      # esqueleto de usuario: trae password y last_login
     PermissionsMixin,      # agrega is_superuser, groups y user_permissions
@@ -32,6 +33,9 @@ class DocumentType(models.Model):
 class UserManager(BaseUserManager):
     # Django EXIGE un manager con estos metodos cuando el User es custom.
     # Es el encargado de "fabricar" usuarios correctamente.
+    def get_queryset(self):
+        # Por defecto, el manager devuelve solo los usuarios activos (is_deleted=False).
+        return super().get_queryset().filter(is_deleted=False)
 
     def create_user(self, email, password=None, **extra_fields):
         # Crea un usuario normal.
@@ -86,9 +90,30 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)   # si esta en False, no puede entrar
     is_staff = models.BooleanField(default=False)   # si puede entrar al panel /admin
 
+    # --- Campos que Django necesita para el control de acceso ---
+    is_deleted = models.BooleanField(default=False)  # si esta en True, no puede entrar y se oculta de la lista
+    deleted_at = models.DateTimeField(null=True, blank=True)  # fecha de eliminacion logica
+    
     # Conecta el manager de arriba con este modelo
-    objects = UserManager()
+    objects = UserManager()        # manager que devuelve solo los usuarios activos (is_deleted=False)
+    all_objects = models.Manager()  # manager que devuelve todos los usuarios, incluso los borrados
 
+    def soft_delete(self):
+        # Elimina logica del usuario (no lo borra de la base de datos).
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.is_active = False  # Desactiva el usuario para que no pueda iniciar sesión
+        self.save(update_fields=['is_deleted', 'deleted_at', 'is_active'])
+    
+    def restore(self):
+        # Restaura un usuario eliminado logicamente.
+        self.is_deleted = False
+        self.deleted_at = None
+        self.is_active = True  # Reactiva el usuario para que pueda iniciar sesión
+        # BUG FIX: is_active debe incluirse en update_fields o el cambio nunca
+        # se persiste en la base de datos y el usuario queda inactivo para siempre.
+        self.save(update_fields=['is_deleted', 'deleted_at', 'is_active'])
+    
     # El campo que se usa para iniciar sesion (en vez del username de Django)
     USERNAME_FIELD = "email"
     # Campos que se piden al crear un superusuario por consola (ademas de email y password)
@@ -96,3 +121,31 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+
+class BlacklistedToken(models.Model):
+    """
+    Tokens JWT que han sido invalidados explícitamente vía logout.
+    Cuando un usuario cierra sesión, su token se almacena aquí hasta
+    que expire, momento en que el management command cleanup_blacklisted_tokens
+    lo elimina para mantener la tabla pequeña.
+    """
+    token_hash = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text="SHA-256 del token JWT en crudo. Nunca se guarda el token completo."
+    )
+    expires_at = models.DateTimeField(
+        help_text="Momento en que el token expira según su claim 'exp'. "
+                  "Usado por el comando de limpieza para descartar entradas obsoletas."
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'blacklisted_tokens'
+        verbose_name = 'Token en lista negra'
+        verbose_name_plural = 'Tokens en lista negra'
+
+    def __str__(self):
+        return f"BlacklistedToken {self.token_hash[:16]}… expira {self.expires_at}"

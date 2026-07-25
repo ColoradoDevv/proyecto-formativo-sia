@@ -11,6 +11,8 @@ class Loans(models.Model):
     # electronica. El flujo de devolucion pasa de Activo a Finalizado, o a
     # Incompleto si un devolutivo se devuelve en menor cantidad a la prestada.
     STATE_CHOICES = [
+        # ('Pendiente', 'Pendiente'),  # FUTURO: activar cuando se implemente firma electrónica.
+        #   El préstamo nacería en Pendiente y pasaría a Activo solo tras la firma del receptor.
         ('Activo', 'Activo'),
         ('Finalizado', 'Finalizado'),
         ('Incompleto', 'Incompleto'),
@@ -20,10 +22,19 @@ class Loans(models.Model):
     id_loan = models.AutoField(primary_key=True)
 
     # id_usuario: FK a tabla Usuario, obligatorio, sin valor por defecto
-    id_user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, # referencia al modelo de usuario definido en settings.py 
+    id_responsable_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         on_delete=models.RESTRICT,
-        db_column='id_usuario',
+        db_column='id_responsable_user',
+        related_name='prestamos_responsable',
+        null=False
+    )
+
+    id_receptor_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.RESTRICT,
+        db_column='id_receptor_user',
+        related_name='prestamos_recibidos',
         null=False
     )
 
@@ -77,4 +88,4 @@ class Loans(models.Model):
         db_table = 'Prestamos'
 
     def __str__(self):
-        return f'Prestamo {self.id_loan} - Usuario {self.id_user_id} - Material {self.id_material_id}'
+        return f'Prestamo {self.id_loan} - Responsable {self.id_responsable_user_id} - Receptor {self.id_receptor_user_id} - Material {self.id_material_id}'

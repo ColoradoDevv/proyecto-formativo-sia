@@ -149,7 +149,7 @@ export default function UserRegisterForm() {
                         contactExtraSlot={
                             // Telefono adicional: se muestra solo al presionar "Agregar número".
                             <div className="flex flex-col gap-2">
-                                <StatusLabel>Teléfono adicional (opcional)</StatusLabel>
+                                <StatusLabel optional>Teléfono adicional</StatusLabel>
                                 {!showAdditionalPhone ? (
                                     <Button
                                         type="button"
@@ -173,7 +173,7 @@ export default function UserRegisterForm() {
                         systemExtraSlot={
                             // Tareas: se agregan en memoria y se persisten al crear el usuario.
                             <div className="flex flex-col gap-2">
-                                <StatusLabel>Tareas (opcional)</StatusLabel>
+                                <StatusLabel optional>Tareas</StatusLabel>
                                 <Button
                                     type="button"
                                     variant="secondary"

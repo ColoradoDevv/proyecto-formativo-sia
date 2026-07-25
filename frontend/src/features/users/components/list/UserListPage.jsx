@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import DataTable from "@/shared/components/DataTable";
-import { userColumns } from "../../table/UserColumns.jsx";
+import { getUserColumns } from "../../table/UserColumns.jsx"; // antes: userColumns
 import { usersReportConfig } from "../../reports/usersReportConfig.js";
 import useUsers from "../../hooks/useUsers.js";
 import { TailChase } from 'ldrs/react'
@@ -14,7 +14,10 @@ export default function ListUserPage() {
     const navigate = useNavigate();
 
     // FETCH GET /api/users/
-    const { users, loading, error } = useUsers();
+    const { users, loading, error, refetch } = useUsers();
+
+    // Columnas de la tabla; onDeleted refresca el listado tras un borrado logico
+    const columns = getUserColumns(refetch);
 
     if (loading)
         return (
@@ -66,7 +69,7 @@ export default function ListUserPage() {
             {/* Doble click en una fila navega al detalle del usuario */}
             <DataTable
                 data={users}
-                columns={userColumns}
+                columns={columns}
                 onRowDoubleClick={(user) => navigate(`/usuarios/visualizar/${user.id}`)}
             />
         </div>

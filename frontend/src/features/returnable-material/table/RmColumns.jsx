@@ -4,16 +4,12 @@ import { toggleRMActive } from "../services/returnableService";
 
 export const RmColumns = (setRMs, setNotification) => [
     {
-        accessorKey: "consumable_id",
-        header: "Id",
-    },
-    {
         accessorKey: "name",
         header: "Nombre",
     },
     {
         accessorKey: "state",
-        header: "Estado",
+        header: "Disponibilidad",
     },
     {
         id: "category",
@@ -31,7 +27,7 @@ export const RmColumns = (setRMs, setNotification) => [
     },
     {
         accessorKey: "is_active",
-        header: "Activo",
+        header: "Estado",
         cell: ({ row }) => {
             const rm = row.original;
 

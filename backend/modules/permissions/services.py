@@ -107,19 +107,15 @@ class PermissionService:
         if cached_permissions is not None:
             return cached_permissions
 
-        # Obtener de BD: permisos directos UNION permisos por grupo
-        # Permisos directos: User → UserPermission → Permission
-        direct_permissions = Permission.objects.filter(
-            direct_user_permissions__user=user
-        )
-
-        # Permisos por grupo: User → UserGroup → Group → GroupPermission → Permission
-        group_permissions = Permission.objects.filter(
-            group_permissions__group__user_groups__user=user
-        )
-
-        # Unir y eliminar duplicados
-        all_permissions = direct_permissions.union(group_permissions).distinct()
+        # Obtener de BD: permisos directos | permisos por grupo, sin duplicados.
+        # Usamos el operador | (OR a nivel ORM) en vez de .union() porque SQLite
+        # no soporta .distinct() sobre un queryset combinado con .union().
+        # El filtro Q equivalente produce un único SELECT con LEFT JOINs que sí
+        # admite DISTINCT.
+        all_permissions = Permission.objects.filter(
+            Q(direct_user_permissions__user=user)
+            | Q(group_permissions__group__user_groups__user=user)
+        ).distinct()
 
         # Guardar en caché
         cache.set(cache_key, all_permissions, PermissionService.CACHE_TIMEOUT)

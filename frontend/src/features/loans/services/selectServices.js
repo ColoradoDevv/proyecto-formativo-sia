@@ -9,5 +9,11 @@ export async function getUsers() {
 export async function getMaterials() {
     const response = await apiFetch("/api/products/consumables/");
     const data = await response.json();
-    return data.map((material) => ({ id: material.id, label: material.name }));
+    return data.map((material) => ({
+        id: material.id,
+        label: material.available_quantity != null
+            ? `${material.name} (${material.available_quantity} disponibles)`
+            : material.name,
+        available_quantity: material.available_quantity,
+    }));
 }

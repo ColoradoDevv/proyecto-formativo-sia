@@ -145,6 +145,58 @@ class GroupViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=["patch"])
+    def toggle_active(self, request, pk=None):
+        """
+        Activa o desactiva un grupo.
+        PATCH /groups/{id}/toggle_active/
+        Body: {"is_active": true/false}
+        
+        No permite desactivar:
+        - El grupo "Administrador"
+        - Grupos que tienen usuarios activos asignados
+        """
+        group = self.get_object()
+        
+        # Protección: no permitir desactivar el grupo "Administrador"
+        if group.name == "Administrador":
+            return Response(
+                {"error": "El grupo 'Administrador' no puede ser desactivado."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Obtener el valor deseado
+        is_active = request.data.get("is_active")
+        if is_active is None:
+            return Response(
+                {"error": "El campo 'is_active' es requerido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Si se intenta desactivar, validar que no tenga usuarios activos
+        if not is_active and group.is_active:
+            active_users_count = group.user_groups.filter(user__is_active=True).count()
+            if active_users_count > 0:
+                return Response(
+                    {
+                        "error": f"No se puede desactivar el grupo '{group.name}' porque tiene {active_users_count} usuario(s) activo(s) asignado(s).",
+                        "active_users_count": active_users_count,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        
+        # Actualizar el estado
+        group.is_active = is_active
+        group.save()
+        
+        return Response(
+            {
+                "message": f"Grupo '{group.name}' {'activado' if is_active else 'desactivado'} exitosamente.",
+                "is_active": group.is_active,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class UserPermissionView(generics.GenericAPIView):
     """
@@ -277,6 +329,13 @@ class UserGroupView(generics.GenericAPIView):
             return Response(
                 {"error": "Grupo no encontrado"},
                 status=status.HTTP_404_NOT_FOUND,
+            )
+        
+        # Validar que el grupo esté activo
+        if not group.is_active:
+            return Response(
+                {"error": f"No se puede asignar usuarios al grupo '{group.name}' porque está desactivado."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         user_group, created = UserGroup.objects.get_or_create(user=user, group=group)

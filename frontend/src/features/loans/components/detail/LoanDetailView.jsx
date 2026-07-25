@@ -57,7 +57,8 @@ export default function LoanDetailView() {
 
                         {/* Campos del prestamo */}
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
-                            <Input label="Usuario" value={loan.usuario ?? ""} disabled readOnly />
+                            <Input label="Usuario Responsable" value={loan.usuario_responsable ?? ""} disabled readOnly />
+                            <Input label="Usuario Receptor" value={loan.usuario_receptor ?? ""} disabled readOnly />
                             <Input label="Material" value={loan.material ?? ""} disabled readOnly />
                             <Input label="Cantidad" value={loan.amount_lent ?? ""} disabled readOnly />
                             <Input label="Grupo" value={loan.apprentice_group ?? ""} disabled readOnly />

@@ -17,18 +17,18 @@ export default function AccessContextCard({ mode, label, activeCount }) {
         </div>
         <div className="min-w-0">
           <p className="text-medium font-heading text-text-primary truncate">{label}</p>
-          <p className="text-caption text-text-muted">{subtitle}</p>
+          <p className="text-small text-text-muted">{subtitle}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col items-center justify-center rounded-[var(--radius-md)] bg-text-primary py-2">
           <span className="text-h3 font-heading text-text-inverse leading-none">{activeCount}</span>
-          <span className="text-caption text-text-inverse">permisos activos</span>
+          <span className="text-small text-text-inverse">permisos activos</span>
         </div>
         <div className="flex flex-col items-center justify-center rounded-[var(--radius-md)] bg-surface-muted py-2">
           <span className="text-h3 font-heading text-text-secondary leading-none">{TOTAL_PERMISSIONS}</span>
-          <span className="text-caption text-text-secondary">totales</span>
+          <span className="text-small text-text-secondary">totales</span>
         </div>
       </div>
     </div>

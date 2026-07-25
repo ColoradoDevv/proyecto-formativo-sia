@@ -8,7 +8,7 @@ const STATE_STYLES = {
 
 export default function LoanStateBadge({ state }) {
     const label = state ?? "Activo";
-    const style = STATE_STYLES[label] ?? "bg-surface-muted text-text-secondary";
+    const style = STATE_STYLES[label] ?? "bg-surface-muted/70 text-text-secondary";
     return (
         <span className={`inline-block text-caption font-medium px-3 py-0.5 rounded-[var(--radius-full)] ${style}`}>
             {label}

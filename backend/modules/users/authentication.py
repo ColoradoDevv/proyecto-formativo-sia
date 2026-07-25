@@ -3,12 +3,14 @@
 # Se ejecuta en cada peticion: lee el token y carga el usuario.
 #
 
-import jwt 
+import hashlib
+import jwt
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-from .models import User
+from .models import User, BlacklistedToken
+
 
 class JWTAuthentication(BaseAuthentication):
     # DRF llama a este metodo automaticamente en cada peticion.
@@ -29,11 +31,25 @@ class JWTAuthentication(BaseAuthentication):
         except jwt.InvalidTokenError:
             raise AuthenticationFailed("Token invalido")
 
-        # 4. Buscar al usuario que dice el token
+        # 4. Verificar que el token no haya sido revocado (logout)
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        if BlacklistedToken.objects.filter(token_hash=token_hash).exists():
+            raise AuthenticationFailed("El token ha sido revocado. Inicia sesión nuevamente.")
+
+        # 5. Buscar al usuario que dice el token.
+        # Usamos all_objects (manager sin filtro) para encontrar también usuarios
+        # con soft-delete: si el token es válido pero el usuario está eliminado/inactivo
+        # queremos dar un error claro en vez de "no encontrado".
         try:
-            user = User.objects.get(id=payload["user_id"])
+            user = User.all_objects.get(id=payload["user_id"])
         except User.DoesNotExist:
             raise AuthenticationFailed("Usuario no encontrado")
 
-        # 5. Devolver el usuario -> DRF lo pone en request.user
+        if user.is_deleted:
+            raise AuthenticationFailed("Esta cuenta ha sido eliminada")
+
+        if not user.is_active:
+            raise AuthenticationFailed("Esta cuenta está desactivada")
+
+        # 6. Devolver el usuario -> DRF lo pone en request.user
         return (user, None)

@@ -35,6 +35,16 @@ class GroupDetailSerializer(serializers.ModelSerializer):
     permissions = PermissionSerializer(many=True, read_only=True)
     group_permissions = GroupPermissionSerializer(many=True, read_only=True)
 
+    def validate_name(self, value):
+        # Unicidad insensible a mayúsculas/minúsculas: evita que "Admin" y
+        # "ADMIN" coexistan como grupos distintos.
+        qs = Group.objects.filter(name__iexact=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Ya existe un grupo con ese nombre.")
+        return value
+
     class Meta:
         model = Group
         fields = [
@@ -59,7 +69,7 @@ class GroupListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ["id", "name", "description", "permission_count", "created_at"]
+        fields = ["id", "name", "description", "permission_count", "is_active", "created_at"]
         read_only_fields = ["id", "created_at"]
 
 
