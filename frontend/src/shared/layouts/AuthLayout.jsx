@@ -30,15 +30,16 @@ export default function AuthLayout({ children }) {
                 shadow-[var(--shadow-elevation-5)]
                 overflow-hidden
             ">
-                {/* Logo SENA: SIEMPRE visible (incluido movil) */}
-                <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
-                    <img
-                        src={senaLogo}
-                        alt="Logo SENA"
-                        className="h-12 sm:h-16 w-auto object-contain"
-                    />
-                </div>
+                    {/* Logo SENA: SIEMPRE visible (incluido movil) */}
+                    <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
+                        <img
+                            src={senaLogo}
+                            alt="Logo SENA"
+                            className="h-12 sm:h-16 w-auto object-contain"
+                        />
+                    </div>
 
+                
                 {/* ── Lado izquierdo: ilustración (solo desde md) ── */}
                 <div className="relative flex-1 hidden md:flex items-center justify-center p-8">
                     {/* Ilustración recepcionista */}
@@ -50,8 +51,18 @@ export default function AuthLayout({ children }) {
                 </div>
 
                 {/* ── Lado derecho: formulario ── */}
-                <div className="flex-1 flex items-center justify-center p-6 pt-20 sm:pt-24 md:p-0">
-                    {children ?? <Outlet />}
+                <div className="relative grid items-center justify-center p-6 pt-20 sm:pt-24 md:p-0 ">
+                    <div className="w-full max-w-md px-8 py-10 sm:px-10">
+                        <div className="text-center mb-8">
+                            <h1 className="text-h1 font-heading font-bold text-text-primary select-none pb-4">
+                                SIA
+                            </h1>
+                            <p className="-mt-6 text-sm text-text-secondary select-none">
+                                Sistema de Gestión de Inventario
+                            </p>
+                        </div>
+                        {children ?? <Outlet />}
+                    </div>
                 </div>
             </div>
 

@@ -71,12 +71,12 @@ export default function TaskListPage() {
         );
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col">
 
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 className="text-primary font-heading">Tareas</h2>
-                <Button className="flex gap-2" onClick={openCreate}>
+                <Button className="flex gap-2" onClick={openCreate} variant="soft">
                     <Plus size={18} />
                     Registrar Tarea
                 </Button>

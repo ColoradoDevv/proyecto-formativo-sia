@@ -2,20 +2,68 @@ import { Link, useNavigate } from "react-router-dom";
 import { House, Users, Wrench, Truck, Scroll, Settings, LogOut, X } from "lucide-react";
 import { logout } from "@/features/auth/services/authService";
 import { cancelAlert } from "@/shared";
+import { usePermissions } from "@/shared/hooks/usePermissions";
+
+//
+// Mapa de módulos del menú lateral.
+// `requiredPerms`: basta con tener UNO de los codenames listados para ver el enlace.
+// Si la lista está vacía, el enlace es visible para cualquier usuario autenticado.
+//
+const NAV_MODULES = [
+    {
+        to: "/",
+        icon: <House size={24} />,
+        label: "Inicio",
+        requiredPerms: [], // visible siempre
+    },
+    {
+        to: "/usuarios",
+        icon: <Users size={24} />,
+        label: "Gestión de Usuarios",
+        requiredPerms: ["view_user", "create_user", "edit_user", "delete_user", "list_users"],
+    },
+    {
+        to: "/consumibles",
+        icon: <Wrench size={24} />,
+        label: "Materiales de Consumo",
+        // Codenames reales en BD (migración 0002)
+        requiredPerms: [
+            "view_consumable_material", "list_consumable_materials",
+            "create_consumable_material", "update_consumable_material",
+            "view_consumable", "create_consumable", "edit_consumable",
+        ],
+    },
+    {
+        to: "/devolutivos",
+        icon: <Scroll size={24} />,
+        label: "Materiales Devolutivos",
+        // Codenames reales en BD (migración 0002)
+        requiredPerms: [
+            "view_returnable_material", "list_returnable_materials",
+            "create_returnable_material", "update_returnable_material",
+            "view_returnable", "create_returnable", "edit_returnable",
+        ],
+    },
+    {
+        to: "/prestamos",
+        icon: <Truck size={24} />,
+        label: "Préstamos",
+        requiredPerms: ["view_loan", "create_loan", "edit_loan", "list_loans"],
+    },
+];
 
 function NavLinks({ onLinkClick }) {
     const navigate = useNavigate();
+    const { canAny, isSuper } = usePermissions();
 
-    const topLinks = [
-        { to: "/",            icon: <House size={24} />,  label: "Inicio" },
-        { to: "/usuarios",    icon: <Users size={24} />,  label: "Gestión de Usuarios" },
-        { to: "/consumibles", icon: <Wrench size={24} />, label: "Materiales de Consumo" },
-        { to: "/devolutivos", icon: <Scroll size={24} />, label: "Materiales Devolutivos" },
-        { to: "/prestamos",   icon: <Truck size={24} />,  label: "Préstamos" },
-    ];
+    // Filtramos los módulos según los permisos del usuario.
+    // Si requiredPerms está vacío siempre pasa; si no, basta uno de ellos.
+    const visibleModules = NAV_MODULES.filter(({ requiredPerms }) =>
+        requiredPerms.length === 0 ? true : canAny(requiredPerms)
+    );
 
-    const linkClass = "flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors";
-
+    const linkClass =
+        "flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors";
 
     async function handleLogout() {
         const result = await cancelAlert({
@@ -37,7 +85,7 @@ function NavLinks({ onLinkClick }) {
     return (
         <>
             <ul className="flex flex-col gap-5">
-                {topLinks.map(({ to, icon, label }) => (
+                {visibleModules.map(({ to, icon, label }) => (
                     <li key={to}>
                         <Link to={to} onClick={onLinkClick} className={linkClass}>
                             {icon} {label}
@@ -47,16 +95,22 @@ function NavLinks({ onLinkClick }) {
             </ul>
 
             <ul className="flex flex-col gap-5">
-                {/* Configuracion: navegacion normal */}
-                <li>
-                    <Link to="/configuracion" onClick={onLinkClick} className={linkClass}>
-                        <Settings size={24} /> Configuración
-                    </Link>
-                </li>
+                {/* Configuración: superusuarios o usuarios con gestión de grupos/roles */}
+                {(isSuper || canAny(["manage_groups", "manage_role_permissions", "create_role", "list_roles"])) && (
+                    <li>
+                        <Link to="/configuracion" onClick={onLinkClick} className={linkClass}>
+                            <Settings size={24} /> Configuración
+                        </Link>
+                    </li>
+                )}
 
-                {/* Cerrar sesion: es una ACCION, no un enlace */}
+                {/* Cerrar sesión: siempre visible */}
                 <li>
-                    <button type="button" onClick={handleLogout} className={`${linkClass} w-full text-left cursor-pointer`}>
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className={`${linkClass} w-full text-left cursor-pointer`}
+                    >
                         <LogOut size={24} /> Cerrar sesión
                     </button>
                 </li>

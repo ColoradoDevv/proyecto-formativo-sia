@@ -1,18 +1,21 @@
-import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react";
-import { RmColumns } from "../../table/RmColumns";
-import DataTable from "@/shared/components/DataTable";
-import { returnablesReportConfig } from "../../reports/returnablesReportConfig.js";
-import useRMs from "../../hooks/useRMs";
+import { Link, useNavigate } from "react-router-dom";
 import { TailChase } from "ldrs/react";
 import { CloudAlert, Plus, Download } from "lucide-react";
 import Alert from "@mui/material/Alert";
-import { Button } from "@/shared"
+
+import { Button } from "@/shared";
+import DataTable from "@/shared/components/DataTable";
+import { RmColumns } from "../../table/RmColumns";
+import { returnablesReportConfig } from "../../reports/returnablesReportConfig.js";
+import useRMs from "../../hooks/useRMs";
 
 export default function RmListPage() {
     const navigate = useNavigate();
+
     const { RMs, setRMs, loading, error } = useRMs();
-    const [notification, setNotification] = useState(null);
+    const [notification, setNotification]   = useState(null);
+
 
     if (loading)
         return (
@@ -45,14 +48,9 @@ export default function RmListPage() {
                         {notification.message}
                     </Alert>
                 )}
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Link to="/devolutivos/crear" className="w-full">
-                        <Button
-                            className="w-full"
-                            variant="soft"
-                            icon={Plus}
-                        >
+                        <Button className="w-full" variant="soft" icon={Plus}>
                             Registrar Material
                         </Button>
                     </Link>
@@ -66,7 +64,7 @@ export default function RmListPage() {
                     </Button>
                 </div>
             </div>
-            
+
             {/* Doble click en una fila navega al detalle del material */}
             <DataTable
                 data={RMs}

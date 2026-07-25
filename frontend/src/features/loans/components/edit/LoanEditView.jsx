@@ -4,7 +4,7 @@ import { Button, IconButton, Input, showAlert, cancelAlert } from "@/shared";
 import { Undo2 } from "lucide-react";
 import useLoan from "../../hooks/useLoan";
 import { getUsers, getMaterials } from "../../services/selectServices";
-import { loanSchema } from "../../schemas/loanSchema";
+import loanSchema from "../../schemas/loanSchema";
 import { updateLoan } from "../../services/loanService";
 import LoanForm from "../LoanForm";
 import { TailChase } from "ldrs/react";
@@ -38,12 +38,13 @@ function LoanEditForm({ loan, users, materials }) {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        loanUser:          loan.id_user     != null ? String(loan.id_user)     : "",
-        loanMaterial:      loan.id_material != null ? String(loan.id_material) : "",
-        loanAmount:        loan.amount_lent != null ? String(loan.amount_lent) : "",
-        loanGroup:         loan.apprentice_group  ?? "",
-        loanJustification: loan.justification_use ?? "",
-        loanReturnDate:    loan.return_date        ?? "",
+        loanResponsableUser: loan.id_responsable_user != null ? String(loan.id_responsable_user) : "",
+        loanReceptorUser:    loan.id_receptor_user     != null ? String(loan.id_receptor_user)    : "",
+        loanMaterial:        loan.id_material          != null ? String(loan.id_material)         : "",
+        loanAmount:          loan.amount_lent          != null ? String(loan.amount_lent)          : "",
+        loanGroup:           loan.apprentice_group  ?? "",
+        loanJustification:   loan.justification_use ?? "",
+        loanReturnDate:      loan.return_date        ?? "",
     });
 
     const [errors, setErrors] = useState({});
@@ -57,7 +58,8 @@ function LoanEditForm({ loan, users, materials }) {
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const result = loanSchema.safeParse(formData);
+        const schema = loanSchema(materials);
+        const result = schema.safeParse(formData);
 
         if (!result.success) {
             const fieldErrors = {};

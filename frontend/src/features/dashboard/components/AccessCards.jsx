@@ -12,7 +12,7 @@ export default function AccessCards({ className = "", Icon, label, value, to }) 
                         {Icon}
                     </span>
                 )}
-                <p className="text-primary font-heading text-text-primary leading-tight">{label}</p>
+                <p className="text-primary  text-text-primary leading-tight">{label}</p>
             </div>
             <div className="justify-items-center">
                 <p className="text-primary text-text-secondary ">{value}</p>

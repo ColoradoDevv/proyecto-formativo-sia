@@ -131,7 +131,7 @@ export default function AccessSidebar({
           />
         )}
         {isEditing && (
-          <p className="text-caption text-text-muted mt-1">
+          <p className="text-small text-text-muted mt-1">
             Guarde o cancele los cambios para cambiar de destino.
           </p>
         )}

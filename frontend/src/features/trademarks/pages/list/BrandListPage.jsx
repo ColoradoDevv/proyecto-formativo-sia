@@ -103,7 +103,7 @@ export default function BrandListPage() {
                         fullWidth
                         className="sm:flex-1"
                     />
-                    <Button className="w-full sm:w-auto flex gap-2 shrink-0" onClick={openCreateModal}>
+                    <Button className="w-full sm:w-auto flex gap-2 shrink-0" onClick={openCreateModal} variant="soft">
                         <Plus size={18} />
                         Registrar Marca
                     </Button>

@@ -3,12 +3,15 @@
 
 from rest_framework import serializers
 from .models import Loans
+from django.db.models import Sum
+
 
 
 class LoanSerializer(serializers.ModelSerializer):
     # Serializer para préstamos.
 
-    usuario = serializers.SerializerMethodField()
+    usuario_responsable = serializers.SerializerMethodField()
+    usuario_receptor = serializers.SerializerMethodField()
     material = serializers.SerializerMethodField()
     material_type = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
@@ -17,7 +20,8 @@ class LoanSerializer(serializers.ModelSerializer):
         model = Loans
         fields = [
             'id_loan',
-            'id_user',
+            'id_responsable_user',
+            'id_receptor_user',
             'id_material',
             'amount_lent',
             'apprentice_group',
@@ -25,7 +29,8 @@ class LoanSerializer(serializers.ModelSerializer):
             'return_date',
             'loan_date',
             'state',
-            'usuario',
+            'usuario_responsable',
+            'usuario_receptor',
             'material',
             'material_type',
             'is_active',
@@ -35,10 +40,16 @@ class LoanSerializer(serializers.ModelSerializer):
             'return_date': {'required': True},
             # state no se envia al crear; se gestiona por el flujo de devolucion
             'state': {'read_only': True},
+            # loan_date se rellena automáticamente (auto_now_add); nunca debe
+            # aceptarse desde el cliente aunque llegue en el payload.
+            'loan_date': {'read_only': True},
         }
 
-    def get_usuario(self, obj):
-        return f"{obj.id_user.first_name} {obj.id_user.last_name}"
+    def get_usuario_responsable(self, obj):
+        return f"{obj.id_responsable_user.first_name} {obj.id_responsable_user.last_name}"
+
+    def get_usuario_receptor(self, obj):
+        return f"{obj.id_receptor_user.first_name} {obj.id_receptor_user.last_name}"
 
     def get_material(self, obj):
         return obj.id_material.name
@@ -51,3 +62,37 @@ class LoanSerializer(serializers.ModelSerializer):
         # Un prestamo esta activo solo mientras siga en estado "Activo"
         # (Finalizado o Incompleto significan que ya fue devuelto).
         return obj.state == 'Activo'
+    
+    def validate(self, attrs):
+        material = attrs.get('id_material') or getattr(self.instance, 'id_material', None)
+        amount_lent = attrs.get('amount_lent', getattr(self.instance, 'amount_lent', None))
+
+        # Validar que el material esté activo antes de crear o editar un préstamo
+        if material is not None and not material.is_active:
+            raise serializers.ValidationError({
+                'id_material': 'Este material está deshabilitado y no puede prestarse.'
+            })
+
+        if material is not None and amount_lent is not None:
+            if material.quantity is not None:
+                active_loans = Loans.objects.filter(
+                    id_material=material,
+                    state='Activo',
+                )
+
+                # Al editar, no contar el propio préstamo contra sí mismo
+                if self.instance is not None:
+                    active_loans = active_loans.exclude(pk=self.instance.pk)
+
+                already_lent = active_loans.aggregate(total=Sum('amount_lent'))['total'] or 0
+                available = material.quantity - already_lent
+
+                if amount_lent > available:
+                    raise serializers.ValidationError({
+                        'amount_lent': (
+                            f'Solo quedan {available} unidades disponibles de "{material.name}" '
+                            f'(stock total: {material.quantity}, ya prestadas: {already_lent}).'
+                        )
+                    })
+
+        return attrs

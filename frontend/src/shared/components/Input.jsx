@@ -2,6 +2,7 @@ export default function Input({
     label,
     type = "text",
     required,
+    optional,
     className = "w-full",
     error,
     hint,
@@ -40,6 +41,7 @@ export default function Input({
                 >
                     {label}
                     {required && <span className="text-error ml-1">*</span>}
+                    {optional && <span className="text-text-muted ml-1">(opcional)</span>}
                 </label>
             )}
 
@@ -50,6 +52,8 @@ export default function Input({
                     className={`
                         relative
                         w-full
+                        h-full
+                        box-border
                         ${inputVariants[variant]}
                         border
                         px-4

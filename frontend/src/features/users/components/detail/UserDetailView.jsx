@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, StatusBadge, EditCard } from "@/shared";
+import { Button, IconButton, Input, StatusBadge, EditCard, showAlert, cancelAlert } from "@/shared";
 import useUser from "../../hooks/useUser.js";
+import { resendCredentials } from "../../services/userService.js";
 import { TailChase } from 'ldrs/react'
 import 'ldrs/react/TailChase.css'
-import { Undo2 } from "lucide-react";
+import { Undo2, Mail } from "lucide-react";
 
 export default function UserDetailView() {
     const navigate = useNavigate();
@@ -11,6 +13,9 @@ export default function UserDetailView() {
 
     // FETCH GET /api/users/{id}/
     const { user, loading, error } = useUser(id);
+
+    // Estado local para el boton de reenviar credenciales
+    const [resending, setResending] = useState(false);
 
     if (loading)
         return (
@@ -27,6 +32,40 @@ export default function UserDetailView() {
         ? user.groups.map((g) => g.name).join(", ")
         : "Sin grupo asignado";
     const isActive = user.is_active !== false;
+
+    // Genera una nueva contraseña para el usuario y se la envia por correo.
+    // Accion administrativa: invalida la contraseña anterior del usuario.
+    const handleResendCredentials = async () => {
+        const result = await cancelAlert({
+            title: "¿Reenviar credenciales?",
+            text: `Se generará una nueva contraseña para ${user.first_name} ${user.last_name} y se enviará a ${user.email}. La contraseña actual dejará de funcionar.`,
+            confirmText: "Sí, reenviar",
+            cancelText: "Cancelar",
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            setResending(true);
+            await resendCredentials(user.id);
+            await showAlert({
+                icon: "success",
+                iconColor: "var(--color-success)",
+                title: "Credenciales reenviadas",
+                text: `Se envió una nueva contraseña a ${user.email}.`,
+                timer: 4000,
+            });
+        } catch (err) {
+            showAlert({
+                icon: "error",
+                iconColor: "var(--color-error)",
+                title: "No se pudo reenviar las credenciales",
+                text: err.message,
+            });
+        } finally {
+            setResending(false);
+        }
+    };
 
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
@@ -50,8 +89,8 @@ export default function UserDetailView() {
                         {/* Foto + estado */}
                         <div className="flex flex-col items-center gap-2 shrink-0">
                             <div className="w-24 h-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                                {user.profilePicture
-                                    ? <img src={user.profilePicture} alt={user.first_name} className="w-full h-full object-cover" />
+                                {user.profile_picture
+                                    ? <img src={user.profile_picture} alt={user.first_name} className="w-full h-full object-cover" />
                                     : <span className="text-h1 font-heading text-text-muted">{(user.first_name ?? "?")[0].toUpperCase()}</span>
                                 }
                             </div>
@@ -80,6 +119,21 @@ export default function UserDetailView() {
                         <Input label="Correo institucional" value={user.institutional_email ?? ""} disabled readOnly />
                         <Input label="Teléfono" value={user.phone_number ?? ""} disabled readOnly />
                         <Input label="Teléfono adicional" value={user.second_phone_number ?? ""} disabled readOnly />
+
+                        {/* Accion administrativa: reenviar credenciales de acceso */}
+                        <div className="pt-2">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="md"
+                                className="flex gap-2 justify-center w-full"
+                                onClick={handleResendCredentials}
+                                disabled={resending}
+                            >
+                                <Mail size={16} />
+                                {resending ? "Enviando..." : "Reenviar credenciales"}
+                            </Button>
+                        </div>
                     </EditCard>
 
                     <EditCard title="Información del Sistema">

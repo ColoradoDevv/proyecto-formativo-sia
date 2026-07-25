@@ -69,10 +69,13 @@ export default function UserForm({
                     {/* Foto + estado */}
                     <div className="flex flex-col items-center gap-2 shrink-0">
                         <ProfileFileInput
-                            className="w-24 h-24 rounded-[var(--radius-xl)]"
+                            className="w-32 h-40 rounded-[var(--radius-xl)]"
                             value={formData.profilePicture}
                             onChange={onPhotoChange}
                             error={errors.profilePicture}
+                            label="Foto de perfil"
+                            optional
+                            description="Formato JPG o PNG. Tamaño máximo: 2MB."
                         />
                         {showStatus && <StatusBadge active={isActive} />}
                     </div>
@@ -149,6 +152,7 @@ export default function UserForm({
                         label="Correo institucional"
                         name="institutionalEmail"
                         type="email"
+                        optional
                         placeholder="correo@sena.edu.co"
                         value={formData.institutionalEmail}
                         onChange={onChange}
@@ -167,6 +171,24 @@ export default function UserForm({
                 </EditCard>
 
                 <EditCard title="Información del Sistema">
+                    <Input
+                        label="Fecha de inicio"
+                        name="startDate"
+                        type="date"
+                        value={formData.startDate}
+                        onChange={onChange}
+                        error={errors.startDate}
+                        required
+                    />
+                    <Input
+                        label="Fecha de finalización"
+                        name="endDate"
+                        type="date"
+                        optional
+                        value={formData.endDate}
+                        onChange={onChange}
+                        error={errors.endDate}
+                    />
                     <div>
                         <SelectMultiple
                             label="Tipo de usuario"
@@ -203,23 +225,8 @@ export default function UserForm({
                             />
                         )}
                     </div>
-                    <Input
-                        label="Fecha de inicio"
-                        name="startDate"
-                        type="date"
-                        value={formData.startDate}
-                        onChange={onChange}
-                        error={errors.startDate}
-                        required
-                    />
-                    <Input
-                        label="Fecha de finalización"
-                        name="endDate"
-                        type="date"
-                        value={formData.endDate}
-                        onChange={onChange}
-                        error={errors.endDate}
-                    />
+
+
                     {systemExtraSlot}
                 </EditCard>
             </div>

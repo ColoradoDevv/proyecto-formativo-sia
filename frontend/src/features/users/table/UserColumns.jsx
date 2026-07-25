@@ -1,12 +1,8 @@
 import { ActiveSwitch } from "@/shared";
-import { toggleUserActive } from "../services/userService";
-import UserRowActions from "../components/list/UserRowActions";
+import { toggleUserActive } from "@/features/users/services/userService"; // ajusta la ruta segun tu estructura real
+import UserRowActions from "@/features/users/components/list/UserRowActions"; // ajusta la ruta segun tu estructura real
 
-export const userColumns = [
-    {
-        accessorKey: "id",
-        header: "ID",
-    },
+export const getUserColumns = (onDeleted) => [
     {
         accessorFn: (row) => `${row.first_name} ${row.last_name}`,
         id: "nombre",
@@ -51,6 +47,8 @@ export const userColumns = [
     {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }) => <UserRowActions user={row.original} />,
+        cell: ({ row }) => (
+            <UserRowActions user={row.original} onDeleted={onDeleted} />
+        ),
     },
 ];

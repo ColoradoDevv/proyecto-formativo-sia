@@ -1,18 +1,40 @@
 import { Link } from "react-router-dom";
 import { TailChase } from "ldrs/react";
-import { CloudAlert, ClipboardList, ArrowRight } from "lucide-react";
+import { CloudAlert, ClipboardList, ArrowRight, Lock } from "lucide-react";
 import { StatusBadge } from "@/shared";
+import { usePermissions } from "@/shared/hooks/usePermissions";
 import useRecentLoans from "../hooks/useRecentLoans";
 
 // Resumen de los ultimos prestamos registrados para el panel de inicio.
-// Sigue los mismos estados (loading/error) y estilos que LoansListPage.
+// Solo se renderiza si el usuario tiene permiso de ver préstamos.
 export default function RecentActivity() {
-    const { loans, loading, error } = useRecentLoans(4);
+    const { canAny } = usePermissions();
+
+    // Codenames reales de BD (0002) + codenames nuevos (0004)
+    const canViewLoans = canAny(["view_loan", "list_loans"]);
+
+    const { loans, loading, error } = useRecentLoans(canViewLoans ? 4 : 0);
+
+    // Si el usuario no puede ver préstamos, mostrar mensaje de acceso denegado
+    if (!canViewLoans) {
+        return (
+            <div className="flex flex-col gap-4">
+                <h3 className="text-h3 text-text-primary">Actividad reciente</h3>
+                <div className="bg-surface-hover rounded-2xl shadow-(--shadow-elevation-2) p-2">
+                    <div className="flex items-center gap-3 text-text-muted px-4 py-6">
+                        <Lock size={20} />
+                        <p className="text-small">No tienes permiso para ver la actividad reciente.</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-h3 font-heading text-text-primary">Actividad reciente</h3>
+                <h3 className="text-h3 text-text-primary">Actividad reciente</h3>
+                {/* "Ver todos" solo aparece si puede navegar a /prestamos */}
                 <Link
                     to="/prestamos"
                     className="inline-flex items-center gap-1 text-small text-text-muted hover:text-text-secondary transition-colors"
@@ -56,7 +78,7 @@ export default function RecentActivity() {
                                     <span className="text-text-secondary shrink-0"><ClipboardList size={18} /></span>
                                     <div className="min-w-0">
                                         <p className="text-medium text-text-primary truncate">
-                                            {loan.usuario}
+                                            {loan.usuario_responsable} prestó a {loan.usuario_receptor}
                                         </p>
                                         <p className="text-small text-text-muted truncate">
                                             {loan.material} · {loan.amount_lent} und.

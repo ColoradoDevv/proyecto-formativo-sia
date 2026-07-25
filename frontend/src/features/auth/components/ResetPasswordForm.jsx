@@ -63,7 +63,7 @@ export default function ResetPasswordForm() {
     );
 
     return (
-        <div className="bg-background rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-8 py-10 w-full sm:w-[var(--size-field-md)]">
+        <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-8 py-10 w-full sm:w-[var(--size-field-md)]">
             <h1 className="text-center text-h2 font-heading mb-2 text-text-primary">
                 Nueva Contraseña
             </h1>

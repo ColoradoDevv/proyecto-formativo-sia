@@ -9,12 +9,19 @@ from rest_framework.response import Response
 
 from .models import LoanReturn
 from .serializers import LoanReturnSerializer
+from modules.permissions.permissions_drf import HasPermission, IsSuperUser
 
 
 class LoanReturnViewSet(viewsets.ModelViewSet):
     # CRUD de retornos de prestamos.
     queryset = LoanReturn.objects.select_related('loan', 'material').all().order_by('id')
     serializer_class = LoanReturnSerializer
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [HasPermission("create_return")]
+        # list/retrieve/update/destroy — solo superusuarios por defecto
+        return [IsSuperUser()]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

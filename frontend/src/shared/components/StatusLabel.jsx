@@ -1,8 +1,10 @@
-export default function StatusLabel({ children, required, error, className = "" }) {
+export default function StatusLabel({ children, required, optional, error, className = "" }) {
     return (
-        <label className={`block text-medium ${error ? "text-error" : "text-text-primary"} ${className}`}>
+        <label className={`block text-small ${error ? "text-error" : "text-text-primary"} ${className}`}>
             {children}
             {required && <span className="text-error ml-1">*</span>}
+            {optional && <span className="text-text-muted ml-1">(opcional)</span>}
+
         </label>
     );
 }
