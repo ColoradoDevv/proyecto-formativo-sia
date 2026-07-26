@@ -133,7 +133,7 @@ export const rmSchema = z.object({
     
     let categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
     
-    if (categoryName === "herramientas") {
+    if (categoryName === "herramienta") {
         categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
     } else if (categoryName === "maquinaria y equipos") {
         categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: false };
@@ -246,7 +246,7 @@ export const rmEditSchema = z.object({
     
     let categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
     
-    if (categoryName === "herramientas") {
+    if (categoryName === "herramienta") {
         categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
     } else if (categoryName === "maquinaria y equipos") {
         categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: false };

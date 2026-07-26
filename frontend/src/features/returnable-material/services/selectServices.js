@@ -27,21 +27,6 @@ export async function getCategories() {
     return data.map((cat) => ({ id: cat.id, label: cat.name }));
 }
 
-// Crea una categoria nueva desde el formulario y la devuelve como opcion {id,label}.
-export async function createCategory(name) {
-    const response = await apiFetch("/api/products/categories/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-    });
-    if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.name?.[0] || data.detail || "No se pudo crear la categoría");
-    }
-    const cat = await response.json();
-    return { id: cat.id, label: cat.name };
-}
-
 export function getStates() {
     return Promise.resolve([
         { id: "Disponible",    label: "Disponible"    },

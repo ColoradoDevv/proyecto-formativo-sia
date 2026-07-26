@@ -15,14 +15,11 @@ export default function ReturnableForm({
     brands = [],
     states = [],
     onCreateBrand = null,
-    onCreateCategory = null,
     photoSlot = null,
 }) {
-    // Al crear marca/categoria nueva: se selecciona automaticamente en el form.
+    // Al crear una marca nueva, se selecciona automáticamente en el formulario.
     const handleBrandCreated = (option) =>
         onChange({ target: { name: "brand", value: String(option.id) } });
-    const handleCategoryCreated = (option) =>
-        onChange({ target: { name: "category", value: String(option.id) } });
 
     const selectedCategory = categories.find((option) => String(option.id) === String(formData.category));
     const categoryName = selectedCategory?.label ?? selectedCategory?.name ?? "";
@@ -62,7 +59,27 @@ export default function ReturnableForm({
                             required={categoryRules.requiresSenaPlate}
                             optional={!categoryRules.requiresSenaPlate}
                         />
-                            <Select
+                        <Select
+                            label="Categoría"
+                            name="category"
+                            options={categories}
+                            value={formData.category}
+                            onChange={onChange}
+                            error={errors.category}
+                            required
+                        />    
+                        <Input
+                            label="ID"
+                            name="serial"
+                            placeholder="ID del material"
+                            value={formData.serial}
+                            onChange={onChange}
+                            error={errors.serial}
+                            required={categoryRules.requiresId}
+                            optional={!categoryRules.requiresId}
+                        />
+                        
+                        <Select
                                 label="Marca"
                                 name="brand"
                                 options={brands}
@@ -82,36 +99,6 @@ export default function ReturnableForm({
                                     />
                                 }
                             />
-                        <Input
-                            label="ID"
-                            name="serial"
-                            placeholder="ID del material"
-                            value={formData.serial}
-                            onChange={onChange}
-                            error={errors.serial}
-                            required={categoryRules.requiresId}
-                            optional={!categoryRules.requiresId}
-                        />
-                        <Select
-                            label="Categoría"
-                            name="category"
-                            options={categories}
-                            value={formData.category}
-                            onChange={onChange}
-                            error={errors.category}
-                            required
-                            labelAction={
-                                <CreateOptionButton
-                                    onCreate={onCreateCategory}
-                                    onCreated={handleCategoryCreated}
-                                    title="Nueva categoría"
-                                    inputLabel="Nombre de la categoría"
-                                    inputPlaceholder="Ej. Herramienta"
-                                    errorTitle="No se pudo crear la categoría"
-                                    ariaLabel="Agregar nueva categoría"
-                                />
-                            }
-                        />
                             <TextArea
                                 label="Descripción"
                                 name="description"

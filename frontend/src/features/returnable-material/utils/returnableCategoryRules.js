@@ -13,7 +13,7 @@ export function getReturnableCategoryOptions(categories = []) {
 export function getReturnableCategoryRules(categoryName = "") {
     const normalized = String(categoryName || "").trim().toLowerCase();
 
-    if (normalized === "herramientas") {
+    if (normalized === "herramienta") {
         return {
             requiresSenaPlate: false,
             requiresId: false,
