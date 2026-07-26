@@ -3,24 +3,20 @@ import { toggleUserActive } from "@/features/users/services/userService"; // aju
 import UserRowActions from "@/features/users/components/list/UserRowActions"; // ajusta la ruta segun tu estructura real
 
 function UserActiveSwitch({ user }) {
-    const isAdmin = user.groups?.some(
-        (group) => String(group.name).trim().toUpperCase() === "ADMIN"
-    );
-
     const requestDeactivationReason = async (nextIsActive) => {
-        if (nextIsActive || !isAdmin) return undefined;
+        if (nextIsActive) return undefined;
 
         const result = await promptAlert({
             icon: "warning",
             iconColor: "var(--color-warning)",
-            title: "Justificación requerida",
-            text: "Indique el motivo para deshabilitar esta cuenta de Administrador.",
-            inputLabel: "Justificación",
-            inputPlaceholder: "Describa el motivo de la deshabilitación",
+            title: "Motivo de inactivación",
+            text: "Indique el motivo para deshabilitar esta cuenta de usuario.",
+            inputLabel: "Motivo de inactivación",
+            inputPlaceholder: "Describa el motivo de la inactivación",
             confirmText: "Deshabilitar",
             cancelText: "Cancelar",
             inputValidator: (value) => value.trim().length < 10
-                ? "La justificación debe tener al menos 10 caracteres."
+                ? "El motivo debe tener al menos 10 caracteres."
                 : "",
         });
 

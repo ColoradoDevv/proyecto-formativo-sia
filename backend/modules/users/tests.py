@@ -74,4 +74,21 @@ class UserSerializerTests(TestCase):
             "Ausencia prolongada con autorización previa.",
         )
 
+    def test_disabling_regular_user_requires_reason(self):
+        user = User.objects.create_user(
+            email="regular@example.com",
+            password="test-password",
+            first_name="Usuario",
+            last_name="Regular",
+        )
+
+        serializer = UserSerializer(
+            user,
+            data={"is_active": False},
+            partial=True,
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("deactivation_reason", serializer.errors)
+
 # Create your tests here.

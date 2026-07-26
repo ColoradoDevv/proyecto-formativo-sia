@@ -157,18 +157,16 @@ class UserSerializer(serializers.ModelSerializer):
         if instance is None:
             return attrs
 
-        is_disabling_admin = (
+        is_disabling_user = (
             instance.is_active
             and attrs.get("is_active") is False
-            and instance.user_groups.filter(group__name__iexact="ADMIN").exists()
         )
-        if is_disabling_admin:
+        if is_disabling_user:
             reason = str(attrs.get("deactivation_reason") or "").strip()
             if len(reason) < 10:
                 raise serializers.ValidationError({
                     "deactivation_reason": (
-                        "Debe indicar una justificación de al menos 10 caracteres "
-                        "para deshabilitar un usuario ADMIN."
+                        "Debe indicar un motivo de inactivación de al menos 10 caracteres."
                     )
                 })
             attrs["deactivation_reason"] = reason

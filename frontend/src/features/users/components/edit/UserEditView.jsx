@@ -90,9 +90,6 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
     // evita el problema de StrictMode (React 18 monta→desmonta→monta en dev:
     // las refs persisten entre remontajes y pueden activar efectos prematuramente).
     const [groupsReady, setGroupsReady] = useState(false);
-    const isAdminUser = user.groups?.some(
-        (group) => String(group.name).trim().toUpperCase() === "ADMIN"
-    ) ?? false;
 
     // Derivar flags de rol desde el estado actual — fuente de verdad única.
     // Se usa allGroups (lista completa, incluye SADMIN) para que usuarios con ese
@@ -142,8 +139,8 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
         if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
             preErrors.endDate = "La fecha de finalización no puede ser anterior a la de inicio";
         }
-        if (isAdminUser && user.is_active && formData.isActive === "false" && formData.deactivationReason.trim().length < 10) {
-            preErrors.deactivationReason = "Debe indicar una justificación de al menos 10 caracteres.";
+        if (user.is_active && formData.isActive === "false" && formData.deactivationReason.trim().length < 10) {
+            preErrors.deactivationReason = "Debe indicar un motivo de inactivación de al menos 10 caracteres.";
         }
         if (Object.keys(preErrors).length) {
             setErrors(preErrors);
@@ -245,11 +242,11 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
                     }
                     systemExtraSlot={
                         <div className="flex flex-col gap-3">
-                            {isAdminUser && user.is_active && formData.isActive === "false" && (
+                            {user.is_active && formData.isActive === "false" && (
                                 <Input
-                                    label="Justificación de deshabilitación"
+                                    label="Motivo de inactivación"
                                     name="deactivationReason"
-                                    placeholder="Indique el motivo de la deshabilitación"
+                                    placeholder="Indique el motivo de la inactivación"
                                     value={formData.deactivationReason}
                                     onChange={handleChange}
                                     error={errors.deactivationReason}
