@@ -7,6 +7,14 @@ import { getUsers, getMaterials } from "../../services/selectServices";
 import LoanForm from "../LoanForm";
 import { Undo2 } from "lucide-react";
 
+function getTodayDateString() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
 
 export default function LoanRegisterForm() {
     const navigate = useNavigate();
@@ -97,6 +105,7 @@ export default function LoanRegisterForm() {
                         onChange={handleChange}
                         users={users}
                         materials={materials}
+                        loanDepartureDate={getTodayDateString()}
                     />
 
                     <div className="flex gap-4 justify-center md:justify-end">

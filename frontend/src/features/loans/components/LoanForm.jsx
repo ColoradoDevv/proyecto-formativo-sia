@@ -10,6 +10,7 @@ export default function LoanForm({
     onChange,
     users = [],
     materials = [],
+    loanDepartureDate = "",
     extraSlot = null,
 }) {
     return (
@@ -63,6 +64,13 @@ export default function LoanForm({
                     onChange={onChange}
                     error={errors.loanGroup}
                     required
+                />
+                <Input
+                    label="Fecha de salida"
+                    type="date"
+                    value={loanDepartureDate}
+                    disabled
+                    readOnly
                 />
                 <Input
                     label="Fecha Devolución"

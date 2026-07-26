@@ -24,7 +24,7 @@ export const loansColumns = ({ onReturn, onDeleted } = {}) => [
     },
     {
         accessorKey: "loan_date",
-        header: "Fecha Préstamo",
+        header: "Fecha de salida",
         meta: { filterVariant: "date" },
     },
     {

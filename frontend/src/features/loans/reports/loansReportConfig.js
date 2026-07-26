@@ -8,7 +8,7 @@ export const loansReportConfig = {
         { key: "apprentice_group",            label: "Grupo de aprendices", default: true  },
         { key: "material",        label: "Material",             default: true  },
         { key: "amount_lent",     label: "Cantidad",             default: true  },
-        { key: "loan_date",       label: "Fecha de préstamo",    default: true  },
+        { key: "loan_date",       label: "Fecha de salida",      default: true  },
         { key: "return_date",     label: "Fecha de devolución",  default: true  },
         { key: "is_active",       label: "Estado",               default: false },
     ],

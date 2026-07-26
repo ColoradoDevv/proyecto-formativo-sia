@@ -60,9 +60,15 @@ export default function LoanDetailView() {
                             <Input label="Usuario Responsable" value={loan.usuario_responsable ?? ""} disabled readOnly />
                             <Input label="Usuario Receptor" value={loan.usuario_receptor ?? ""} disabled readOnly />
                             <Input label="Material" value={loan.material ?? ""} disabled readOnly />
+                            <Input
+                                label="Tipo de material"
+                                value={loan.material_type === "devolutivo" ? "Material devolutivo" : "Material de consumo"}
+                                disabled
+                                readOnly
+                            />
                             <Input label="Cantidad" value={loan.amount_lent ?? ""} disabled readOnly />
                             <Input label="Grupo" value={loan.apprentice_group ?? ""} disabled readOnly />
-                            <Input label="Fecha Préstamo" value={loan.loan_date ?? ""} disabled readOnly />
+                            <Input label="Fecha de salida" value={loan.loan_date ?? ""} disabled readOnly />
                             <Input label="Fecha Devolución" value={loan.return_date ?? ""} disabled readOnly />
                             <div className="sm:col-span-2">
                                 <TextArea label="Justificación de Uso" value={loan.justification_use ?? ""} disabled readOnly />
