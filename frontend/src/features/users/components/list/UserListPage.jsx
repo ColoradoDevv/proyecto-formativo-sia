@@ -6,12 +6,14 @@ import useUsers from "../../hooks/useUsers.js";
 import { TailChase } from 'ldrs/react'
 import 'ldrs/react/TailChase.css'
 import { CloudAlert, Plus, Download } from "lucide-react";
-import { Button } from "@/shared"
+import { Button, usePermissions } from "@/shared"
 
 
 export default function ListUserPage() {
 
     const navigate = useNavigate();
+    const { can, isSuper } = usePermissions();
+    const canCreateUsers = isSuper || can("create_user");
 
     // FETCH GET /api/users/
     const { users, loading, error, refetch } = useUsers();
@@ -46,15 +48,17 @@ export default function ListUserPage() {
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Link to="/usuarios/crear" className="w-full">
-                        <Button
-                            className="w-full"
-                            variant="soft"
-                            icon={Plus}
-                        >
-                            Registrar Usuario
-                        </Button>
-                    </Link>
+                    {canCreateUsers && (
+                        <Link to="/usuarios/crear" className="w-full">
+                            <Button
+                                className="w-full"
+                                variant="soft"
+                                icon={Plus}
+                            >
+                                Registrar Usuario
+                            </Button>
+                        </Link>
+                    )}
                     <Button
                         data={users}
                         icon={Download}

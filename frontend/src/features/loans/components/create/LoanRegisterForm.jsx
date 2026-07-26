@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, showAlert, cancelAlert } from "@/shared";
+import { Button, showAlert, cancelAlert, IconButton } from "@/shared";
 import  loanSchema  from "../../schemas/loanSchema";
 import { createLoan } from "../../services/loanService";
 import { getUsers, getMaterials } from "../../services/selectServices";
 import LoanForm from "../LoanForm";
+import { Undo2 } from "lucide-react";
+
 
 export default function LoanRegisterForm() {
     const navigate = useNavigate();
@@ -77,7 +79,10 @@ export default function LoanRegisterForm() {
     return (
         <>
             <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
-                <div>
+                <div className="flex items-center gap-3">
+                    <IconButton onClick={() => navigate(-1)} variant="ghost">
+                        <Undo2 size={20}/>
+                    </IconButton>
                     <h2 className="text-primary">Crear Préstamo</h2>
                 </div>
 

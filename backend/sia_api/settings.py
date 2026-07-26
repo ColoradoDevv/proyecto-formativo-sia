@@ -25,8 +25,8 @@ def _split_env_list(value):
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Clave secreta usada por Django para firmar sesiones.
-# Si no esta definida, varias partes de seguridad fallan.
-SECRET_KEY = os.getenv('SECRET_KEY')
+# Para desarrollo local usamos un fallback seguro si no hay variable de entorno.
+SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-me-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Activa el modo debug para ver errores detallados.
@@ -106,15 +106,15 @@ WSGI_APPLICATION = 'sia_api.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 # Conexion a base de datos tomada del .env.
-# Sin esto, el proyecto no puede leer ni guardar datos.
+# Si no se define, usamos SQLite para desarrollo local.
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
+        'ENGINE': os.getenv('DB_ENGINE') or 'django.db.backends.sqlite3',
+        'NAME': os.getenv('DB_NAME') or str(BASE_DIR / 'db.sqlite3'),
+        'USER': os.getenv('DB_USER', ''),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', ''),
+        'PORT': os.getenv('DB_PORT', ''),
     }
 }
 

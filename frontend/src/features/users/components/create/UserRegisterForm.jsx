@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDocumentTypes } from "../../services/selectServices";
 import useUserGroups from "../../hooks/useUserGroups";
-import { Input, Button, StatusLabel, showAlert, cancelAlert , Checkbox} from "@/shared";
+import { Input, Button, StatusLabel, showAlert, cancelAlert, IconButton, usePermissions } from "@/shared";
 import { UserTasksModal } from "@/features/tasks";
 import { createTask } from "@/features/tasks/services/taskService";
 import { userSchema } from "../../schemas/userSchema";
 import { createUser } from "../../services/userService";
 import UserForm from "../UserForm";
-import { Plus, ClipboardList } from "lucide-react";
+import { ClipboardList, Undo2 } from "lucide-react";
 
 export default function UserRegisterForm() {
 
@@ -25,18 +25,21 @@ export default function UserRegisterForm() {
         institutionalEmail: "",
         profilePicture: [],
         documentType: "",
-        groups: [],
+        groups: "",
         documentNumber: "",
         startDate: "",
         endDate: "",
         additionalPhone: "",
         phone: "",
         address: "",
+        isInstructorPlanta: false,
         userTasks: [],
     });
 
     const [errors, setErrors] = useState({});
     const [showAdditionalPhone, setShowAdditionalPhone] = useState(false);
+    const { can, isSuper } = usePermissions();
+    const canCreateUsers = isSuper || can("create_user");
 
     const [documentTypes, setDocumentTypes] = useState([]);
     useEffect(() => {
@@ -44,9 +47,37 @@ export default function UserRegisterForm() {
     }, []);
 
     const { groups: userGroups, addGroup } = useUserGroups();
+    const availableGroups = userGroups.filter((group) => String(group.label || "").trim().toUpperCase() !== "SADMIN");
+    const disabledOptionValues = [];
+
+    useEffect(() => {
+        if (!canCreateUsers) {
+            showAlert({
+                icon: "warning",
+                iconColor: "var(--color-warning)",
+                title: "Sin permisos",
+                text: "No tienes permiso para crear usuarios.",
+            });
+            navigate("/usuarios");
+        }
+    }, [canCreateUsers, navigate]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+
+        if (name === "groups") {
+            const selectedGroup = userGroups.find((group) => String(group.id) === String(value));
+            const roleName = selectedGroup?.label?.toUpperCase?.() || "";
+            const isInstructorGroup = roleName.includes("INST") || roleName.includes("INSTRUCTOR");
+
+            setFormData((prev) => ({
+                ...prev,
+                groups: value,
+                isInstructorPlanta: isInstructorGroup ? prev.isInstructorPlanta : false,
+            }));
+            return;
+        }
+
         setFormData((prev) => ({
             ...prev,
             [name]: type === "checkbox" ? checked : value,
@@ -70,14 +101,37 @@ export default function UserRegisterForm() {
         e.preventDefault();
 
         try {
-            const result = userSchema.safeParse(formData);
+            const selectedGroup = userGroups.find((group) => String(group.id) === String(formData.groups));
+            const roleName = selectedGroup?.label?.toUpperCase?.() || "";
+            const isInstructorRole = roleName.includes("INST") || roleName.includes("INSTRUCTOR");
+            const isAdminLikeRole = /(ADMIN|SADMIN|SUPER)/.test(roleName);
+            const datesOptional = (formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
+
+            const fieldErrors = {};
+
+            if (!datesOptional) {
+                if (!formData.startDate) fieldErrors.startDate = "Debe ingresar una fecha de inicio";
+                if (!formData.endDate) fieldErrors.endDate = "Debe ingresar una fecha de finalización";
+            }
+
+            if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
+                fieldErrors.endDate = "La fecha de finalización no puede ser anterior a la de inicio";
+            }
+
+            const result = userSchema.safeParse({
+                ...formData,
+                startDate: formData.startDate || "",
+                endDate: formData.endDate || "",
+            });
 
             if (!result.success) {
-                const fieldErrors = {};
                 result.error.issues.forEach((issue) => {
                     const field = issue.path[0];
                     fieldErrors[field] = issue.message;
                 });
+            }
+
+            if (Object.keys(fieldErrors).length) {
                 setErrors(fieldErrors);
                 return;
             }
@@ -119,9 +173,11 @@ export default function UserRegisterForm() {
         <>
             <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
-                <div>
+                <div className="flex items-center gap-3">
+                    <IconButton onClick={() => navigate(-1)} variant="ghost">
+                        <Undo2 size={20}/>
+                    </IconButton>
                     <h2 className="text-primary">Registro de Usuarios</h2>
-
                 </div>
 
                 <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -132,8 +188,10 @@ export default function UserRegisterForm() {
                         onChange={handleChange}
                         onPhotoChange={handleProfileChange}
                         documentTypes={documentTypes}
-                        groups={userGroups}
+                        groups={availableGroups}
                         onCreateGroup={addGroup}
+                        singleGroupSelection
+                        disabledOptionValues={disabledOptionValues}
                         confirmEmailSlot={
                             <Input
                                 label="Confirmar correo"

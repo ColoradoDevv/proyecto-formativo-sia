@@ -72,6 +72,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # --- Fechas de vinculacion ---
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
+    is_instructor_planta = models.BooleanField(default=False, help_text="Indica si el usuario es instructor de planta.")
 
     # --- Contacto ---
     email = models.EmailField(unique=True, max_length=254)

@@ -57,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
         exclude = ["is_superuser", "user_permissions", "last_login", "is_deleted", "deleted_at"]
         extra_kwargs = {
             "is_active": {"required": False, "default": True},
+            "is_instructor_planta": {"required": False, "default": False},
             "second_phone_number": {"required": False, "allow_null": True},
             "institutional_email": {"required": False, "allow_null": True},
             "profile_picture": {"required": False, "allow_null": True},

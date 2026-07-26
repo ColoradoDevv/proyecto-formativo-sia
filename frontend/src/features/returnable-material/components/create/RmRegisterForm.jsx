@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBrands, getStates, getCategories, createBrand, createCategory } from "../../services/selectServices";
 import { createRM } from "../../services/returnableService";
-import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput } from "@/shared";
+import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput, IconButton } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
 import ReturnableForm from "../ReturnableForm";
+import { Undo2 } from "lucide-react";
+
 
 export default function RmRegisterForm() {
     const navigate = useNavigate();
@@ -104,7 +106,10 @@ export default function RmRegisterForm() {
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
-            <div>
+            <div className="flex items-center gap-3">
+                <IconButton onClick={() => navigate(-1)} variant="ghost">
+                    <Undo2 size={20}/>
+                </IconButton>
                 <h2 className="text-primary">Crear Material Devolutivo</h2>
             </div>
 

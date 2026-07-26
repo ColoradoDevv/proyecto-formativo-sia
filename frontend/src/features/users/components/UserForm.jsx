@@ -1,4 +1,4 @@
-import { Input, Select, SelectMultiple, ProfileFileInput, StatusBadge, EditCard, IconButton, showAlert, promptAlert } from "@/shared";
+import { Input, Select, SelectMultiple, ProfileFileInput, StatusBadge, EditCard, IconButton, Checkbox, showAlert, promptAlert } from "@/shared";
 import { Plus } from "lucide-react";
 
 
@@ -27,11 +27,18 @@ export default function UserForm({
     groups = [],
     onCreateGroup = null,
     showStatus = false,
+    singleGroupSelection = false,
+    disabledOptionValues = [],
     confirmEmailSlot = null,
     contactExtraSlot = null,
     systemExtraSlot = null,
 }) {
     const isActive = formData.isActive === "true" || formData.isActive === true;
+    const selectedGroup = groups.find((option) => String(option.id) === String(formData.groups));
+    const selectedGroupName = selectedGroup?.label?.toUpperCase?.() || "";
+    const isInstructorRole = selectedGroupName.includes("INST") || selectedGroupName.includes("INSTRUCTOR");
+    const isAdminLikeRole = /(ADMIN|SADMIN|SUPER)/.test(selectedGroupName);
+    const datesOptional = Boolean(formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
 
     // Pide el nombre del nuevo grupo, lo crea en el backend y lo selecciona
     // automáticamente en el SelectMultiple. `onCreateGroup` es responsabilidad
@@ -54,7 +61,10 @@ export default function UserForm({
 
         try {
             const newGroup = await onCreateGroup(result.value.trim());
-            onChange({ target: { name: "groups", value: [...formData.groups, String(newGroup.id)] } });
+            const nextValue = Array.isArray(formData.groups)
+                ? [...formData.groups, String(newGroup.id)]
+                : String(newGroup.id);
+            onChange({ target: { name: "groups", value: nextValue } });
         } catch (error) {
             showAlert({ icon: "error", iconColor: "var(--color-error)", title: "No se pudo crear el grupo", text: error.message });
         }
@@ -178,41 +188,80 @@ export default function UserForm({
                         value={formData.startDate}
                         onChange={onChange}
                         error={errors.startDate}
-                        required
+                        required={!datesOptional}
+                        optional={datesOptional}
                     />
                     <Input
                         label="Fecha de finalización"
                         name="endDate"
                         type="date"
-                        optional
+                        required={!datesOptional}
+                        optional={datesOptional}
                         value={formData.endDate}
                         onChange={onChange}
                         error={errors.endDate}
                     />
                     <div>
-                        <SelectMultiple
-                            label="Tipo de usuario"
-                            name="groups"
-                            options={groups}
-                            value={formData.groups}
-                            onChange={onChange}
-                            error={errors.groups}
-                            required
-                            labelAction={
-                                onCreateGroup && (
-                                    <IconButton
-                                        type="button"
-                                        variant="ghost"
-                                        hitSize={28}
-                                        iconSize={16}
-                                        ariaLabel="Agregar nuevo grupo"
-                                        onClick={handleCreateGroup}
-                                    >
-                                        <Plus size={16} />
-                                    </IconButton>
-                                )
-                            }
-                        />
+                        {singleGroupSelection ? (
+                            <Select
+                                label="Tipo de usuario"
+                                name="groups"
+                                options={groups}
+                                value={formData.groups}
+                                onChange={onChange}
+                                error={errors.groups}
+                                required
+                                labelAction={
+                                    onCreateGroup && (
+                                        <IconButton
+                                            type="button"
+                                            variant="ghost"
+                                            hitSize={28}
+                                            iconSize={16}
+                                            ariaLabel="Agregar nuevo grupo"
+                                            onClick={handleCreateGroup}
+                                        >
+                                            <Plus size={16} />
+                                        </IconButton>
+                                    )
+                                }
+                            />
+                        ) : (
+                            <SelectMultiple
+                                label="Tipo de usuario"
+                                name="groups"
+                                options={groups}
+                                value={formData.groups}
+                                onChange={onChange}
+                                error={errors.groups}
+                                required
+                                labelAction={
+                                    onCreateGroup && (
+                                        <IconButton
+                                            type="button"
+                                            variant="ghost"
+                                            hitSize={28}
+                                            iconSize={16}
+                                            ariaLabel="Agregar nuevo grupo"
+                                            onClick={handleCreateGroup}
+                                        >
+                                            <Plus size={16} />
+                                        </IconButton>
+                                    )
+                                }
+                            />
+                        )}
+                        {isInstructorRole && (
+                            <div className="mt-2">
+                                <Checkbox
+                                    id="isInstructorPlanta"
+                                    name="isInstructorPlanta"
+                                    label="Instructor de planta"
+                                    checked={Boolean(formData.isInstructorPlanta)}
+                                    onChange={onChange}
+                                />
+                            </div>
+                        )}
                         {showStatus && (
                             <Select
                                 label="Estado"

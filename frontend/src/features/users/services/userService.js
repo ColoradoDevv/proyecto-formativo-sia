@@ -41,14 +41,16 @@ export async function createUser(userData) {
     formData.append("email", userData.email);
     formData.append("phone_number", userData.phone);
     formData.append("address", userData.address);
-    formData.append("start_date", userData.startDate);
-    formData.append("end_date", userData.endDate);
+    if (userData.startDate) formData.append("start_date", userData.startDate);
+    if (userData.endDate) formData.append("end_date", userData.endDate);
 
     if (userData.additionalPhone)
         formData.append("second_phone_number", userData.additionalPhone);
 
     if (userData.institutionalEmail)
         formData.append("institutional_email", userData.institutionalEmail);
+
+    formData.append("is_instructor_planta", String(Boolean(userData.isInstructorPlanta)));
 
     if (userData.profilePicture?.[0])
         formData.append("profile_picture", userData.profilePicture[0]);
@@ -61,9 +63,12 @@ export async function createUser(userData) {
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     const user = await response.json();
 
-    // Si se especificaron grupos, asignarlos al usuario recién creado
-    if (userData.groups && userData.groups.length > 0) {
-        await assignUserGroups(user.id, userData.groups);
+    const groupIds = Array.isArray(userData.groups)
+        ? userData.groups
+        : userData.groups ? [userData.groups] : [];
+
+    if (groupIds.length > 0) {
+        await assignUserGroups(user.id, groupIds);
     }
 
     return user;
@@ -85,6 +90,7 @@ const EDIT_FIELD_MAP = {
     start_date: "startDate",
     end_date: "endDate",
     is_active: "isActive",
+    is_instructor_planta: "isInstructorPlanta",
 };
 
 export async function updateUser(id, userData) {
@@ -97,7 +103,7 @@ export async function updateUser(id, userData) {
     formData.append("email", userData.email);
     formData.append("phone_number", userData.phone);
     formData.append("address", userData.address);
-    formData.append("start_date", userData.startDate);
+    if (userData.startDate) formData.append("start_date", userData.startDate);
     formData.append("is_active", userData.isActive);
 
     // end_date es opcional: solo se envia si tiene valor.
@@ -105,6 +111,7 @@ export async function updateUser(id, userData) {
 
     formData.append("second_phone_number", userData.additionalPhone || "");
     formData.append("institutional_email", userData.institutionalEmail || "");
+    formData.append("is_instructor_planta", String(Boolean(userData.isInstructorPlanta)));
 
     // La foto solo se reemplaza si el usuario subio un archivo nuevo (File).
     const picture = userData.profilePicture?.[0];
