@@ -49,6 +49,14 @@ export default function LoanDetailView() {
         });
     };
 
+    const formatAudit = (firma) => {
+        if (!firma) return null;
+        const parts = [];
+        if (firma.ip) parts.push(`IP: ${firma.ip}`);
+        if (firma.user_agent) parts.push(firma.user_agent);
+        return parts.length ? parts.join(" · ") : null;
+    };
+
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
@@ -80,7 +88,14 @@ export default function LoanDetailView() {
                             <div>
                                 <p className="text-text-primary font-medium">Responsable</p>
                                 {firmaResponsable
-                                    ? <p className="text-text-secondary">{firmaResponsable.usuario} — {formatDate(firmaResponsable.fecha)}</p>
+                                    ? (
+                                        <>
+                                            <p className="text-text-secondary">{firmaResponsable.usuario} — {formatDate(firmaResponsable.fecha)}</p>
+                                            {formatAudit(firmaResponsable) && (
+                                                <p className="text-text-muted text-xs break-all">{formatAudit(firmaResponsable)}</p>
+                                            )}
+                                        </>
+                                    )
                                     : <p className="text-text-muted">Pendiente de firma</p>
                                 }
                             </div>
@@ -94,7 +109,14 @@ export default function LoanDetailView() {
                             <div>
                                 <p className="text-text-primary font-medium">Receptor</p>
                                 {firmaReceptor
-                                    ? <p className="text-text-secondary">{firmaReceptor.usuario} — {formatDate(firmaReceptor.fecha)}</p>
+                                    ? (
+                                        <>
+                                            <p className="text-text-secondary">{firmaReceptor.usuario} — {formatDate(firmaReceptor.fecha)}</p>
+                                            {formatAudit(firmaReceptor) && (
+                                                <p className="text-text-muted text-xs break-all">{formatAudit(firmaReceptor)}</p>
+                                            )}
+                                        </>
+                                    )
                                     : <p className="text-text-muted">Pendiente de firma</p>
                                 }
                             </div>
@@ -115,6 +137,9 @@ export default function LoanDetailView() {
                                     <p className="text-text-muted">Responsable</p>
                                     <p className="text-text-secondary">{firmaResponsable.usuario}</p>
                                     <p className="text-text-muted">{formatDate(firmaResponsable.fecha)}</p>
+                                    {formatAudit(firmaResponsable) && (
+                                        <p className="text-text-muted text-xs break-all">{formatAudit(firmaResponsable)}</p>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -125,6 +150,9 @@ export default function LoanDetailView() {
                                     <p className="text-text-muted">Receptor</p>
                                     <p className="text-text-secondary">{firmaReceptor.usuario}</p>
                                     <p className="text-text-muted">{formatDate(firmaReceptor.fecha)}</p>
+                                    {formatAudit(firmaReceptor) && (
+                                        <p className="text-text-muted text-xs break-all">{formatAudit(firmaReceptor)}</p>
+                                    )}
                                 </div>
                             </div>
                         )}

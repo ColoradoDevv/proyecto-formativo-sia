@@ -118,6 +118,29 @@ class Loans(models.Model):
         help_text='Fecha y hora en que el receptor firmó.',
     )
 
+    signed_ip_responsable = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text='IP desde la que firmó el responsable.',
+    )
+    signed_ua_responsable = models.CharField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text='User-Agent del navegador al firmar (responsable).',
+    )
+    signed_ip_receptor = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text='IP desde la que firmó el receptor.',
+    )
+    signed_ua_receptor = models.CharField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text='User-Agent del navegador al firmar (receptor).',
+    )
+
     class Meta:
         db_table = 'Prestamos'
 
@@ -128,3 +151,75 @@ class Loans(models.Model):
     def both_signed(self):
         """True cuando ambas partes ya firmaron."""
         return self.signed_by_responsable_id is not None and self.signed_by_receptor_id is not None
+
+
+class SignOTP(models.Model):
+    """
+    Código OTP de un solo uso para confirmar la firma electrónica de un préstamo.
+
+    Flujo:
+      1. Usuario abre el enlace del correo → ya autenticado → frontend llama
+         POST /api/loans/sign/request-otp/  → se genera este registro y se
+         envía el código al correo del usuario.
+      2. Usuario ingresa el código → frontend llama POST /api/loans/sign/
+         con { token, otp_code } → se valida y se registra la firma.
+
+    Seguridad:
+      - El código se almacena como SHA-256 (nunca en claro).
+      - Expira en 10 minutos.
+      - Máximo 5 intentos fallidos antes de invalidarse (attempts).
+      - Un OTP solo puede usarse una vez (used=True tras el primer uso correcto).
+    """
+    loan = models.ForeignKey(
+        Loans,
+        on_delete=models.CASCADE,
+        related_name='otps',
+        help_text='Préstamo al que pertenece este OTP.',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sign_otps',
+        help_text='Usuario que debe ingresar el código.',
+    )
+    role = models.CharField(
+        max_length=20,
+        help_text="'responsable' o 'receptor'.",
+    )
+    code_hash = models.CharField(
+        max_length=64,
+        help_text='SHA-256 del código OTP. Nunca se almacena en claro.',
+    )
+    expires_at = models.DateTimeField(
+        help_text='Momento en que el OTP deja de ser válido.',
+    )
+    used = models.BooleanField(
+        default=False,
+        help_text='True una vez que el código fue verificado correctamente.',
+    )
+    attempts = models.PositiveSmallIntegerField(
+        default=0,
+        help_text='Intentos fallidos acumulados. Al llegar a 5 se invalida.',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    OTP_MAX_ATTEMPTS = 5
+    OTP_TTL_MINUTES  = 10
+
+    class Meta:
+        db_table = 'loan_sign_otps'
+        verbose_name = 'OTP de firma'
+        verbose_name_plural = 'OTPs de firma'
+
+    def __str__(self):
+        return f'OTP préstamo {self.loan_id} / {self.role} — usado={self.used}'
+
+    @property
+    def is_valid(self):
+        """False si ya fue usado, expiró o superó el límite de intentos."""
+        from django.utils import timezone
+        return (
+            not self.used
+            and self.attempts < self.OTP_MAX_ATTEMPTS
+            and timezone.now() < self.expires_at
+        )

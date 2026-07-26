@@ -67,13 +67,30 @@ export async function deleteLoan(id) {
     if (!response.ok) await throwApiError(response, FIELD_MAP);
 }
 
-// METODO POST - firma el préstamo usando el token recibido por correo.
-// El endpoint es público: no requiere sesión activa.
-export async function signLoan(token) {
-    const response = await fetch("/api/loans/sign/", {
+// Solicita el código OTP de verificación antes de firmar.
+export async function requestSignOtp(token) {
+    const response = await apiFetch("/api/loans/sign/request-otp/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
+    });
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "No se pudo enviar el código de verificación.");
+        error.status = response.status;
+        throw error;
+    }
+
+    return response.json();
+}
+
+// Confirma la firma con el token del correo y el código OTP recibido por Gmail.
+export async function signLoan(token, otpCode) {
+    const response = await apiFetch("/api/loans/sign/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, otp_code: otpCode }),
     });
 
     if (!response.ok) {

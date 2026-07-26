@@ -76,6 +76,8 @@ class LoanSerializer(serializers.ModelSerializer):
         return {
             "usuario": f"{obj.signed_by_responsable.first_name} {obj.signed_by_responsable.last_name}",
             "fecha":   obj.signed_at_responsable.isoformat() if obj.signed_at_responsable else None,
+            "ip":      obj.signed_ip_responsable,
+            "user_agent": obj.signed_ua_responsable,
         }
 
     def get_firma_receptor(self, obj):
@@ -84,6 +86,8 @@ class LoanSerializer(serializers.ModelSerializer):
         return {
             "usuario": f"{obj.signed_by_receptor.first_name} {obj.signed_by_receptor.last_name}",
             "fecha":   obj.signed_at_receptor.isoformat() if obj.signed_at_receptor else None,
+            "ip":      obj.signed_ip_receptor,
+            "user_agent": obj.signed_ua_receptor,
         }
 
     # ── Validación de stock ───────────────────────────────────────────────

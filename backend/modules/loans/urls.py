@@ -2,12 +2,12 @@
 
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-from .views import LoanViewSet, LoanSignView
+from .views import LoanViewSet, LoanSignView, LoanSignRequestOTPView
 
 router = DefaultRouter()
 router.register(r'', LoanViewSet, basename='loans')
 
 urlpatterns = [
-    # Endpoint público de firma electrónica (sin autenticación de sesión)
+    path('sign/request-otp/', LoanSignRequestOTPView.as_view(), name='loan-sign-request-otp'),
     path('sign/', LoanSignView.as_view(), name='loan-sign'),
 ] + router.urls

@@ -31,7 +31,6 @@ export default function AppRouter() {
             <Route path="/iniciar-sesion" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/prestamos/firmar" element={<LoanSignPage />} />
 
             {/* ───────── Rutas PRIVADAS (requieren sesion) ───────── */}
             <Route element={<ProtectedRoute />}>
@@ -72,6 +71,9 @@ export default function AppRouter() {
                     <Route path="visualizar/:id" element={<LoansDetailPage />} />
                     <Route path="editar/:id" element={<LoansEditPage />} />
                 </Route>
+
+                {/* Firma electrónica de préstamo — requiere sesión */}
+                <Route path="/prestamos/firmar" element={<LoanSignPage />} />
 
                 {/* Marcas: se gestionan desde la pestaña de configuración (modales) */}
                 <Route path="/marcas" element={<MainLayout />}>
