@@ -22,6 +22,31 @@ export default function ReturnLoanModal({ isOpen, onClose, loan, onReturned }) {
 
     if (!loan) return null;
 
+    // Un préstamo Pendiente no puede devolverse: aún no está activo.
+    if (loan.state === "Pendiente") {
+        return (
+            <Modal isOpen={isOpen} onClose={onClose} title="Devolver Material">
+                <div className="flex flex-col items-center gap-3 py-4 text-center">
+                    <p className="text-body text-text-primary font-medium">
+                        Préstamo pendiente de firma
+                    </p>
+                    <p className="text-small text-text-secondary">
+                        Este préstamo aún no está activo. Para registrar una devolución,
+                        ambas partes deben firmar primero el préstamo mediante el enlace
+                        enviado por correo.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="mt-2 text-small text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors"
+                    >
+                        Cerrar
+                    </button>
+                </div>
+            </Modal>
+        );
+    }
+
     const isConsumo = loan.material_type === "consumo";
 
     const handleChange = (e) => {

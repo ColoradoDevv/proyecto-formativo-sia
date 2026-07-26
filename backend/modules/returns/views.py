@@ -28,6 +28,18 @@ class LoanReturnViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         loan = serializer.validated_data['loan']
+
+        # Bloquear devolución si el préstamo aún no está Activo
+        if loan.state == 'Pendiente':
+            return Response(
+                {
+                    'error': (
+                        "Este préstamo aún está pendiente de firma por ambas partes. "
+                        "No se puede registrar una devolución hasta que esté Activo."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         material = loan.id_material  # el material se deriva del prestamo
         leftover = serializer.validated_data.get('leftover_quantity')
         returned = serializer.validated_data.get('returned_quantity')

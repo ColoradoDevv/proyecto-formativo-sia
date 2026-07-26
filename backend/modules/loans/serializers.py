@@ -11,10 +11,14 @@ class LoanSerializer(serializers.ModelSerializer):
     # Serializer para préstamos.
 
     usuario_responsable = serializers.SerializerMethodField()
-    usuario_receptor = serializers.SerializerMethodField()
-    material = serializers.SerializerMethodField()
-    material_type = serializers.SerializerMethodField()
-    is_active = serializers.SerializerMethodField()
+    usuario_receptor    = serializers.SerializerMethodField()
+    material            = serializers.SerializerMethodField()
+    material_type       = serializers.SerializerMethodField()
+    is_active           = serializers.SerializerMethodField()
+
+    # ── Trazabilidad de firma (solo lectura) ──────────────────────────────
+    firma_responsable = serializers.SerializerMethodField()
+    firma_receptor    = serializers.SerializerMethodField()
 
     class Meta:
         model = Loans
@@ -34,16 +38,20 @@ class LoanSerializer(serializers.ModelSerializer):
             'material',
             'material_type',
             'is_active',
+            # firma
+            'firma_responsable',
+            'firma_receptor',
         ]
         extra_kwargs = {
             # return_date no tiene auto_now_add, el frontend debe enviarlo
             'return_date': {'required': True},
-            # state no se envia al crear; se gestiona por el flujo de devolucion
+            # state es gestionado internamente; no se acepta desde el cliente
             'state': {'read_only': True},
-            # loan_date se rellena automáticamente (auto_now_add); nunca debe
-            # aceptarse desde el cliente aunque llegue en el payload.
+            # loan_date se rellena automáticamente (auto_now_add)
             'loan_date': {'read_only': True},
         }
+
+    # ── Campos computados ─────────────────────────────────────────────────
 
     def get_usuario_responsable(self, obj):
         return f"{obj.id_responsable_user.first_name} {obj.id_responsable_user.last_name}"
@@ -59,12 +67,29 @@ class LoanSerializer(serializers.ModelSerializer):
         return "devolutivo" if hasattr(obj.id_material, "returnablematerial") else "consumo"
 
     def get_is_active(self, obj):
-        # Un prestamo esta activo solo mientras siga en estado "Activo"
-        # (Finalizado o Incompleto significan que ya fue devuelto).
+        # Un préstamo está activo para devolución solo en estado 'Activo'.
         return obj.state == 'Activo'
-    
+
+    def get_firma_responsable(self, obj):
+        if obj.signed_by_responsable_id is None:
+            return None
+        return {
+            "usuario": f"{obj.signed_by_responsable.first_name} {obj.signed_by_responsable.last_name}",
+            "fecha":   obj.signed_at_responsable.isoformat() if obj.signed_at_responsable else None,
+        }
+
+    def get_firma_receptor(self, obj):
+        if obj.signed_by_receptor_id is None:
+            return None
+        return {
+            "usuario": f"{obj.signed_by_receptor.first_name} {obj.signed_by_receptor.last_name}",
+            "fecha":   obj.signed_at_receptor.isoformat() if obj.signed_at_receptor else None,
+        }
+
+    # ── Validación de stock ───────────────────────────────────────────────
+
     def validate(self, attrs):
-        material = attrs.get('id_material') or getattr(self.instance, 'id_material', None)
+        material    = attrs.get('id_material') or getattr(self.instance, 'id_material', None)
         amount_lent = attrs.get('amount_lent', getattr(self.instance, 'amount_lent', None))
 
         # Validar que el material esté activo antes de crear o editar un préstamo
@@ -75,9 +100,10 @@ class LoanSerializer(serializers.ModelSerializer):
 
         if material is not None and amount_lent is not None:
             if material.quantity is not None:
+                # Contar solo préstamos Activos O Pendientes (ambos retienen stock)
                 active_loans = Loans.objects.filter(
                     id_material=material,
-                    state='Activo',
+                    state__in=['Activo', 'Pendiente'],
                 )
 
                 # Al editar, no contar el propio préstamo contra sí mismo
@@ -85,7 +111,7 @@ class LoanSerializer(serializers.ModelSerializer):
                     active_loans = active_loans.exclude(pk=self.instance.pk)
 
                 already_lent = active_loans.aggregate(total=Sum('amount_lent'))['total'] or 0
-                available = material.quantity - already_lent
+                available    = material.quantity - already_lent
 
                 if amount_lent > available:
                     raise serializers.ValidationError({

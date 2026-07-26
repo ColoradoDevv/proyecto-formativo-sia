@@ -66,3 +66,22 @@ export async function deleteLoan(id) {
     });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
 }
+
+// METODO POST - firma el préstamo usando el token recibido por correo.
+// El endpoint es público: no requiere sesión activa.
+export async function signLoan(token) {
+    const response = await fetch("/api/loans/sign/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+    });
+
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        const error = new Error(data.error || "No se pudo procesar la firma.");
+        error.status = response.status;
+        throw error;
+    }
+
+    return response.json();
+}

@@ -7,12 +7,12 @@ from modules.products.models import ConsumableMaterial  # FK a materiales de con
 
 class Loans(models.Model):
 
-    # Estados del prestamo. "Pendiente" queda para cuando exista la firma
-    # electronica. El flujo de devolucion pasa de Activo a Finalizado, o a
-    # Incompleto si un devolutivo se devuelve en menor cantidad a la prestada.
+    # Estados del prestamo.
+    # Pendiente: recien creado, esperando firma de ambas partes.
+    # Activo:    ambas partes firmaron; el material ya fue entregado.
+    # Finalizado/Incompleto: flujo de devolucion completado.
     STATE_CHOICES = [
-        # ('Pendiente', 'Pendiente'),  # FUTURO: activar cuando se implemente firma electrónica.
-        #   El préstamo nacería en Pendiente y pasaría a Activo solo tras la firma del receptor.
+        ('Pendiente', 'Pendiente'),
         ('Activo', 'Activo'),
         ('Finalizado', 'Finalizado'),
         ('Incompleto', 'Incompleto'),
@@ -77,11 +77,45 @@ class Loans(models.Model):
         auto_now_add=True   # se llena automático al crear, equivale a CURRENT_TIMESTAMP
     )
 
-    # state: estado del prestamo. Se marca "Finalizado" al registrar la devolucion.
+    # state: estado del prestamo.
+    # Nace en 'Pendiente'; pasa a 'Activo' cuando ambas partes firman;
+    # luego a 'Finalizado' o 'Incompleto' al registrar la devolucion.
     state = models.CharField(
         max_length=20,
         choices=STATE_CHOICES,
-        default='Activo',
+        default='Pendiente',
+    )
+
+    # ── Trazabilidad de firma electrónica ────────────────────────────────
+    # Quién firmó y cuándo.  null=True porque al crear el préstamo aún no
+    # hay firma; se rellenan conforme cada parte confirma.
+
+    signed_by_responsable = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='firmas_responsable',
+        help_text='Usuario que firmó como responsable del préstamo.',
+    )
+    signed_at_responsable = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Fecha y hora en que el responsable firmó.',
+    )
+
+    signed_by_receptor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='firmas_receptor',
+        help_text='Usuario que firmó como receptor del préstamo.',
+    )
+    signed_at_receptor = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Fecha y hora en que el receptor firmó.',
     )
 
     class Meta:
@@ -89,3 +123,8 @@ class Loans(models.Model):
 
     def __str__(self):
         return f'Prestamo {self.id_loan} - Responsable {self.id_responsable_user_id} - Receptor {self.id_receptor_user_id} - Material {self.id_material_id}'
+
+    @property
+    def both_signed(self):
+        """True cuando ambas partes ya firmaron."""
+        return self.signed_by_responsable_id is not None and self.signed_by_receptor_id is not None

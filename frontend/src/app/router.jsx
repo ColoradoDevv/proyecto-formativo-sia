@@ -19,7 +19,7 @@ import { CmHomePage, CmCreatePage, CmDetailPage, CmEditPage } from "@/features/c
 import { RmHomePage, RmCreatePage, RmDetailPage, RmEditPage } from "@/features/returnable-material";
 
 // Imports de Prestamos
-import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage } from "@/features/loans";
+import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage, LoanSignPage } from "@/features/loans";
 
 import { ConfigLayout, MainLayout } from "@/shared";
 
@@ -31,6 +31,7 @@ export default function AppRouter() {
             <Route path="/iniciar-sesion" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/prestamos/firmar" element={<LoanSignPage />} />
 
             {/* ───────── Rutas PRIVADAS (requieren sesion) ───────── */}
             <Route element={<ProtectedRoute />}>
