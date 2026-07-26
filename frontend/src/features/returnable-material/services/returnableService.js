@@ -108,3 +108,10 @@ export async function toggleRMActive(consumableId, isActive) {
     if (!response.ok) await throwApiError(response);
     return response.json();
 }
+
+export async function deleteRM(consumableId) {
+    const response = await apiFetch(`/api/products/returnables/${consumableId}/`, {
+        method: "DELETE",
+    });
+    if (!response.ok) await throwApiError(response);
+}

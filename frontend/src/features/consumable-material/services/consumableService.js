@@ -111,3 +111,10 @@ export async function toggleCmActive(id, isActive) {
   return response.json();
 }
 
+export async function deleteCm(id) {
+  const response = await apiFetch(`/api/products/consumables/${id}/`, {
+    method: "DELETE",
+  });
+  if (!response.ok) await throwApiError(response);
+}
+

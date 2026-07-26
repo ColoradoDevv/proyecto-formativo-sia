@@ -74,6 +74,6 @@ export const RmColumns = (setRMs, setNotification) => [
     {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }) => <RmRowActions Rm={row.original} />,
+        cell: ({ row }) => <RmRowActions Rm={row.original} onDeleted={(id) => setRMs((prev) => prev.filter((item) => item.consumable_id !== id))} />,
     },
 ];

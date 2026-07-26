@@ -59,3 +59,10 @@ export async function updateLoan(id, loanData) {
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
+
+export async function deleteLoan(id) {
+    const response = await apiFetch(`/api/loans/${id}/`, {
+        method: "DELETE",
+    });
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
+}

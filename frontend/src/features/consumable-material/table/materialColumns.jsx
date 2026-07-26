@@ -54,6 +54,6 @@ export const materialColumns = (setCMs) => [
     {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }) => <CmRowActions cm={row.original} />,
+        cell: ({ row }) => <CmRowActions cm={row.original} onDeleted={(id) => setCMs((prev) => prev.filter((item) => item.id !== id))} />,
     },
 ];

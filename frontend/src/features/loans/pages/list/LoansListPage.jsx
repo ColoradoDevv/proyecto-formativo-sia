@@ -29,7 +29,10 @@ export default function LoansListPage() {
         );
     };
 
-    const columns = loansColumns({ onReturn: setReturningLoan });
+    const columns = loansColumns({
+        onReturn: setReturningLoan,
+        onDeleted: (loanId) => setLoans((prev) => prev.filter((loan) => loan.id_loan !== loanId)),
+    });
 
     if (loading)
         return (

@@ -2,7 +2,7 @@ import LoansRowActions from "../components/list/LoansRowActions";
 import LoanStateBadge from "../components/LoanStateBadge";
 
 // Factory: recibe onReturn para que la fila pueda abrir el modal de devolución.
-export const loansColumns = ({ onReturn } = {}) => [
+export const loansColumns = ({ onReturn, onDeleted } = {}) => [
     {
         accessorKey: "usuario_responsable",
         header: "Usuario Responsable",
@@ -41,6 +41,6 @@ export const loansColumns = ({ onReturn } = {}) => [
     {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }) => <LoansRowActions loan={row.original} onReturn={onReturn} />,
+        cell: ({ row }) => <LoansRowActions loan={row.original} onReturn={onReturn} onDeleted={onDeleted} />,
     },
 ];
