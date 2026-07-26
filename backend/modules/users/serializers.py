@@ -73,7 +73,34 @@ class UserSerializer(serializers.ModelSerializer):
             "is_instructor_planta": {"required": False, "default": False},
             "second_phone_number": {"required": False, "allow_null": True},
             "institutional_email": {"required": False, "allow_null": True},
+            # Se valida manualmente para devolver un mensaje claro y mapearlo
+            # al input documentNumber del formulario.
+            "document_number": {
+                "required": False,
+                "allow_null": True,
+                "allow_blank": True,
+                "validators": [],
+            },
         }
+
+    def validate_document_number(self, value):
+        if value is None:
+            return None
+
+        document_number = value.strip()
+        if not document_number:
+            return None
+
+        users_with_document = User.objects.filter(document_number=document_number)
+        if self.instance:
+            users_with_document = users_with_document.exclude(pk=self.instance.pk)
+
+        if users_with_document.exists():
+            raise serializers.ValidationError(
+                "El número de documento ya está registrado para otro usuario."
+            )
+
+        return document_number
 
     def create(self, validated_data):
         # Ignoramos cualquier password que llegue del frontend: siempre se genera
