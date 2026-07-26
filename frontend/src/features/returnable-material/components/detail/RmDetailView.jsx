@@ -183,6 +183,7 @@ export default function RmDetailView() {
                         {/* Campos generales */}
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
                             <Input label="Nombre" value={material.name ?? ""} disabled readOnly />
+                            <Input label="Modelo" value={material.model ?? ""} disabled readOnly />
                             <Input label="Placa SENA" value={material.sena_plate ?? ""} disabled readOnly />
                             <Input label="Serial" value={material.serial ?? ""} disabled readOnly />
                             <Input label="Categoría" value={categoryLabel} disabled readOnly />

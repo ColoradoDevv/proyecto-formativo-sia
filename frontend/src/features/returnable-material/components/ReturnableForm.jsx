@@ -50,6 +50,15 @@ export default function ReturnableForm({
                             required
                         />
                         <Input
+                            label="Modelo"
+                            name="model"
+                            placeholder="Modelo del material"
+                            value={formData.model}
+                            onChange={onChange}
+                            error={errors.model}
+                            required
+                        />
+                        <Input
                             label="Placa SENA"
                             name="senaPlate"
                             placeholder="Placa SENA"

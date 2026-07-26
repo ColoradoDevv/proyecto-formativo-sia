@@ -202,6 +202,9 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
         data = request.data
         files = request.FILES
         self.validate_fixed_category(data.get("category_id"))
+        model = str(data.get("model", "")).strip()
+        if not model:
+            raise ValidationError({"model": "El modelo es obligatorio."})
 
         with transaction.atomic():
             consumable = ConsumableMaterial.objects.create(
@@ -223,7 +226,7 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
             rm = ReturnableMaterial.objects.create(
                 consumable=consumable,
                 category_id=data.get('category_id'),
-                model=data.get('model', data.get('name', '')),
+                model=model,
                 serial=data.get('serial', ''),
                 dimensions=data.get('dimensions') or None,
                 technical_sheet=files.get('technical_sheet', ''),
@@ -274,7 +277,10 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
                 self.validate_fixed_category(data.get('category_id'), rm.category_id)
                 rm.category_id = data.get('category_id')
             if 'model' in data:
-                rm.model = data.get('model')
+                model = str(data.get('model', '')).strip()
+                if not model:
+                    raise ValidationError({"model": "El modelo es obligatorio."})
+                rm.model = model
             if 'serial' in data:
                 rm.serial = data.get('serial')
             if 'dimensions' in data:

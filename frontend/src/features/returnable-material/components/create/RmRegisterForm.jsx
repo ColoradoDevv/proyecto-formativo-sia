@@ -20,6 +20,7 @@ export default function RmRegisterForm() {
     const [formData, setFormData] = useState({
         senaPlate: "",
         name: "",
+        model: "",
         state: "",
         category: "",
         brand: "",

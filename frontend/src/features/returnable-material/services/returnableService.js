@@ -4,6 +4,7 @@ import { apiFetch, throwApiError } from "@/shared/services/api";
 // la misma convencion de nombres, compartida por ReturnableForm.
 const FIELD_MAP = {
     name: "name",
+    model: "model",
     sena_plate: "senaPlate",
     state: "state",
     brand_id: "brand",
@@ -36,6 +37,7 @@ export async function createRM(rmData) {
     const formData = new FormData();
 
     formData.append("name", rmData.name);
+    formData.append("model", rmData.model);
     formData.append("sena_plate", rmData.senaPlate);
     formData.append("state", rmData.state);
     formData.append("brand_id", rmData.brand);
@@ -71,6 +73,7 @@ export async function updateRM(id, rmData) {
     const formData = new FormData();
 
     formData.append("name", rmData.name);
+    formData.append("model", rmData.model);
     formData.append("sena_plate", rmData.senaPlate);
     formData.append("state", rmData.state);
     formData.append("brand_id", rmData.brand);

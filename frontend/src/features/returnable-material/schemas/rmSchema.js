@@ -45,6 +45,12 @@ export const rmSchema = z.object({
         .min(3, "El nombre debe tener mínimo 3 caracteres")
         .max(100, "El nombre es demasiado largo"),
 
+    model: z
+        .string()
+        .trim()
+        .min(2, "El modelo debe tener mínimo 2 caracteres")
+        .max(100, "El modelo es demasiado largo"),
+
     state: z
         .string()
         .min(1, "Debe seleccionar un estado"),
@@ -169,6 +175,12 @@ export const rmEditSchema = z.object({
         .trim()
         .min(3, "El nombre debe tener mínimo 3 caracteres")
         .max(100, "El nombre es demasiado largo"),
+
+    model: z
+        .string()
+        .trim()
+        .min(2, "El modelo debe tener mínimo 2 caracteres")
+        .max(100, "El modelo es demasiado largo"),
 
     senaPlate: z
         .string()

@@ -67,6 +67,7 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
 
     const [formData, setFormData] = useState({
         name:         RM.name ?? "",
+        model:        RM.model ?? "",
         senaPlate:    RM.sena_plate ?? "",
         serial:       RM.serial ?? "",
         category:     RM.category?.id != null ? String(RM.category.id) : "",
