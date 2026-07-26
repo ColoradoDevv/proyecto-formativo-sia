@@ -101,6 +101,7 @@ const EDIT_FIELD_MAP = {
     start_date: "startDate",
     end_date: "endDate",
     is_active: "isActive",
+    deactivation_reason: "deactivationReason",
     is_instructor_planta: "isInstructorPlanta",
 };
 
@@ -116,6 +117,7 @@ export async function updateUser(id, userData) {
     formData.append("address", userData.address);
     if (userData.startDate) formData.append("start_date", userData.startDate);
     formData.append("is_active", userData.isActive === "true" || userData.isActive === true);
+    if (userData.deactivationReason) formData.append("deactivation_reason", userData.deactivationReason);
 
     // end_date es opcional: solo se envia si tiene valor.
     if (userData.endDate) formData.append("end_date", userData.endDate);
@@ -162,11 +164,14 @@ export async function updateUser(id, userData) {
 }
 
 // METODO PATCH (activar o desactivar un usuario)
-export async function toggleUserActive(id, isActive) {
+export async function toggleUserActive(id, isActive, { deactivationReason } = {}) {
   const response = await apiFetch(`/api/users/${id}/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ is_active: isActive }),
+    body: JSON.stringify({
+      is_active: isActive,
+      ...(deactivationReason ? { deactivation_reason: deactivationReason } : {}),
+    }),
   });
   if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();

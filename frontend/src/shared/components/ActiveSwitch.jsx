@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Switch, cancelAlert } from "@/shared";
 
-export default function ActiveSwitch({ id, isActive, toggleFn, entity = "material", size = "md", onToggled }) {
+export default function ActiveSwitch({ id, isActive, toggleFn, entity = "material", size = "md", onToggled, beforeToggle }) {
     const [active, setActive] = useState(isActive);
 
     const handleChange = async (value) => {
@@ -16,8 +16,11 @@ export default function ActiveSwitch({ id, isActive, toggleFn, entity = "materia
 
         if (!result.isConfirmed) return;
 
+        const extraData = beforeToggle ? await beforeToggle(value) : undefined;
+        if (extraData === false) return;
+
         try {
-            const updatedMaterial = await toggleFn(id, value);
+            const updatedMaterial = await toggleFn(id, value, extraData);
             setActive(updatedMaterial.is_active);
             onToggled?.(updatedMaterial);
         } catch (error) {

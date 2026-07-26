@@ -57,6 +57,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     # La contraseña SOLO entra (write_only): se puede enviar, pero nunca se devuelve
     password = serializers.CharField(write_only=True, required=False)
+    deactivation_reason = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     def get_profile_picture(self, obj):
         # Devuelve la ruta con /media/ al inicio para que el proxy de Vite la redirija
@@ -155,6 +156,22 @@ class UserSerializer(serializers.ModelSerializer):
         instance = self.instance  # None en creación, User en edición
         if instance is None:
             return attrs
+
+        is_disabling_admin = (
+            instance.is_active
+            and attrs.get("is_active") is False
+            and instance.user_groups.filter(group__name__iexact="ADMIN").exists()
+        )
+        if is_disabling_admin:
+            reason = str(attrs.get("deactivation_reason") or "").strip()
+            if len(reason) < 10:
+                raise serializers.ValidationError({
+                    "deactivation_reason": (
+                        "Debe indicar una justificación de al menos 10 caracteres "
+                        "para deshabilitar un usuario ADMIN."
+                    )
+                })
+            attrs["deactivation_reason"] = reason
 
         # Mapa campo_validado -> campo_en_modelo (para los que son distintos)
         unique_fields = {

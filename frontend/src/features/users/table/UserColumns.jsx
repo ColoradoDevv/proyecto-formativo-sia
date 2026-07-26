@@ -1,6 +1,44 @@
-import { ActiveSwitch } from "@/shared";
+import { ActiveSwitch, promptAlert } from "@/shared";
 import { toggleUserActive } from "@/features/users/services/userService"; // ajusta la ruta segun tu estructura real
 import UserRowActions from "@/features/users/components/list/UserRowActions"; // ajusta la ruta segun tu estructura real
+
+function UserActiveSwitch({ user }) {
+    const isAdmin = user.groups?.some(
+        (group) => String(group.name).trim().toUpperCase() === "ADMIN"
+    );
+
+    const requestDeactivationReason = async (nextIsActive) => {
+        if (nextIsActive || !isAdmin) return undefined;
+
+        const result = await promptAlert({
+            icon: "warning",
+            iconColor: "var(--color-warning)",
+            title: "Justificación requerida",
+            text: "Indique el motivo para deshabilitar esta cuenta de Administrador.",
+            inputLabel: "Justificación",
+            inputPlaceholder: "Describa el motivo de la deshabilitación",
+            confirmText: "Deshabilitar",
+            cancelText: "Cancelar",
+            inputValidator: (value) => value.trim().length < 10
+                ? "La justificación debe tener al menos 10 caracteres."
+                : "",
+        });
+
+        return result.isConfirmed
+            ? { deactivationReason: result.value.trim() }
+            : false;
+    };
+
+    return (
+        <ActiveSwitch
+            id={user.id}
+            isActive={user.is_active}
+            toggleFn={toggleUserActive}
+            entity="usuario"
+            beforeToggle={requestDeactivationReason}
+        />
+    );
+}
 
 export const getUserColumns = (onDeleted) => [
     {
@@ -39,14 +77,7 @@ export const getUserColumns = (onDeleted) => [
         id: "is_active",
         header: "Estado",
         meta: { filterVariant: "select" },
-        cell: ({ row }) => (
-            <ActiveSwitch
-                id={row.original.id}
-                isActive={row.original.is_active}
-                toggleFn={toggleUserActive}
-                entity="usuario"
-            />
-        ),
+        cell: ({ row }) => <UserActiveSwitch user={row.original} />,
     },
     {
         id: "actions",

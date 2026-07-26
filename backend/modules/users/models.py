@@ -89,6 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # --- Campos que Django necesita para el control de acceso ---
     is_active = models.BooleanField(default=True)   # si esta en False, no puede entrar
+    deactivation_reason = models.TextField(null=True, blank=True)
     is_staff = models.BooleanField(default=False)   # si puede entrar al panel /admin
 
     # --- Campos que Django necesita para el control de acceso ---

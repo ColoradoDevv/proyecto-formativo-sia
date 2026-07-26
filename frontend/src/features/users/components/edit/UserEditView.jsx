@@ -75,6 +75,7 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
         documentNumber:     user.document_number     ?? "",
         groups:             user.groups && user.groups.length > 0 ? String(user.groups[0].id) : "",
         isActive:             user.is_active             != null ? String(user.is_active) : "true",
+        deactivationReason:   user.deactivation_reason   ?? "",
         isInstructorPlanta:   user.is_instructor_planta  ?? false,
         startDate:            user.start_date            ?? "",
         endDate:              user.end_date              ?? "",
@@ -89,6 +90,9 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
     // evita el problema de StrictMode (React 18 monta→desmonta→monta en dev:
     // las refs persisten entre remontajes y pueden activar efectos prematuramente).
     const [groupsReady, setGroupsReady] = useState(false);
+    const isAdminUser = user.groups?.some(
+        (group) => String(group.name).trim().toUpperCase() === "ADMIN"
+    ) ?? false;
 
     // Derivar flags de rol desde el estado actual — fuente de verdad única.
     // Se usa allGroups (lista completa, incluye SADMIN) para que usuarios con ese
@@ -138,6 +142,9 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
         if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
             preErrors.endDate = "La fecha de finalización no puede ser anterior a la de inicio";
         }
+        if (isAdminUser && user.is_active && formData.isActive === "false" && formData.deactivationReason.trim().length < 10) {
+            preErrors.deactivationReason = "Debe indicar una justificación de al menos 10 caracteres.";
+        }
         if (Object.keys(preErrors).length) {
             setErrors(preErrors);
             return;
@@ -170,6 +177,7 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
                 ...result.data,
                 // Campos fuera del schema o que Zod puede omitir si son optional/undefined.
                 isInstructorPlanta: formData.isInstructorPlanta,
+                deactivationReason: formData.deactivationReason,
                 profilePicture: formData.profilePicture,
             });
             await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Usuario actualizado exitosamente" });
@@ -236,19 +244,32 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
                         />
                     }
                     systemExtraSlot={
-                        // Tareas del usuario: abre el modal con las tareas reales (BD)
-                        <div className="flex flex-col gap-2">
-                            <StatusLabel>Tareas</StatusLabel>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size="md"
-                                className="flex gap-2 justify-center"
-                                onClick={() => setShowTaskModal(true)}
-                            >
-                                <ClipboardList size={16} />
-                                Ver / agregar tareas
-                            </Button>
+                        <div className="flex flex-col gap-3">
+                            {isAdminUser && user.is_active && formData.isActive === "false" && (
+                                <Input
+                                    label="Justificación de deshabilitación"
+                                    name="deactivationReason"
+                                    placeholder="Indique el motivo de la deshabilitación"
+                                    value={formData.deactivationReason}
+                                    onChange={handleChange}
+                                    error={errors.deactivationReason}
+                                    required
+                                />
+                            )}
+                            {/* Tareas del usuario: abre el modal con las tareas reales (BD) */}
+                            <div className="flex flex-col gap-2">
+                                <StatusLabel>Tareas</StatusLabel>
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="md"
+                                    className="flex gap-2 justify-center"
+                                    onClick={() => setShowTaskModal(true)}
+                                >
+                                    <ClipboardList size={16} />
+                                    Ver / agregar tareas
+                                </Button>
+                            </div>
                         </div>
                     }
                 />
