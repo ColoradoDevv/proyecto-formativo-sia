@@ -24,8 +24,8 @@ export async function getUsers() {
 }
 
 // METODO GET (obtener un usuario por su ID)
-export async function getUserById(id) {
-    const response = await apiFetch(`/api/users/${id}/`);
+export async function getUserById(id, signal) {
+    const response = await apiFetch(`/api/users/${id}/`, { signal });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
@@ -50,7 +50,7 @@ export async function createUser(userData) {
     if (userData.institutionalEmail)
         formData.append("institutional_email", userData.institutionalEmail);
 
-    formData.append("is_instructor_planta", String(Boolean(userData.isInstructorPlanta)));
+    formData.append("is_instructor_planta", userData.isInstructorPlanta === true);
 
     if (userData.profilePicture?.[0])
         formData.append("profile_picture", userData.profilePicture[0]);
@@ -63,12 +63,23 @@ export async function createUser(userData) {
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     const user = await response.json();
 
-    const groupIds = Array.isArray(userData.groups)
+    const rawGroups = Array.isArray(userData.groups)
         ? userData.groups
         : userData.groups ? [userData.groups] : [];
+    // Filtrar falsy ("", null, undefined) para evitar un GET innecesario
+    // cuando el formulario envía un string vacío por grupo no seleccionado.
+    const groupIds = rawGroups.filter(Boolean);
 
     if (groupIds.length > 0) {
-        await assignUserGroups(user.id, groupIds);
+        // Resolver nombres con un único GET en lugar de N GETs individuales.
+        const allGroupsRes = await apiFetch("/api/permissions/groups/");
+        if (!allGroupsRes.ok) await throwApiError(allGroupsRes, FIELD_MAP);
+        const allGroups = await allGroupsRes.json();
+        // Normalizar a String para evitar que el lookup falle cuando el backend
+        // devuelve ids numéricos y groupIds contiene strings (o viceversa).
+        const nameById = Object.fromEntries(allGroups.map(g => [String(g.id), g.name]));
+        const groupNames = groupIds.map(id => nameById[String(id)]).filter(Boolean);
+        await assignUserGroups(user.id, groupNames);
     }
 
     return user;
@@ -104,14 +115,14 @@ export async function updateUser(id, userData) {
     formData.append("phone_number", userData.phone);
     formData.append("address", userData.address);
     if (userData.startDate) formData.append("start_date", userData.startDate);
-    formData.append("is_active", userData.isActive);
+    formData.append("is_active", userData.isActive === "true" || userData.isActive === true);
 
     // end_date es opcional: solo se envia si tiene valor.
     if (userData.endDate) formData.append("end_date", userData.endDate);
 
-    formData.append("second_phone_number", userData.additionalPhone || "");
-    formData.append("institutional_email", userData.institutionalEmail || "");
-    formData.append("is_instructor_planta", String(Boolean(userData.isInstructorPlanta)));
+    if (userData.additionalPhone) formData.append("second_phone_number", userData.additionalPhone);
+    if (userData.institutionalEmail) formData.append("institutional_email", userData.institutionalEmail);
+    formData.append("is_instructor_planta", userData.isInstructorPlanta === true);
 
     // La foto solo se reemplaza si el usuario subio un archivo nuevo (File).
     const picture = userData.profilePicture?.[0];
@@ -125,9 +136,26 @@ export async function updateUser(id, userData) {
     if (!response.ok) await throwApiError(response, EDIT_FIELD_MAP);
     const user = await response.json();
 
-    // Sincronizar grupos (agrega los nuevos, quita los que ya no estan).
-    if (Array.isArray(userData.groups)) {
-        await updateUserGroups(id, userData.groups.map(Number));
+    // Sincronizar grupos (agrega los nuevos, quita los que ya no están).
+    // Si falla, los datos básicos ya se guardaron — se lanza un error con mensaje
+    // específico para que la UI pueda distinguir este caso del fallo total.
+    // groups puede llegar como string (selección única) o array (legacy).
+    // Se normaliza siempre a array de strings para updateUserGroups.
+    const groupsToSync = Array.isArray(userData.groups)
+        ? userData.groups.map(String)
+        : userData.groups ? [String(userData.groups)] : [];
+
+    if (groupsToSync.length > 0) {
+        try {
+            await updateUserGroups(id, groupsToSync);
+        } catch (groupError) {
+            const err = new Error(
+                "Los datos del usuario se guardaron correctamente, pero hubo un problema al sincronizar los grupos. Recarga la página y verifica los grupos asignados."
+            );
+            err.partialSuccess = true;
+            err.cause = groupError;
+            throw err;
+        }
     }
 
     return user;
@@ -151,21 +179,14 @@ export async function getUserGroups(userId) {
   return response.json();
 }
 
-// METODO POST (asignar un grupo a un usuario)
-export async function assignUserGroups(userId, groupIds) {
-  // groupIds es un array de IDs de grupos
-  // Necesitamos hacer un POST por cada grupo
-  const assignments = groupIds.map(async (groupId) => {
-    // Primero obtenemos el nombre del grupo
-    const groupResponse = await apiFetch(`/api/permissions/groups/${groupId}/`);
-    if (!groupResponse.ok) await throwApiError(groupResponse);
-    const group = await groupResponse.json();
-
-    // Luego asignamos el usuario al grupo
+// METODO POST (asignar grupos a un usuario por nombre.
+// Recibe un array de nombres de grupo directamente para evitar GETs extra al backend.
+export async function assignUserGroups(userId, groupNames) {
+  const assignments = groupNames.map(async (groupName) => {
     const response = await apiFetch(`/api/permissions/users/${userId}/groups/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ group_name: group.name }),
+      body: JSON.stringify({ group_name: groupName }),
     });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
@@ -174,39 +195,62 @@ export async function assignUserGroups(userId, groupIds) {
   return Promise.all(assignments);
 }
 
-// METODO DELETE (remover un usuario de un grupo)
-export async function removeUserFromGroup(userId, groupId) {
-  // Obtenemos el nombre del grupo
-  const groupResponse = await apiFetch(`/api/permissions/groups/${groupId}/`);
-  if (!groupResponse.ok) await throwApiError(groupResponse);
-  const group = await groupResponse.json();
-
-  // Removemos el usuario del grupo
+// METODO DELETE (remover un usuario de un grupo por nombre)
+export async function removeUserFromGroup(userId, groupName) {
   const response = await apiFetch(`/api/permissions/users/${userId}/groups/`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ group_name: group.name }),
+    body: JSON.stringify({ group_name: groupName }),
   });
   if (!response.ok) await throwApiError(response, FIELD_MAP);
   return response.json();
 }
 
 // METODO PUT (actualizar grupos de un usuario - reemplaza todos)
+// Obtiene los grupos actuales del backend (necesarios para saber qué remover),
+// luego opera solo con nombres — sin GETs adicionales por cada grupo.
+//
+// NOTA DE ATOMICIDAD: las operaciones de remove/add se ejecutan en serie pero
+// no son atómicas. Si falla a mitad (ej: algunos grupos removidos, otros no
+// agregados), el usuario puede quedar con grupos inconsistentes. No hay rollback.
+// El caller (updateUser en userService) ya maneja este caso lanzando un error
+// con `partialSuccess: true` para que la UI distinga el fallo parcial del total.
 export async function updateUserGroups(userId, groupIds) {
-  // Primero obtenemos los grupos actuales
+  // Los grupos actuales vienen del endpoint GET /api/permissions/users/{id}/groups/
+  // que usa GroupListSerializer → devuelve objetos Group con {id, name, ...}.
   const currentGroups = await getUserGroups(userId);
-  const currentGroupIds = currentGroups.map(g => g.id);
+  // Normalizar a string para evitar fallos de comparación estricta cuando
+  // el backend devuelve ids numéricos y el frontend los maneja como strings
+  // (o viceversa). Usar strings también es compatible con UUIDs.
+  const currentGroupIds = currentGroups.map(g => String(g.id));
+  const currentNameById = Object.fromEntries(
+    currentGroups.map(g => [String(g.id), g.name])
+  );
 
-  // Removemos los grupos que ya no están en la lista
-  const toRemove = currentGroupIds.filter(id => !groupIds.includes(id));
-  for (const groupId of toRemove) {
-    await removeUserFromGroup(userId, groupId);
+  const groupIdsStr = groupIds.map(String);
+
+  const toRemoveIds = currentGroupIds.filter(id => !groupIdsStr.includes(id));
+  for (const groupId of toRemoveIds) {
+    await removeUserFromGroup(userId, currentNameById[groupId]);
   }
 
-  // Agregamos los grupos nuevos
-  const toAdd = groupIds.filter(id => !currentGroupIds.includes(id));
-  if (toAdd.length > 0) {
-    await assignUserGroups(userId, toAdd);
+  // Para los grupos a agregar necesitamos sus nombres — los buscamos en un
+  // solo GET de lista en lugar de N GETs individuales.
+  const toAddIds = groupIdsStr.filter(id => !currentGroupIds.includes(id));
+  if (toAddIds.length > 0) {
+    const allGroupsRes = await apiFetch("/api/permissions/groups/");
+    if (!allGroupsRes.ok) await throwApiError(allGroupsRes, FIELD_MAP);
+    const allGroups = await allGroupsRes.json();
+    const nameById = Object.fromEntries(allGroups.map(g => [String(g.id), g.name]));
+    const namesToAdd = toAddIds.map(id => nameById[id]).filter(Boolean);
+
+    // Seguridad: si algún ID no se encontró en la lista de grupos del sistema,
+    // abortar en lugar de asignar silenciosamente un subconjunto incorrecto.
+    if (namesToAdd.length !== toAddIds.length) {
+      throw new Error("Algunos grupos seleccionados no existen en el sistema.");
+    }
+
+    await assignUserGroups(userId, namesToAdd);
   }
 }
 

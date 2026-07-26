@@ -29,20 +29,41 @@ export default function UserForm({
     showStatus = false,
     singleGroupSelection = false,
     disabledOptionValues = [],
+    // Flags de rol pre-calculados por el padre (Opción A).
+    // Si no se reciben, se calculan aquí como fallback para compatibilidad
+    // con formularios que aún no los derivan externamente (ej. UserCreateForm).
+    isInstructorRole: isInstructorRoleProp = null,
+    datesOptional: datesOptionalProp = null,
     confirmEmailSlot = null,
     contactExtraSlot = null,
     systemExtraSlot = null,
 }) {
     const isActive = formData.isActive === "true" || formData.isActive === true;
-    const selectedGroup = groups.find((option) => String(option.id) === String(formData.groups));
-    const selectedGroupName = selectedGroup?.label?.toUpperCase?.() || "";
-    const isInstructorRole = selectedGroupName.includes("INST") || selectedGroupName.includes("INSTRUCTOR");
-    const isAdminLikeRole = /(ADMIN|SADMIN|SUPER)/.test(selectedGroupName);
-    const datesOptional = Boolean(formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
+
+    // Si el padre ya calculó los flags, usarlos directamente.
+    // Si no (fallback), derivarlos localmente con la misma lógica.
+    let isInstructorRole, datesOptional;
+    if (isInstructorRoleProp !== null && datesOptionalProp !== null) {
+        isInstructorRole = isInstructorRoleProp;
+        datesOptional    = datesOptionalProp;
+    } else {
+        const selectedGroupIds = Array.isArray(formData.groups)
+            ? formData.groups.map(String)
+            : formData.groups ? [String(formData.groups)] : [];
+        const selectedGroupNames = groups
+            .filter((g) => selectedGroupIds.includes(String(g.id)))
+            .map((g) => g.label?.toUpperCase?.() ?? "");
+        isInstructorRole = selectedGroupNames.some(
+            (n) => n.includes("INST") || n.includes("INSTRUCTOR")
+        );
+        const isAdminLikeRole = selectedGroupNames.some((n) => /(ADMIN|SADMIN|SUPER)/.test(n));
+        datesOptional = Boolean(formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
+    }
 
     // Pide el nombre del nuevo grupo, lo crea en el backend y lo selecciona
-    // automáticamente en el SelectMultiple. `onCreateGroup` es responsabilidad
-    // de la página (crea el grupo y actualiza la lista de opciones).
+    // en el Select (singleGroupSelection) o lo agrega al SelectMultiple.
+    // `onCreateGroup` es responsabilidad de la página (crea el grupo y
+    // actualiza la lista de opciones).
     const handleCreateGroup = async () => {
         if (!onCreateGroup) return;
 
@@ -211,6 +232,7 @@ export default function UserForm({
                                 onChange={onChange}
                                 error={errors.groups}
                                 required
+                                disabledOptionValues={disabledOptionValues}
                                 labelAction={
                                     onCreateGroup && (
                                         <IconButton
@@ -235,6 +257,7 @@ export default function UserForm({
                                 onChange={onChange}
                                 error={errors.groups}
                                 required
+                                disabledOptionValues={disabledOptionValues}
                                 labelAction={
                                     onCreateGroup && (
                                         <IconButton

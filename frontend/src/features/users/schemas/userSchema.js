@@ -169,8 +169,8 @@ export const userEditSchema = z.object({
         .optional(),
 
     groups: z
-        .array(z.string())
-        .min(1, "Debe seleccionar al menos un grupo"),
+        .string()
+        .min(1, "Debe seleccionar un grupo"),
 
     isActive: z
         .string()
@@ -178,8 +178,9 @@ export const userEditSchema = z.object({
 
     startDate: z
         .string()
-        .min(1, "Debe ingresar una fecha de inicio")
-        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
+        .refine((val) => val === "" || isValidDateString(val), {
+            message: "Debe ingresar una fecha válida",
+        }),
 
     endDate: z
         .string()

@@ -26,12 +26,27 @@ export default function UserDetailView() {
 
     if (error) return <p>Error al cargar Usuarios: {error.message}</p>
 
+    // Guard defensivo: user puede ser null si loading pasó a false sin error
+    // (ej. respuesta vacía del servidor). Evita crash al acceder a sus propiedades.
+    if (!user) return null
+
     // Valores de solo lectura (los selects de Editar se muestran como texto).
     const documentTypeLabel = user.document_type?.name ?? "Sin tipo de documento";
+    // Los grupos del usuario (GET /api/users/{id}/) vienen como { id, name }.
+    // Distinto de las opciones del Select (GET /api/permissions/groups/) que se
+    // mapean a { id, label }. Por eso aquí se usa g.name y en UserForm/deriveRoleFlags
+    // se usa g.label — ambos son correctos para su fuente de datos respectiva.
     const groupsLabel = user.groups && user.groups.length > 0
         ? user.groups.map((g) => g.name).join(", ")
         : "Sin grupo asignado";
-    const isActive = user.is_active !== false;
+    const isActive = user.is_active === true;
+
+    const isInstPlanta = user.is_instructor_planta === true ? "Sí" : "No";
+
+    const isINST = user.groups?.some((g) => {
+        const n = (g.name ?? "").toUpperCase();
+        return n.includes("INST") || n.includes("INSTRUCTOR");
+    }) ?? false;
 
     // Genera una nueva contraseña para el usuario y se la envia por correo.
     // Accion administrativa: invalida la contraseña anterior del usuario.
@@ -56,7 +71,7 @@ export default function UserDetailView() {
                 timer: 4000,
             });
         } catch (err) {
-            showAlert({
+            await showAlert({
                 icon: "error",
                 iconColor: "var(--color-error)",
                 title: "No se pudo reenviar las credenciales",
@@ -90,6 +105,10 @@ export default function UserDetailView() {
                         <div className="flex flex-col items-center gap-2 shrink-0">
                             <div className="w-24 h-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                                 {user.profile_picture
+                                    // profile_picture llega como ruta relativa (/media/...) desde el backend.
+                                    // En dev, Vite proxea /media → http://127.0.0.1:8000 (vite.config.js).
+                                    // En producción se asume same-origin; si backend y frontend van en
+                                    // dominios distintos habrá que prefijar con la URL base del backend.
                                     ? <img src={user.profile_picture} alt={user.first_name} className="w-full h-full object-cover" />
                                     : <span className="text-h1 font-heading text-text-muted">{(user.first_name ?? "?")[0].toUpperCase()}</span>
                                 }
@@ -99,12 +118,13 @@ export default function UserDetailView() {
 
                         {/* Campos personales */}
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
-                            <Input label="Nombres" value={user.first_name ?? ""} disabled readOnly />
-                            <Input label="Apellidos" value={user.last_name ?? ""} disabled readOnly />
+                            <Input label="Nombres" value={user.first_name ?? "No definido"} disabled readOnly />
+                            <Input label="Apellidos" value={user.last_name ?? "No definido"} disabled readOnly />
                             <Input label="Tipo de documento" value={documentTypeLabel} disabled readOnly />
-                            <Input label="Número de documento" value={user.document_number ?? ""} disabled readOnly />
+                          
+                            <Input label="Número de documento" value={user.document_number ?? "No definido"} disabled readOnly />
                             <div className="sm:col-span-2">
-                                <Input label="Dirección" value={user.address ?? ""} disabled readOnly />
+                                <Input label="Dirección" value={user.address ?? "No definido"} disabled readOnly />
                             </div>
                         </div>
 
@@ -115,10 +135,10 @@ export default function UserDetailView() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
                     <EditCard title="Información de Contacto">
-                        <Input label="Correo electrónico" value={user.email ?? ""} disabled readOnly />
-                        <Input label="Correo institucional" value={user.institutional_email ?? ""} disabled readOnly />
-                        <Input label="Teléfono" value={user.phone_number ?? ""} disabled readOnly />
-                        <Input label="Teléfono adicional" value={user.second_phone_number ?? ""} disabled readOnly />
+                        <Input label="Correo electrónico" value={user.email ?? "No definido"} disabled readOnly />
+                        <Input label="Correo institucional" value={user.institutional_email ?? "No definido"} disabled readOnly />
+                        <Input label="Teléfono" value={user.phone_number ?? "No definido"} disabled readOnly />
+                        <Input label="Teléfono adicional" value={user.second_phone_number ?? "No definido"} disabled readOnly />
 
                         {/* Accion administrativa: reenviar credenciales de acceso */}
                         <div className="pt-2">
@@ -138,8 +158,11 @@ export default function UserDetailView() {
 
                     <EditCard title="Información del Sistema">
                         <Input label="Tipo de usuario" value={groupsLabel} disabled readOnly />
+                        {isINST && (
+                            <Input label="Instructor de Planta" value={isInstPlanta} disabled readOnly/>
+                        )}
                         <Input label="Estado" value={isActive ? "Activo" : "Inactivo"} disabled readOnly />
-                        <Input label="Fecha de inicio" value={user.start_date ?? ""} disabled readOnly />
+                        <Input label="Fecha de inicio" value={user.start_date ?? "No definida"} disabled readOnly />
                         <Input label="Fecha de finalización" value={user.end_date ?? "No definida"} disabled readOnly />
                     </EditCard>
 
