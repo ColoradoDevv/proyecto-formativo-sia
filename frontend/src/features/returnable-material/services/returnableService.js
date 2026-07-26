@@ -19,8 +19,9 @@ const FIELD_MAP = {
     technical_sheet: "technicalSheet",
 };
 
-export async function getRMs() {
-    const response = await apiFetch("/api/products/returnables/");
+export async function getRMs(search = "") {
+    const query = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
+    const response = await apiFetch(`/api/products/returnables/${query}`);
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }

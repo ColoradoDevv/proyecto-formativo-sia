@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Undo2, FileText, ImageOff } from "lucide-react";
+import { Undo2, FileText, ImageOff, Search } from "lucide-react";
 import { Button, IconButton, Input, StatusBadge, EditCard } from "@/shared";
 import useRm from "../../hooks/useRm";
+import { getRMById, getRMs } from "../../services/returnableService";
 import { TailChase } from "ldrs/react";
 import { CloudAlert } from "lucide-react";
 
@@ -9,9 +11,68 @@ export default function RmDetailView() {
     const navigate = useNavigate();
     const { id } = useParams();
     const { RM: material, loading, error } = useRm(id);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [matches, setMatches] = useState([]);
+    const [searchError, setSearchError] = useState("");
+    const [searching, setSearching] = useState(false);
 
     const formatCurrency = (value) =>
         value != null ? `$${Number(value).toLocaleString("es-CO")}` : "-";
+
+    const handleSearch = async (event) => {
+        event.preventDefault();
+        const query = searchTerm.trim();
+
+        if (!query) {
+            setMatches([]);
+            setSearchError("Ingrese un ID, placa SENA o nombre.");
+            return;
+        }
+
+        setSearching(true);
+        setSearchError("");
+        setMatches([]);
+
+        try {
+            if (/^\d+$/.test(query)) {
+                try {
+                    const foundMaterial = await getRMById(query);
+                    navigate(`/devolutivos/visualizar/${foundMaterial.consumable_id}`);
+                    return;
+                } catch {
+                    // Si el ID no existe, se busca el texto en nombre o placa.
+                }
+            }
+
+            const results = await getRMs(query);
+            const normalizedQuery = query.toLocaleLowerCase("es-CO");
+            const exactMatch = results.find((item) =>
+                item.sena_plate?.toLocaleLowerCase("es-CO") === normalizedQuery ||
+                item.name?.toLocaleLowerCase("es-CO") === normalizedQuery
+            );
+
+            if (exactMatch) {
+                navigate(`/devolutivos/visualizar/${exactMatch.consumable_id}`);
+                return;
+            }
+
+            if (results.length === 1) {
+                navigate(`/devolutivos/visualizar/${results[0].consumable_id}`);
+                return;
+            }
+
+            if (!results.length) {
+                setSearchError("No se encontró un material con ese ID, placa o nombre.");
+                return;
+            }
+
+            setMatches(results.slice(0, 5));
+        } catch {
+            setSearchError("No fue posible realizar la búsqueda. Inténtelo nuevamente.");
+        } finally {
+            setSearching(false);
+        }
+    };
 
     if (loading)
         return (
@@ -56,6 +117,41 @@ export default function RmDetailView() {
             </div>
 
             <div className="flex flex-col gap-3">
+
+                <EditCard title="Buscar material devolutivo" cols={1}>
+                    <form onSubmit={handleSearch} className="flex flex-col gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Input
+                                label="ID, placa SENA o nombre"
+                                value={searchTerm}
+                                onChange={(event) => setSearchTerm(event.target.value)}
+                                placeholder="Ej. 25, 123456 o computador"
+                                error={searchError}
+                            />
+                            <Button type="submit" variant="secondary" icon={Search} disabled={searching} className="sm:self-end">
+                                {searching ? "Buscando..." : "Buscar"}
+                            </Button>
+                        </div>
+                        {matches.length > 0 && (
+                            <div className="border border-border rounded-[var(--radius-md)] divide-y divide-border overflow-hidden">
+                                <p className="px-3 py-2 text-small text-text-muted">Seleccione un material:</p>
+                                {matches.map((item) => (
+                                    <button
+                                        key={item.consumable_id}
+                                        type="button"
+                                        onClick={() => navigate(`/devolutivos/visualizar/${item.consumable_id}`)}
+                                        className="w-full px-3 py-2 text-left hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-focus-ring"
+                                    >
+                                        <span className="block text-body">{item.name}</span>
+                                        <span className="block text-small text-text-muted">
+                                            ID: {item.consumable_id} · Placa: {item.sena_plate ?? "Sin placa"}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </form>
+                </EditCard>
 
                 {/* Información General — foto lateral + campos */}
                 <EditCard title="Información General" cols={1}>
