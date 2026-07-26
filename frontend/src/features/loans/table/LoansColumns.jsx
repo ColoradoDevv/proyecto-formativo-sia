@@ -6,14 +6,17 @@ export const loansColumns = ({ onReturn } = {}) => [
     {
         accessorKey: "usuario_responsable",
         header: "Usuario Responsable",
+        meta: { filterVariant: "select" },
     },
     {
         accessorKey: "usuario_receptor",
         header: "Usuario Receptor",
+        meta: { filterVariant: "select" },
     },
     {
         accessorKey: "material",
         header: "Material",
+        meta: { filterVariant: "select" },
     },
     {
         accessorKey: "amount_lent",
@@ -22,14 +25,17 @@ export const loansColumns = ({ onReturn } = {}) => [
     {
         accessorKey: "loan_date",
         header: "Fecha Préstamo",
+        meta: { filterVariant: "date" },
     },
     {
         accessorKey: "return_date",
         header: "Fecha Devolución",
+        meta: { filterVariant: "date" },
     },
     {
         accessorKey: "state",
         header: "Estado",
+        meta: { filterVariant: "select" },
         cell: ({ row }) => <LoanStateBadge state={row.original.state} />,
     },
     {

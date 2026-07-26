@@ -14,11 +14,13 @@ export const getUserColumns = (onDeleted) => [
             : "Sin grupo",
         id: "groups",
         header: "Grupo",
+        meta: { filterVariant: "select" },
     },
     {
         accessorFn: (row) => row.document_type?.name ?? "Sin tipo de documento",
         id: "document_type",
         header: "Tipo de Documento",
+        meta: { filterVariant: "select" },
     },
     {
         accessorKey: "document_number",
@@ -33,8 +35,10 @@ export const getUserColumns = (onDeleted) => [
         header: "Teléfono",
     },
     {
-        accessorKey: "is_active",
+        accessorFn: (row) => row.is_active ? "Activo" : "Inactivo",
+        id: "is_active",
         header: "Estado",
+        meta: { filterVariant: "select" },
         cell: ({ row }) => (
             <ActiveSwitch
                 id={row.original.id}

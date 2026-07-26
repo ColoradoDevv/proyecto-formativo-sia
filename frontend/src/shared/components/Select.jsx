@@ -17,6 +17,7 @@ export default function Select({
     disabled = false,
     options = [],
     disabledOptionValues = [],
+    placeholder = "Seleccione una opción",
 }){
     return(
         <div className={className || "w-full"}>
@@ -63,7 +64,7 @@ export default function Select({
                 `}
             >
                 <option value="">
-                    Seleccione una opción
+                    {placeholder}
                 </option>
 
                 {options.map((opt) => {
