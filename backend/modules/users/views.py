@@ -14,6 +14,7 @@ from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models.functions import Lower
 
 from .models import User, Role, DocumentType, BlacklistedToken
 from modules.permissions.models import UserGroup as PermUserGroup
@@ -423,7 +424,7 @@ class UserFilter(django_filters.FilterSet):
 
 class UserListCreateView(generics.ListCreateAPIView):
     # Lista y crea usuarios.
-    queryset = User.objects.all().order_by("id")
+    queryset = User.objects.all().order_by(Lower("first_name"))
     serializer_class = UserSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class  = UserFilter

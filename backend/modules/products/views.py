@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models.functions import Lower
 
 from .models import Brand, Category, ConsumableMaterial, ReturnableMaterial
 from .serializers import (
@@ -21,7 +22,7 @@ from modules.permissions.permissions_drf import HasPermission
 
 class BrandViewSet(viewsets.ModelViewSet):
     # CRUD de marcas.
-    queryset = Brand.objects.all().order_by("id")
+    queryset = Brand.objects.all().order_by(Lower("name"))
     serializer_class = BrandSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['is_active']
@@ -48,7 +49,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class ConsumableMaterialViewSet(viewsets.ModelViewSet):
     # CRUD de materiales consumibles.
-    queryset = ConsumableMaterial.objects.all().order_by("id")
+    queryset = ConsumableMaterial.objects.all().order_by(Lower("name"))
     serializer_class = ConsumableMaterialSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
@@ -102,7 +103,7 @@ class ConsumableMaterialViewSet(viewsets.ModelViewSet):
 class ReturnableMaterialViewSet(viewsets.ModelViewSet):
     queryset = ReturnableMaterial.objects.select_related(
         'consumable', 'consumable__brand', 'consumable__user', 'category'
-    ).all().order_by("consumable_id")
+    ).all().order_by(Lower("consumable__name"))
     serializer_class = ReturnableMaterialSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
