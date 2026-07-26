@@ -49,6 +49,12 @@ export async function createRM(rmData) {
     if (rmData.location)    formData.append("location", rmData.location);
     if (rmData.photo?.[0])  formData.append("image", rmData.photo[0]);
     if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);
+    
+    // Concatenar dimensiones si existen (formato: "30x50x20")
+    if (rmData.width || rmData.length || rmData.depth) {
+        const dimensions = `${rmData.width || ""}x${rmData.length || ""}x${rmData.depth || ""}`;
+        formData.append("dimensions", dimensions);
+    }
 
     const response = await apiFetch("/api/products/returnables/", {
         method: "POST",
@@ -77,8 +83,12 @@ export async function updateRM(id, rmData) {
 
     if (rmData.location) formData.append("location", rmData.location);
     if (rmData.photo?.[0]) formData.append("image", rmData.photo[0]);
-    if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);
-
+    if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);    
+    // Concatenar dimensiones si existen (formato: "30x50x20")
+    if (rmData.width || rmData.length || rmData.depth) {
+        const dimensions = `${rmData.width || ""}x${rmData.length || ""}x${rmData.depth || ""}`;
+        formData.append("dimensions", dimensions);
+    }
     const response = await apiFetch(`/api/products/returnables/${id}/`, {
         method: "PATCH",
         body: formData,

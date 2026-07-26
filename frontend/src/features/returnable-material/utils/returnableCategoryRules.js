@@ -13,6 +13,14 @@ export function getReturnableCategoryOptions(categories = []) {
 export function getReturnableCategoryRules(categoryName = "") {
     const normalized = String(categoryName || "").trim().toLowerCase();
 
+    if (normalized === "herramientas") {
+        return {
+            requiresSenaPlate: false,
+            requiresId: false,
+            requiresDimensions: false,
+        };
+    }
+
     if (normalized === "maquinaria y equipos") {
         return {
             requiresSenaPlate: true,
@@ -29,6 +37,7 @@ export function getReturnableCategoryRules(categoryName = "") {
         };
     }
 
+    // Para cualquier otra categoría no reconocida, defaults permisivos
     return {
         requiresSenaPlate: false,
         requiresId: false,

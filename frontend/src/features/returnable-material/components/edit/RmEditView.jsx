@@ -57,6 +57,19 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
     const [photoFile,    setPhotoFile]    = useState(null);
     const [submitting,   setSubmitting]   = useState(false);
 
+    // Parsear dimensiones si existen (ej: "30x50x20" → {width: "30", length: "50", depth: "20"})
+    const parseDimensions = (dimensionsString) => {
+        if (!dimensionsString) return { width: "", length: "", depth: "" };
+        const parts = String(dimensionsString).split("x");
+        return {
+            width: parts[0] ?? "",
+            length: parts[1] ?? "",
+            depth: parts[2] ?? "",
+        };
+    };
+
+    const dimensions = parseDimensions(RM.dimensions);
+
     const [formData, setFormData] = useState({
         name:         RM.name ?? "",
         senaPlate:    RM.sena_plate ?? "",
@@ -70,9 +83,9 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
         unitPrice:    RM.unit_price != null ? String(RM.unit_price) : "",
         totalPrice:   RM.total_price != null ? String(RM.total_price) : "",
         purchaseDate: RM.purchase_date ?? "",
-        width: RM.width ?? "",
-        length: RM.length ?? "",
-        depth: RM.depth ?? "",
+        width: dimensions.width,
+        length: dimensions.length,
+        depth: dimensions.depth,
     });
 
     const [errors, setErrors] = useState({});

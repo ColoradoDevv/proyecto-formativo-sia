@@ -105,19 +105,41 @@ export const rmSchema = z.object({
             message: "La fecha de compra no puede ser futura",
         }),
 
-    technicalSheet: z.array(z.instanceof(File)).optional(),
+    // Ficha técnica obligatoria en creación (RF RFADMIN08).
+    // Formatos: PDF, Excel o PNG. Tamaño máximo 3MB. Mínimo 1 archivo.
+    technicalSheet: z
+        .array(z.instanceof(File))
+        .min(1, "La ficha técnica es obligatoria")
+        .refine(
+            (files) => files.every((f) => [
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "image/png",
+            ].includes(f.type)),
+            { message: "La ficha técnica debe ser PDF, Excel o PNG" }
+        )
+        .refine(
+            (files) => files.every((f) => f.size <= 3 * 1024 * 1024),
+            { message: "Cada archivo no puede superar 3MB" }
+        ),
 
     photo: z.array(z.instanceof(File)).optional(),
     width: z.string().trim().optional(),
     length: z.string().trim().optional(),
     depth: z.string().trim().optional(),
+    categoryName: z.string().optional(),
 }).superRefine((data, ctx) => {
     const categoryName = String(data.categoryName || "").trim().toLowerCase();
-    const categoryRules = categoryName === "maquinaria y equipos"
-        ? { requiresSenaPlate: true, requiresId: true, requiresDimensions: false }
-        : categoryName === "muebles y enseres"
-            ? { requiresSenaPlate: true, requiresId: true, requiresDimensions: true }
-            : { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    
+    let categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    
+    if (categoryName === "herramientas") {
+        categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    } else if (categoryName === "maquinaria y equipos") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: false };
+    } else if (categoryName === "muebles y enseres") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: true };
+    }
 
     if (categoryRules.requiresSenaPlate && !String(data.senaPlate || "").trim()) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["senaPlate"], message: "La placa SENA es obligatoria para esta categoría" });
@@ -218,13 +240,19 @@ export const rmEditSchema = z.object({
     width: z.string().trim().optional(),
     length: z.string().trim().optional(),
     depth: z.string().trim().optional(),
+    categoryName: z.string().optional(),
 }).superRefine((data, ctx) => {
     const categoryName = String(data.categoryName || "").trim().toLowerCase();
-    const categoryRules = categoryName === "maquinaria y equipos"
-        ? { requiresSenaPlate: true, requiresId: true, requiresDimensions: false }
-        : categoryName === "muebles y enseres"
-            ? { requiresSenaPlate: true, requiresId: true, requiresDimensions: true }
-            : { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    
+    let categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    
+    if (categoryName === "herramientas") {
+        categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    } else if (categoryName === "maquinaria y equipos") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: false };
+    } else if (categoryName === "muebles y enseres") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: true };
+    }
 
     if (categoryRules.requiresSenaPlate && !String(data.senaPlate || "").trim()) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["senaPlate"], message: "La placa SENA es obligatoria para esta categoría" });

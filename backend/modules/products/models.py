@@ -57,6 +57,9 @@ class ConsumableMaterial(models.Model):
 
     image = models.ImageField(upload_to='materials/', blank=True, default='')
 
+    # Ficha tecnica del material (PDF, Excel, PNG). Opcional segun diccionario.
+    technical_sheet = models.FileField(upload_to='specs/consumables/', blank=True, default='')
+
     # Cantidad: obligatoria solo si el material no tiene placa
     quantity = models.IntegerField(null=True)
 

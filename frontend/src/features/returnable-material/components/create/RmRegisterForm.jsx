@@ -152,7 +152,7 @@ export default function RmRegisterForm() {
                                 value={formData.technicalSheet}
                                 onChange={handleFileChange("technicalSheet")}
                                 error={errors.technicalSheet}
-                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png"
                                 multiple
                                 required
                                 maxFiles={3}

@@ -38,6 +38,9 @@ class UserSerializer(serializers.ModelSerializer):
     # Para leer - devuelve el objeto completo en GET
     document_type = DocumentTypeSerializer(read_only=True)
     groups = UserGroupSerializer(source='user_groups', many=True, read_only=True)
+    
+    # URL absoluta para la foto de perfil (devuelve /media/... para que el proxy de Vite la redirija)
+    profile_picture = serializers.SerializerMethodField()
 
     # Para escribir - acepta solo el ID en POST
     document_type_id = serializers.PrimaryKeyRelatedField(
@@ -51,6 +54,12 @@ class UserSerializer(serializers.ModelSerializer):
     # La contraseña SOLO entra (write_only): se puede enviar, pero nunca se devuelve
     password = serializers.CharField(write_only=True, required=False)
 
+    def get_profile_picture(self, obj):
+        # Devuelve la ruta con /media/ al inicio para que el proxy de Vite la redirija
+        if obj.profile_picture:
+            return f"/media/{obj.profile_picture}"
+        return None
+
     class Meta:
         model = User
         # Ocultamos los campos internos de Django que no deben salir
@@ -60,7 +69,6 @@ class UserSerializer(serializers.ModelSerializer):
             "is_instructor_planta": {"required": False, "default": False},
             "second_phone_number": {"required": False, "allow_null": True},
             "institutional_email": {"required": False, "allow_null": True},
-            "profile_picture": {"required": False, "allow_null": True},
         }
 
     def create(self, validated_data):
