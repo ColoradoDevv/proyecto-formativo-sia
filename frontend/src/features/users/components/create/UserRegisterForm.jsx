@@ -40,8 +40,9 @@ export default function UserRegisterForm() {
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [showAdditionalPhone, setShowAdditionalPhone] = useState(false);
-    const { can, isSuper } = usePermissions();
-    const canCreateUsers = isSuper || can("create_user");
+    const { can, isAdmin } = usePermissions();
+    // RFADMIN02: crear usuarios requiere el rol ADMIN/SADMIN y el permiso.
+    const canCreateUsers = isAdmin && can("create_user");
 
     const [documentTypes, setDocumentTypes] = useState([]);
     useEffect(() => {
@@ -110,6 +111,19 @@ export default function UserRegisterForm() {
 
     async function handleSubmit(e) {
         e.preventDefault();
+
+        // Guardia de envío: protege incluso si se intenta enviar el formulario
+        // antes de que la redirección reactiva haya terminado.
+        if (!canCreateUsers) {
+            await showAlert({
+                icon: "warning",
+                iconColor: "var(--color-warning)",
+                title: "Sin permisos",
+                text: "Solo los usuarios con rol ADMIN pueden crear usuarios.",
+            });
+            navigate("/usuarios");
+            return;
+        }
 
         // --- Fase 1: validación (síncrona, fuera del try de submit) ---
         const { isInstructorRole, isAdminLikeRole } = deriveRoleFlags(userGroups, formData.groups);
