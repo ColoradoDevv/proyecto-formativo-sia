@@ -22,7 +22,7 @@ function useCMs() {
         fetchCMs();
     }, []) // Un array vacio para que solo se ejecute al montar el componente 
 
-    return { CMs, loading, error}
+    return { CMs, setCMs, loading, error}
 }
 
 export default useCMs;

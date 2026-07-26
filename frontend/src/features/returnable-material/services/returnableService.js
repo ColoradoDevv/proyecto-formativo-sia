@@ -100,7 +100,7 @@ export async function updateRM(id, rmData) {
 
 // El toggle de is_active va contra el ConsumableMaterial (donde vive el campo)
 export async function toggleRMActive(consumableId, isActive) {
-    const response = await apiFetch(`/api/products/consumables/${consumableId}/`, {
+    const response = await apiFetch(`/api/products/returnables/${consumableId}/toggle_active/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: isActive }),

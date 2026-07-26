@@ -102,7 +102,7 @@ export async function updateCm(id, cmData) {
 
 // METODO PATCH (activar o desactivar un material)
 export async function toggleCmActive(id, isActive) {
-  const response = await apiFetch(`/api/products/consumables/${id}/`, {
+  const response = await apiFetch(`/api/products/consumables/${id}/toggle_active/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ is_active: isActive }),

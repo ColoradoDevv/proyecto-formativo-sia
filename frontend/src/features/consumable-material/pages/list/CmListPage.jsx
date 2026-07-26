@@ -13,7 +13,7 @@ import useProducts from "../../hooks/useCMs.js";
 export default function ListCmPage() {
     const navigate = useNavigate();
 
-    const { CMs, loading, error } = useProducts();
+    const { CMs, setCMs, loading, error } = useProducts();
     const [notification, setNotification]   = useState(null);
 
     if (loading)
@@ -67,7 +67,7 @@ export default function ListCmPage() {
             {/* Doble click en una fila navega al detalle del material */}
             <DataTable
                 data={CMs}
-                columns={materialColumns}
+                columns={materialColumns(setCMs)}
                 onRowDoubleClick={(cm) => navigate(`/consumibles/visualizar/${cm.id}`)}
             />
         </div>

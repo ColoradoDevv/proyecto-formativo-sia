@@ -89,12 +89,20 @@ class ConsumableMaterialViewSet(viewsets.ModelViewSet):
             )
 
         material.is_active = bool(is_active)
-        material.save(update_fields=["is_active"])
+        # Un material inactivo no puede conservar un estado operativo.
+        # Al reactivarlo solo se restaura la disponibilidad si fue desactivado
+        # mediante este flujo; los demás estados (p. ej. Mantenimiento) se respetan.
+        if not material.is_active:
+            material.state = "No Disponible"
+        elif material.state == "No Disponible":
+            material.state = "Disponible"
+        material.save(update_fields=["is_active", "state"])
 
         return Response(
             {
                 "message": f"Material '{material.name}' {'activado' if material.is_active else 'desactivado'} correctamente.",
                 "is_active": material.is_active,
+                "state": material.state,
             },
             status=status.HTTP_200_OK,
         )
@@ -150,12 +158,17 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
             )
 
         consumable.is_active = bool(is_active)
-        consumable.save(update_fields=["is_active"])
+        if not consumable.is_active:
+            consumable.state = "No Disponible"
+        elif consumable.state == "No Disponible":
+            consumable.state = "Disponible"
+        consumable.save(update_fields=["is_active", "state"])
 
         return Response(
             {
                 "message": f"Material '{consumable.name}' {'activado' if consumable.is_active else 'desactivado'} correctamente.",
                 "is_active": consumable.is_active,
+                "state": consumable.state,
             },
             status=status.HTTP_200_OK,
         )
