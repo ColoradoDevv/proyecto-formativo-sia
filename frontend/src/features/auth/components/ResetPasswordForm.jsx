@@ -1,9 +1,11 @@
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Asterisk, ArrowLeft, CircleCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { resetSchemas } from "../schemas/loginSchemas";
 import { resetPassword } from "../services/authService";
 import { Button, Input } from "@/shared";
+
+const LOCKOUT_SECONDS = 15 * 60; // 15 minutos, igual que el backend
 
 export default function ResetPasswordForm() {
     const navigate = useNavigate();
@@ -15,11 +17,36 @@ export default function ResetPasswordForm() {
     const [serverError, setServerError] = useState("");
     const [done, setDone] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    // Segundos restantes de bloqueo; 0 = no bloqueado
+    const [lockout, setLockout] = useState(0);
+    const timerRef = useRef(null);
 
     const [formData, setFormData] = useState({
         password: "",
         confirmPassword: "",
     });
+
+    // Limpia el intervalo al desmontar
+    useEffect(() => () => clearInterval(timerRef.current), []);
+
+    const startLockoutTimer = () => {
+        setLockout(LOCKOUT_SECONDS);
+        timerRef.current = setInterval(() => {
+            setLockout((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const formatLockout = (secs) => {
+        const m = Math.floor(secs / 60).toString().padStart(2, "0");
+        const s = (secs % 60).toString().padStart(2, "0");
+        return `${m}:${s}`;
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,6 +73,9 @@ export default function ResetPasswordForm() {
             await resetPassword(token, formData.password, formData.confirmPassword);
             setDone(true);
         } catch (err) {
+            if (err.status === 429) {
+                startLockoutTimer();
+            }
             setServerError(err.message);
         } finally {
             setLoading(false);
@@ -136,8 +166,12 @@ export default function ResetPasswordForm() {
                             </Link>
                         </div>
 
-                        <Button type="submit" disabled={loading} variant="primary" size="md">
-                            {loading ? "Guardando..." : "Restablecer contraseña"}
+                        <Button type="submit" disabled={loading || lockout > 0} variant="primary" size="md">
+                            {loading
+                                ? "Guardando..."
+                                : lockout > 0
+                                ? `Bloqueado ${formatLockout(lockout)}`
+                                : "Restablecer contraseña"}
                         </Button>
                     </form>
                 </>

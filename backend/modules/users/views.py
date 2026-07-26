@@ -303,7 +303,12 @@ class ResetPasswordView(APIView):
         password = request.data.get("password")
         confirm_password = request.data.get("confirm_password")
 
-        # 1. Validar que llegaron los datos
+        # 1. Verificar si la IP está bloqueada por exceso de intentos de reset
+        blocked = _check_rate_limit(request, "reset_attempts")
+        if blocked:
+            return blocked
+
+        # 2. Validar que llegaron los datos
         if not token or not password or not confirm_password:
             return Response(
                 {"error": "Token, contraseña y confirmación son obligatorios"},
@@ -328,17 +333,20 @@ class ResetPasswordView(APIView):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         except jwt.ExpiredSignatureError:
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace ha expirado (válido por 15 minutos). Solicita uno nuevo."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except jwt.InvalidTokenError:
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace no es válido."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if payload.get("scope") != "password_reset":
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace no es válido."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -347,6 +355,7 @@ class ResetPasswordView(APIView):
         # 5. Verificar que el token no haya sido usado ya (uso único)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         if BlacklistedToken.objects.filter(token_hash=token_hash).exists():
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "Este enlace ya fue utilizado. Solicita uno nuevo."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -356,6 +365,7 @@ class ResetPasswordView(APIView):
         try:
             user = User.objects.get(id=payload["user_id"])
         except User.DoesNotExist:
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace no es válido."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -378,6 +388,9 @@ class ResetPasswordView(APIView):
             token_hash=token_hash,
             defaults={"expires_at": expires_at},
         )
+
+        # 9. Reset exitoso: limpiar el contador de intentos de la IP
+        _reset_rate_limit(request, "reset_attempts")
 
         return Response(
             {"message": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."},
