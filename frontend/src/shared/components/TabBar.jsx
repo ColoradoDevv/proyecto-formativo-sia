@@ -1,6 +1,7 @@
 import { Tab } from '@headlessui/react';
 import  TmHomePage  from "../../features/trademarks/pages/TmHomePage";
 import {AccessPage} from "@/features/access"
+import GroupManagement from "../../features/access/components/GroupManagement";
 import { TaskHomePage } from "@/features/tasks"
 
 
@@ -11,14 +12,14 @@ function classNames(...classes) {
 }
 
 export default function TabBar() {
-  const tabs = ['Editar Perfil', 'Marcas', 'Grupos', 'Tareas'];
+  const tabs = ['Editar Perfil', 'Marcas', 'Roles y Permisos', 'Grupos', 'Tareas'];
 
   return (
     <div className="w-full pt-4 sm:pt-6">
       <Tab.Group>
 
 
-        <Tab.List className="grid grid-cols-4  border-b border-border px-4 sm:px-6" >
+        <Tab.List className="grid grid-cols-5 border-b border-border px-4 sm:px-6" >
           {tabs.map((tab) => (
             <Tab
               key={tab}
@@ -46,7 +47,9 @@ export default function TabBar() {
 
 
 
-          <Tab.Panel> <AccessPage/> </Tab.Panel>
+          <Tab.Panel><AccessPage /></Tab.Panel>
+
+          <Tab.Panel><GroupManagement /></Tab.Panel>
 
           <Tab.Panel> <TaskHomePage/> </Tab.Panel>
         </Tab.Panels>
