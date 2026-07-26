@@ -7,6 +7,7 @@ import { getBrands, getCategories, getStates, createBrand, createCategory } from
 import { rmEditSchema } from "../../schemas/rmSchema";
 import { updateRM } from "../../services/returnableService";
 import ReturnableForm from "../ReturnableForm";
+import { getReturnableCategoryOptions } from "../../utils/returnableCategoryRules";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -69,6 +70,9 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
         unitPrice:    RM.unit_price != null ? String(RM.unit_price) : "",
         totalPrice:   RM.total_price != null ? String(RM.total_price) : "",
         purchaseDate: RM.purchase_date ?? "",
+        width: RM.width ?? "",
+        length: RM.length ?? "",
+        depth: RM.depth ?? "",
     });
 
     const [errors, setErrors] = useState({});
@@ -98,7 +102,9 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const result = rmEditSchema.safeParse(formData);
+        const selectedCategory = categories.find((option) => String(option.id) === String(formData.category));
+        const payload = { ...formData, categoryName: selectedCategory?.label ?? selectedCategory?.name ?? "" };
+        const result = rmEditSchema.safeParse(payload);
 
         if (!result.success) {
             const fieldErrors = {};
@@ -150,7 +156,7 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
                     formData={formData}
                     errors={errors}
                     onChange={handleChange}
-                    categories={categories}
+                    categories={getReturnableCategoryOptions(categories)}
                     brands={brands}
                     states={states}
                     onCreateBrand={onCreateBrand}

@@ -1,4 +1,5 @@
 import { Input, Select, TextArea, EditCard, CreateOptionButton } from "@/shared";
+import { getReturnableCategoryRules } from "../utils/returnableCategoryRules";
 
 // Campos de material devolutivo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange, las opciones de selects
@@ -22,6 +23,11 @@ export default function ReturnableForm({
         onChange({ target: { name: "brand", value: String(option.id) } });
     const handleCategoryCreated = (option) =>
         onChange({ target: { name: "category", value: String(option.id) } });
+
+    const selectedCategory = categories.find((option) => String(option.id) === String(formData.category));
+    const categoryName = selectedCategory?.label ?? selectedCategory?.name ?? "";
+    const categoryRules = getReturnableCategoryRules(categoryName);
+    const shouldShowDimensions = categoryRules.requiresDimensions;
     return (
         <>
             {/* Información General — foto lateral + campos */}
@@ -53,16 +59,38 @@ export default function ReturnableForm({
                             value={formData.senaPlate}
                             onChange={onChange}
                             error={errors.senaPlate}
-                            required
+                            required={categoryRules.requiresSenaPlate}
+                            optional={!categoryRules.requiresSenaPlate}
                         />
+                            <Select
+                                label="Marca"
+                                name="brand"
+                                options={brands}
+                                value={formData.brand}
+                                onChange={onChange}
+                                error={errors.brand}
+                                required
+                                labelAction={
+                                    <CreateOptionButton
+                                        onCreate={onCreateBrand}
+                                        onCreated={handleBrandCreated}
+                                        title="Nueva marca"
+                                        inputLabel="Nombre de la marca"
+                                        inputPlaceholder="Ej. Bosch"
+                                        errorTitle="No se pudo crear la marca"
+                                        ariaLabel="Agregar nueva marca"
+                                    />
+                                }
+                            />
                         <Input
-                            label="Serial"
+                            label="ID"
                             name="serial"
-                            placeholder="Serial del material"
+                            placeholder="ID del material"
                             value={formData.serial}
                             onChange={onChange}
                             error={errors.serial}
-                            required
+                            required={categoryRules.requiresId}
+                            optional={!categoryRules.requiresId}
                         />
                         <Select
                             label="Categoría"
@@ -93,26 +121,47 @@ export default function ReturnableForm({
                                 error={errors.description}
                                 required
                             />
-                        <Select
-                            label="Marca"
-                            name="brand"
-                            options={brands}
-                            value={formData.brand}
-                            onChange={onChange}
-                            error={errors.brand}
-                            required
-                            labelAction={
-                                <CreateOptionButton
-                                    onCreate={onCreateBrand}
-                                    onCreated={handleBrandCreated}
-                                    title="Nueva marca"
-                                    inputLabel="Nombre de la marca"
-                                    inputPlaceholder="Ej. Bosch"
-                                    errorTitle="No se pudo crear la marca"
-                                    ariaLabel="Agregar nueva marca"
+
+                        {shouldShowDimensions && (
+                            <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <Input
+                                    label="Ancho"
+                                    name="width"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Ancho"
+                                    value={formData.width ?? ""}
+                                    onChange={onChange}
+                                    error={errors.width}
+                                    required
                                 />
-                            }
-                        />
+                                <Input
+                                    label="Largo"
+                                    name="length"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Largo"
+                                    value={formData.length ?? ""}
+                                    onChange={onChange}
+                                    error={errors.length}
+                                    required
+                                />
+                                <Input
+                                    label="Profundidad"
+                                    name="depth"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Profundidad"
+                                    value={formData.depth ?? ""}
+                                    onChange={onChange}
+                                    error={errors.depth}
+                                    required
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </EditCard>

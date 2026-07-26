@@ -5,6 +5,7 @@ import { createRM } from "../../services/returnableService";
 import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput, IconButton } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
 import ReturnableForm from "../ReturnableForm";
+import { getReturnableCategoryOptions } from "../../utils/returnableCategoryRules";
 import { Undo2 } from "lucide-react";
 
 
@@ -31,6 +32,9 @@ export default function RmRegisterForm() {
         purchaseDate: "",
         technicalSheet: [],
         photo: [],
+        width: "",
+        length: "",
+        depth: "",
     });
     const [errors, setErrors] = useState({});
 
@@ -77,7 +81,9 @@ export default function RmRegisterForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const result = rmSchema.safeParse(formData);
+        const selectedCategory = categories.find((option) => String(option.id) === String(formData.category));
+        const payload = { ...formData, categoryName: selectedCategory?.label ?? selectedCategory?.name ?? "" };
+        const result = rmSchema.safeParse(payload);
 
         if (!result.success) {
             const fieldErrors = {};
@@ -103,6 +109,8 @@ export default function RmRegisterForm() {
         }
     };
 
+    const availableCategories = getReturnableCategoryOptions(categories);
+
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
@@ -119,7 +127,7 @@ export default function RmRegisterForm() {
                     formData={formData}
                     errors={errors}
                     onChange={handleChange}
-                    categories={categories}
+                    categories={availableCategories}
                     brands={brands}
                     states={states}
                     onCreateBrand={handleCreateBrand}
