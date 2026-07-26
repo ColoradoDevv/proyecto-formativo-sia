@@ -25,7 +25,19 @@ function isValidDateString(value) {
 // Antes era un objeto estatico `loanSchema`; ahora es una funcion porque la
 // validacion de cantidad depende del stock disponible de cada material,
 // que solo se conoce en tiempo de ejecucion (viene de `materials`).
-export default function loanSchema(materials = []) {
+export default function loanSchema(materials = [], { multipleMaterials = false } = {}) {
+    const amountSchema = z
+        .string()
+        .trim()
+        .min(1, "Debe ingresar la cantidad del préstamo")
+        .regex(/^\d+$/, "La cantidad debe ser un numero entero")
+        .refine((value) => Number(value) > 0, {
+            message: "La cantidad debe ser mayor a 0",
+        })
+        .refine((value) => Number(value) <= 999999, {
+            message: "La cantidad no puede superar 999999",
+        });
+
     return z.object({
         loanResponsableUser: z
             .string()
@@ -35,21 +47,13 @@ export default function loanSchema(materials = []) {
             .string()
             .min(1, "Debe seleccionar un usuario receptor"),
 
-        loanMaterial: z
-            .string()
-            .min(1, "Debe seleccionar un material"),
+        loanMaterial: multipleMaterials
+            ? z.array(z.string()).min(1, "Debe seleccionar al menos un material")
+            : z.string().min(1, "Debe seleccionar un material"),
 
-        loanAmount: z
-            .string()
-            .trim()
-            .min(1, "Debe ingresar la cantidad del prestamo")
-            .regex(/^\d+$/, "La cantidad debe ser un numero entero")
-            .refine((value) => Number(value) > 0, {
-                message: "La cantidad debe ser mayor a 0",
-            })
-            .refine((value) => Number(value) <= 999999, {
-                message: "La cantidad no puede superar 999999",
-            }),
+        ...(multipleMaterials
+            ? { loanMaterialQuantities: z.record(amountSchema) }
+            : { loanAmount: amountSchema }),
 
         loanGroup: z
             .string()
@@ -72,17 +76,27 @@ export default function loanSchema(materials = []) {
                 message: "La fecha de devolucion no puede ser anterior a hoy",
             }),
     }).superRefine((data, ctx) => {
-        const material = materials.find((m) => String(m.id) === String(data.loanMaterial));
+        const selectedMaterialIds = Array.isArray(data.loanMaterial)
+            ? data.loanMaterial
+            : [data.loanMaterial];
 
-        if (
-            material &&
-            material.available_quantity != null &&
-            Number(data.loanAmount) > material.available_quantity
-        ) {
+        const insufficientMaterial = selectedMaterialIds
+            .map((id) => materials.find((material) => String(material.id) === String(id)))
+            .find((material) => {
+                const amount = multipleMaterials
+                    ? data.loanMaterialQuantities[String(material?.id)]
+                    : data.loanAmount;
+                return material?.available_quantity != null && Number(amount) > material.available_quantity;
+            });
+
+        if (insufficientMaterial) {
+            const path = multipleMaterials
+                ? ["loanMaterialQuantities", String(insufficientMaterial.id)]
+                : ["loanAmount"];
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                path: ["loanAmount"],
-                message: `Solo hay ${material.available_quantity} unidades disponibles de este material.`,
+                path,
+                message: `Solo hay ${insufficientMaterial.available_quantity} unidades disponibles de este material.`,
             });
         }
     });

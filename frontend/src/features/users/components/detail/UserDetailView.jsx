@@ -5,7 +5,8 @@ import useUser from "../../hooks/useUser.js";
 import { resendCredentials } from "../../services/userService.js";
 import { TailChase } from 'ldrs/react'
 import 'ldrs/react/TailChase.css'
-import { Undo2, Mail } from "lucide-react";
+import { Undo2, Mail, Download } from "lucide-react";
+import { usersReportConfig } from "../../reports/usersReportConfig";
 
 export default function UserDetailView() {
     const navigate = useNavigate();
@@ -174,6 +175,19 @@ export default function UserDetailView() {
                     </Button>
                     <Button variant="primary" size="md" onClick={() => navigate(`/usuarios/editar/${user.id}`)}>
                         Editar
+                    </Button>
+                    <Button
+                        data={[user]}
+                        reportConfig={{
+                            ...usersReportConfig,
+                            reportTitle: "Reporte Individual de Usuario",
+                            fileNamePrefix: `reporte-usuario-${user.id}`,
+                        }}
+                        variant="secondary"
+                        size="md"
+                        icon={Download}
+                    >
+                        Generar reporte
                     </Button>
                 </div>
 

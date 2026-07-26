@@ -2,6 +2,7 @@
 # Aqui viven los endpoints CRUD.
 
 import django_filters
+from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, status
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -47,6 +48,42 @@ class LoanViewSet(viewsets.ModelViewSet):
         if self.action in ("update", "partial_update"):
             return [HasPermission("edit_loan")]
         return [IsSuperUser()]
+
+    def create(self, request, *args, **kwargs):
+        material_ids = request.data.get("id_material")
+        if not isinstance(material_ids, list):
+            return super().create(request, *args, **kwargs)
+
+        if not material_ids:
+            return Response(
+                {"id_material": ["Debe seleccionar al menos un material."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        loan_amounts = request.data.get("amount_lent")
+        if not isinstance(loan_amounts, dict) or any(
+            str(material_id) not in loan_amounts for material_id in material_ids
+        ):
+            return Response(
+                {"amount_lent": ["Debe indicar una cantidad para cada material."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializers = []
+        with transaction.atomic():
+            for material_id in material_ids:
+                loan_data = request.data.copy()
+                loan_data["id_material"] = material_id
+                loan_data["amount_lent"] = loan_amounts.get(str(material_id))
+                serializer = self.get_serializer(data=loan_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                serializers.append(serializer)
+
+        return Response(
+            self.get_serializer([serializer.instance for serializer in serializers], many=True).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def _check_loan_is_active(self, instance):
         """

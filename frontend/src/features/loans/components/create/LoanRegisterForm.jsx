@@ -25,8 +25,8 @@ export default function LoanRegisterForm() {
     const [formData, setFormData] = useState({
         loanResponsableUser: "",
         loanReceptorUser: "",
-        loanMaterial: "",
-        loanAmount: "",
+        loanMaterial: [],
+        loanMaterialQuantities: {},
         loanGroup: "",
         loanJustification: "",
         loanReturnDate: "",
@@ -40,9 +40,33 @@ export default function LoanRegisterForm() {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
+        if (name === "loanMaterial") {
+            setFormData((prev) => ({
+                ...prev,
+                loanMaterial: value,
+                loanMaterialQuantities: Object.fromEntries(
+                    value.map((materialId) => [
+                        materialId,
+                        prev.loanMaterialQuantities[materialId] ?? "1",
+                    ])
+                ),
+            }));
+            return;
+        }
+
         setFormData((prev) => ({
             ...prev,
             [name]: value,
+        }));
+    };
+
+    const handleMaterialQuantityChange = (materialId, quantity) => {
+        setFormData((prev) => ({
+            ...prev,
+            loanMaterialQuantities: {
+                ...prev.loanMaterialQuantities,
+                [materialId]: quantity,
+            },
         }));
     };
 
@@ -54,7 +78,7 @@ export default function LoanRegisterForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const schema = loanSchema(materials);
+        const schema = loanSchema(materials, { multipleMaterials: true });
         const result = schema.safeParse(formData);
 
         if (!result.success) {
@@ -62,7 +86,13 @@ export default function LoanRegisterForm() {
 
             result.error.issues.forEach((issue) => {
                 const field = issue.path[0];
-                fieldErrors[field] = issue.message;
+                const materialId = issue.path[1];
+                if (field === "loanMaterialQuantities" && materialId != null) {
+                    fieldErrors.loanMaterialQuantities ??= {};
+                    fieldErrors.loanMaterialQuantities[materialId] = issue.message;
+                } else {
+                    fieldErrors[field] = issue.message;
+                }
             });
 
             setErrors(fieldErrors);
@@ -105,6 +135,8 @@ export default function LoanRegisterForm() {
                         onChange={handleChange}
                         users={users}
                         materials={materials}
+                        multipleMaterials
+                        onMaterialQuantityChange={handleMaterialQuantityChange}
                         loanDepartureDate={getTodayDateString()}
                     />
 
