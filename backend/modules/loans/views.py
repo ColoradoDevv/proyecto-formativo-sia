@@ -32,13 +32,46 @@ class LoanFilter(django_filters.FilterSet):
 
 class LoanViewSet(viewsets.ModelViewSet):
     # CRUD de préstamos.
-    queryset = Loans.objects.select_related('id_responsable_user','id_receptor_user', 'id_material').all().order_by('id_loan')
     serializer_class = LoanSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class  = LoanFilter
     # ?search= busca en grupo de aprendices y nombre del material
     search_fields    = ['apprentice_group', 'id_material__name', 'justification_use']
     ordering_fields  = ['loan_date', 'return_date', 'state', 'id_loan']
+
+    def _user_is_admin(self):
+        """
+        Devuelve True si el usuario autenticado es superusuario o pertenece
+        al grupo 'Admin' (comparacion sin distincion de mayusculas), lo que
+        le da visibilidad sobre todos los prestamos.
+        """
+        user = self.request.user
+        if user.is_superuser:
+            return True
+        from modules.permissions.models import UserGroup
+        return UserGroup.objects.filter(
+            user=user,
+            group__name__iexact='admin',
+        ).exists()
+
+    def get_queryset(self):
+        """
+        ADMINs y superusuarios ven todos los prestamos.
+        El resto ve unicamente aquellos en los que participan como
+        responsable (id_responsable_user) o receptor (id_receptor_user).
+        """
+        from django.db.models import Q
+        base_qs = Loans.objects.select_related(
+            'id_responsable_user', 'id_receptor_user', 'id_material'
+        ).order_by('id_loan')
+
+        if self._user_is_admin():
+            return base_qs
+
+        user = self.request.user
+        return base_qs.filter(
+            Q(id_responsable_user=user) | Q(id_receptor_user=user)
+        )
 
     def get_permissions(self):
         if self.action in ("list", "retrieve"):

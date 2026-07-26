@@ -7,7 +7,7 @@ import { TailChase } from "ldrs/react";
 import { CloudAlert, Plus, Download } from "lucide-react";
 import Alert from "@mui/material/Alert";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/shared"
+import { Button, usePermissions } from "@/shared"
 import ReturnLoanModal from "../../components/ReturnLoanModal";
 
 
@@ -16,6 +16,7 @@ export default function LoansListPage() {
     const navigate = useNavigate();
     const { loans, setLoans, loading, error } = useLoans();
     const [notification, setNotification] = useState(null);
+    const { isAdmin } = usePermissions();
 
     // Modal de devolución: préstamo seleccionado.
     const [returningLoan, setReturningLoan] = useState(null);
@@ -58,7 +59,7 @@ export default function LoansListPage() {
         <div className="h-full p-4 sm:p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h2 className="text-h3 font-heading">
-                    Listado de Préstamos
+                    {isAdmin ? "Listado de Préstamos" : "Mis Préstamos"}
                 </h2>
                 {notification && (
                     <Alert severity={notification.severity} onClose={() => setNotification(null)}>
@@ -66,15 +67,17 @@ export default function LoansListPage() {
                     </Alert>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Link to="/prestamos/crear" className="w-full">
-                        <Button
-                            className="w-full"
-                            variant="soft"
-                            icon={Plus}
-                        >
-                            Registrar Préstamo
-                        </Button>
-                    </Link>
+                    {isAdmin && (
+                        <Link to="/prestamos/crear" className="w-full">
+                            <Button
+                                className="w-full"
+                                variant="soft"
+                                icon={Plus}
+                            >
+                                Registrar Préstamo
+                            </Button>
+                        </Link>
+                    )}
 
                     <Button
                         data={loans}
