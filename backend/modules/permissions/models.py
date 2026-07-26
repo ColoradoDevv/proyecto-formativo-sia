@@ -7,6 +7,9 @@ from django.db import models
 from modules.users.models import User
 
 
+SYSTEM_GROUP_NAME = "SADMIN"
+
+
 class Permission(models.Model):
     """
     Definición granular de permisos del sistema.

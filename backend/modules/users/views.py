@@ -147,12 +147,8 @@ class LoginView(APIView):
 
         # 9. Devolver el token y algunos datos utiles para el frontend
         # Obtener el primer grupo del usuario (si tiene)
-        user_groups = user.user_groups.all()
+        user_groups = user.user_groups.exclude(group__name__iexact="SADMIN")
         primary_group = user_groups.first().group.name if user_groups.exists() else None
-
-        # Si es superusuario, asignarlo al grupo SADMIN
-        if user.is_superuser and not primary_group:
-            primary_group = "SADMIN"
 
         return Response({
             "token": token,

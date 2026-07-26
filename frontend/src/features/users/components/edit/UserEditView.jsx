@@ -19,7 +19,7 @@ export default function UserEditView() {
     const { user, loading, error } = useUser(id);
 
     const [documentTypes, setDocumentTypes] = useState([]);
-    const { groups, addGroup } = useUserGroups();
+    const { groups } = useUserGroups();
     // Excluir SADMIN igual que en la creación — ese rol no debe poder asignarse
     // desde la UI de gestión de usuarios.
     const availableGroups = groups.filter(
@@ -55,11 +55,11 @@ export default function UserEditView() {
     // del formulario se inicialice limpio con los datos del nuevo usuario sin necesidad
     // de sincronizar manualmente los efectos. La consecuencia aceptada es que los
     // cambios no guardados se pierden al cambiar de usuario.
-    return <UserEditForm key={id} id={id} user={user} documentTypes={documentTypes} groups={availableGroups} allGroups={groups} onCreateGroup={addGroup} />;
+    return <UserEditForm key={id} id={id} user={user} documentTypes={documentTypes} groups={availableGroups} allGroups={groups} />;
 }
 
 // Componente interno: recibe user ya cargado e inicializa el estado directamente
-function UserEditForm({ id, user, documentTypes, groups, allGroups, onCreateGroup }) {
+function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -221,7 +221,6 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups, onCreateGrou
                     onPhotoChange={handlePhotoChange}
                     documentTypes={documentTypes}
                     groups={groups}
-                    onCreateGroup={onCreateGroup}
                     isInstructorRole={isInstructorRole}
                     datesOptional={datesOptional}
                     showStatus

@@ -57,7 +57,7 @@ export default function UserRegisterForm() {
             );
     }, []);
 
-    const { groups: userGroups, addGroup } = useUserGroups();
+    const { groups: userGroups } = useUserGroups();
     const availableGroups = userGroups.filter((group) => String(group.label || "").trim().toUpperCase() !== "SADMIN");
 
     useEffect(() => {
@@ -221,7 +221,6 @@ export default function UserRegisterForm() {
                         onPhotoChange={handleProfileChange}
                         documentTypes={documentTypes}
                         groups={availableGroups}
-                        onCreateGroup={addGroup}
                         singleGroupSelection
                         confirmEmailSlot={
                             <Input

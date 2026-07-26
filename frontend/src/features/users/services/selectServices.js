@@ -4,7 +4,9 @@ export async function getDocumentTypes() {
     const response = await apiFetch("/api/users/document-types/");
     if (!response.ok) await throwApiError(response);
     const data = await response.json();
-    return data.map((item) => ({ id: item.id, label: item.name }));
+    return data
+        .filter((item) => item.is_active)
+        .map((item) => ({ id: item.id, label: item.name }));
 }
 
 export async function getUserRoles() {

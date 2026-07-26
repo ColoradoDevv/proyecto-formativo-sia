@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from modules.users.models import User
-from .models import Permission, Group, UserPermission, UserGroup
+from .models import Permission, Group, UserPermission, UserGroup, SYSTEM_GROUP_NAME
 from .serializers import (
     PermissionSerializer,
     GroupListSerializer,
@@ -66,6 +66,10 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Group.objects.all()
+
+    def get_queryset(self):
+        # SADMIN es un grupo interno: se administra únicamente desde backend.
+        return Group.objects.exclude(name__iexact=SYSTEM_GROUP_NAME)
 
     def get_permissions(self):
         if self.action in ("list", "retrieve"):
@@ -158,8 +162,8 @@ class GroupViewSet(viewsets.ModelViewSet):
         """
         group = self.get_object()
         
-        # Protección: no permitir desactivar el grupo "Administrador"
-        if group.name == "Administrador":
+        # Protección: no permitir desactivar grupos reservados.
+        if group.name in ("Administrador", SYSTEM_GROUP_NAME):
             return Response(
                 {"error": "El grupo 'Administrador' no puede ser desactivado."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -313,7 +317,7 @@ class UserGroupView(generics.GenericAPIView):
     def get(self, request, user_id):
         """Obtiene todos los grupos de un usuario"""
         user = self.get_user(user_id)
-        groups = PermissionService.get_user_groups(user)
+        groups = PermissionService.get_user_groups(user).exclude(name__iexact=SYSTEM_GROUP_NAME)
         serializer = GroupListSerializer(groups, many=True)
         return Response(serializer.data)
 
@@ -331,6 +335,12 @@ class UserGroupView(generics.GenericAPIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         
+        if group.name.upper() == SYSTEM_GROUP_NAME:
+            return Response(
+                {"error": "El grupo solicitado es interno del sistema."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         # Validar que el grupo esté activo
         if not group.is_active:
             return Response(
@@ -362,6 +372,12 @@ class UserGroupView(generics.GenericAPIView):
             return Response(
                 {"error": "Grupo no encontrado"},
                 status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if group.name.upper() == SYSTEM_GROUP_NAME:
+            return Response(
+                {"error": "El grupo solicitado es interno del sistema."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         deleted, _ = UserGroup.objects.filter(user=user, group=group).delete()

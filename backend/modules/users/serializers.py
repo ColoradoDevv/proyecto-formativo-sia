@@ -10,7 +10,7 @@ from .models import User
 from .models import Role
 from .models import DocumentType
 from .utils import generate_secure_password, send_welcome_email
-from modules.permissions.models import Group
+from modules.permissions.models import Group, SYSTEM_GROUP_NAME
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -37,7 +37,11 @@ class UserGroupSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     # Para leer - devuelve el objeto completo en GET
     document_type = DocumentTypeSerializer(read_only=True)
-    groups = UserGroupSerializer(source='user_groups', many=True, read_only=True)
+    groups = serializers.SerializerMethodField()
+
+    def get_groups(self, obj):
+        memberships = obj.user_groups.exclude(group__name__iexact=SYSTEM_GROUP_NAME).select_related('group')
+        return UserGroupSerializer(memberships, many=True).data
     
     # URL absoluta para la foto de perfil (devuelve /media/... para que el proxy de Vite la redirija)
     profile_picture = serializers.SerializerMethodField()

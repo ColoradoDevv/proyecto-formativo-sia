@@ -16,6 +16,7 @@ export default function AccessSidebar({
   groupPermissions,
   setGroupPermissions,
   isEditing = false,
+  refreshKey = 0,
 }) {
   // Modo de asignación: por grupo o por usuario individual.
   const [mode, setMode] = useState("group");
@@ -24,7 +25,7 @@ export default function AccessSidebar({
   const [groups, setGroups] = useState([]);
   useEffect(() => {
     getGroups().then(setGroups).catch(console.error);
-  }, []);
+  }, [refreshKey]);
 
   // Estado de los usuarios
   const [users, setUsers] = useState([]);
@@ -32,7 +33,7 @@ export default function AccessSidebar({
     getUsers().then(setUsers).catch(console.error);
   }, []);
 
-  const groupOptions = groups.map((group) => ({
+  const groupOptions = groups.filter((group) => group.is_active).map((group) => ({
     id: String(group.id),
     label: group.name,
   }));
