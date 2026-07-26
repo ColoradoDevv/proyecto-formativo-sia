@@ -22,7 +22,7 @@ from django.conf import settings
 urlpatterns = [
     # Aquí juntamos las rutas del admin, docs y las apps.
     path('admin/', admin.site.urls),
-    path('docs/', include_docs_urls(title="SIA API")),
+    path('docs/', include_docs_urls(title="SGI API")),
     path("", include("modules.home.urls")),
     path("api/users/", include("modules.users.urls")),
     path("api/permissions/", include("modules.permissions.urls")),

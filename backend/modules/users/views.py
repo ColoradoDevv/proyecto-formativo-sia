@@ -277,7 +277,7 @@ class ForgetPasswordView(APIView):
         # 6. Enviar el correo. fail_silently=False para que un fallo real
         # se vea en los logs durante el desarrollo.
         send_mail(
-            subject="Restablece tu contraseña - SIA",
+            subject="Restablece tu contraseña - SGI",
             message=(
                 f"Hola {user.first_name},\n\n"
                 "Recibimos una solicitud para restablecer tu contraseña.\n"

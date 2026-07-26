@@ -55,7 +55,7 @@ export default function AuthLayout({ children }) {
                     <div className="w-full max-w-md px-8 py-10 sm:px-10">
                         <div className="text-center mb-8">
                             <h1 className="text-h1 font-heading font-bold text-text-primary select-none pb-4">
-                                SIA
+                                SGI
                             </h1>
                             <p className="-mt-6 text-sm text-text-secondary select-none">
                                 Sistema de Gestión de Inventario

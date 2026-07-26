@@ -38,10 +38,10 @@ def send_welcome_email(user, plain_password):
     Se usa la misma configuracion SMTP (Gmail) ya definida en settings.
     """
     send_mail(
-        subject="Bienvenido a SIA - Tus credenciales de acceso",
+        subject="Bienvenido a SGI - Tus credenciales de acceso",
         message=(
             f"Hola {user.first_name},\n\n"
-            "Se ha creado una cuenta para ti en el sistema SIA.\n"
+            "Se ha creado una cuenta para ti en el sistema SGI.\n"
             "Estas son tus credenciales de acceso:\n\n"
             f"Correo: {user.email}\n"
             f"Contraseña: {plain_password}\n\n"

@@ -50,7 +50,7 @@ export default function DashboardLayout() {
         <div className="p-4 sm:p-6 flex flex-col gap-6">
             <div>
                 <h2 className="text-h3 text-text-primary">¡Hola! {userName}.</h2>
-                <p className="text-small text-text-muted">Bienvenido al Sistema de Gestion Inventario SIA.</p>
+                <p className="text-small text-text-muted">Bienvenido al Sistema de Gestión de Inventario SGI.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
