@@ -52,7 +52,7 @@ export default function loanSchema(materials = [], { multipleMaterials = false }
             : z.string().min(1, "Debe seleccionar un material"),
 
         ...(multipleMaterials
-            ? { loanMaterialQuantities: z.record(amountSchema) }
+            ? { loanMaterialQuantities: z.record(z.string(), amountSchema) }
             : { loanAmount: amountSchema }),
 
         loanGroup: z
