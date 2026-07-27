@@ -175,10 +175,18 @@ export async function generateUserProfileReport(user) {
     doc.text(groupsLabel, contentX, photoY + 14);
 
     const isActive = user.is_active === true;
-    doc.setFontSize(8.5);
-    doc.setTextColor(...(isActive ? [22, 101, 52] : [153, 27, 27]));
+    // Pastilla de estado (rectángulo + texto, sin caracteres especiales)
+    const badgeLabel = isActive ? "Activo" : "Inactivo";
+    const badgeBg    = isActive ? [220, 252, 231] : [254, 226, 226]; // verde-suave / rojo-suave
+    const badgeText  = isActive ? [22, 101, 52]   : [153, 27, 27];
+    const badgeW     = 22;
+    const badgeH     = 5.5;
+    doc.setFillColor(...badgeBg);
+    doc.roundedRect(contentX, photoY + 17, badgeW, badgeH, 1.5, 1.5, "F");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...badgeText);
     doc.setFont(undefined, "bold");
-    doc.text(isActive ? "● Activo" : "● Inactivo", contentX, photoY + 20);
+    doc.text(badgeLabel, contentX + badgeW / 2, photoY + 21.2, { align: "center" });
 
     let curY = Math.max(photoY + photoSize + 5, 68);
 
@@ -240,7 +248,8 @@ export async function generateUserProfileReport(user) {
     doc.text(`Página 1 de 1`, 196, pageH - 8, { align: "right" });
 
     // ── Guardar ────────────────────────────────────────────────────────────
-    const date     = new Date().toISOString().slice(0, 10);
-    const fileName = `reporte-usuario-${user.id ?? "desconocido"}-${date}.pdf`;
+    const date       = new Date().toISOString().slice(0, 10);
+    const identifier = user.document_number ?? user.id ?? "desconocido";
+    const fileName   = `reporte-usuario-${identifier}-${date}.pdf`;
     doc.save(fileName);
 }
