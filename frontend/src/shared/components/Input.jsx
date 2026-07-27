@@ -1,5 +1,6 @@
 export default function Input({
     label,
+    labelAction,
     type = "text",
     required,
     optional,
@@ -30,19 +31,21 @@ export default function Input({
     return(
         <div className={className}>
             {label && (
-                <label
-                    className={`
-                        block
-                        place-self-start
-                        text-small
-                        mb-1
-                        ${error ? "text-error" : "text-text-primary"}
-                    `}
-                >
-                    {label}
-                    {required && <span className="text-error ml-1">*</span>}
-                    {optional && <span className="text-text-muted ml-1">(opcional)</span>}
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                    <label
+                        className={`
+                            block
+                            place-self-start
+                            text-small
+                            ${error ? "text-error" : "text-text-primary"}
+                        `}
+                    >
+                        {label}
+                        {required && <span className="text-error ml-1">*</span>}
+                        {optional && <span className="text-text-muted ml-1">(opcional)</span>}
+                    </label>
+                    {labelAction}
+                </div>
             )}
 
             <div className={`relative flex items-center ${variant === "auth" ? "h-[var(--size-control-lg)]" : "h-[var(--size-control-md)]"}`}>
