@@ -12,10 +12,11 @@ const FIELD_MAP = {
 // METODO POST - registra la devolucion de un prestamo.
 // - consumo: se envia leftover_quantity (sobrante).
 // - devolutivo: se envia returned_quantity (cantidad devuelta).
-export async function returnLoan({ loanId, leftoverQuantity, returnedQuantity, observations }) {
+export async function returnLoan({ loanId, leftoverQuantity, returnedQuantity, observations, materialCondition }) {
     const body = {
         loan: loanId,
         observations: observations ?? "",
+        material_condition: materialCondition ?? "Bueno",
     };
     if (leftoverQuantity !== undefined && leftoverQuantity !== null && leftoverQuantity !== "") {
         body.leftover_quantity = Number(leftoverQuantity);

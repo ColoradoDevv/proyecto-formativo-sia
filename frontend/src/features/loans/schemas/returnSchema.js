@@ -1,8 +1,14 @@
 import { z } from "zod";
 
+const VALID_CONDITIONS = ["Bueno", "Mantenimiento", "Baja"];
+
+const materialCondition = z.enum(["Bueno", "Mantenimiento", "Baja"], {
+    errorMap: () => ({ message: "Selecciona la condición del material" }),
+});
+
 // Schema de devolucion. Depende del tipo de material y de la cantidad prestada:
-// - consumo: cantidad sobrante obligatoria (0 ≤ sobrante ≤ prestado).
-// - devolutivo: solo observaciones (opcional); no lleva sobrante.
+// - consumo: cantidad sobrante obligatoria (0 ≤ sobrante ≤ prestado) + condición.
+// - devolutivo: cantidad devuelta obligatoria + condición.
 export function buildReturnSchema({ materialType, amountLent }) {
     const observations = z
         .string()
@@ -13,6 +19,7 @@ export function buildReturnSchema({ materialType, amountLent }) {
     if (materialType === "consumo") {
         return z.object({
             observations,
+            materialCondition,
             leftoverQuantity: z
                 .string()
                 .trim()
@@ -28,6 +35,7 @@ export function buildReturnSchema({ materialType, amountLent }) {
     // Si es menor a la prestada, el préstamo quedará "Incompleto".
     return z.object({
         observations,
+        materialCondition,
         returnedQuantity: z
             .string()
             .trim()
@@ -41,3 +49,5 @@ export function buildReturnSchema({ materialType, amountLent }) {
             }),
     });
 }
+
+export { VALID_CONDITIONS };

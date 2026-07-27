@@ -41,8 +41,20 @@ class LoanReturnViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         material = loan.id_material  # el material se deriva del prestamo
-        leftover = serializer.validated_data.get('leftover_quantity')
-        returned = serializer.validated_data.get('returned_quantity')
+        leftover  = serializer.validated_data.get('leftover_quantity')
+        returned  = serializer.validated_data.get('returned_quantity')
+        condition = serializer.validated_data.get('material_condition', 'Bueno')
+
+        # Mapa de condición → estado del material
+        # Bueno        → Disponible      (flujo normal)
+        # Mantenimiento → Mantenimiento  (necesita revisión técnica)
+        # Baja          → Baja           (fuera de servicio permanente)
+        CONDITION_STATE_MAP = {
+            'Bueno':         'Disponible',
+            'Mantenimiento': 'Mantenimiento',
+            'Baja':          'Baja',
+        }
+        new_material_state = CONDITION_STATE_MAP.get(condition, 'Disponible')
 
         # Es devolutivo si el material tiene su registro ReturnableMaterial.
         is_returnable = hasattr(material, 'returnablematerial')
@@ -55,27 +67,31 @@ class LoanReturnViewSet(viewsets.ModelViewSet):
                 leftover_quantity=leftover,
                 returned_quantity=returned,
                 observations=serializer.validated_data.get('observations', ''),
+                material_condition=condition,
             )
 
-            # 2. Actualizar el material y decidir el estado final del prestamo.
+            # 2. Actualizar el material y decidir el estado final del préstamo.
             if is_returnable:
-                # Devolutivo: vuelve al inventario. Si se devolvio menos de lo
-                # prestado, la devolucion queda "Incompleta".
-                material.state = 'Disponible'
+                # Devolutivo: estado del material según condición declarada.
+                # Si la condición es Baja, el material sale permanentemente
+                # del inventario activo, independiente de la cantidad devuelta.
+                material.state = new_material_state
                 if returned is not None and returned < loan.amount_lent:
-                    new_state = 'Incompleto'
+                    new_loan_state = 'Incompleto'
                 else:
-                    new_state = 'Finalizado'
+                    new_loan_state = 'Finalizado'
             else:
-                # Consumo: si se reporto sobrante, se reintegra al stock.
-                if leftover:
+                # Consumo: si se reportó sobrante y el material sigue Bueno,
+                # se reintegra al stock. Si está dañado no se reintegra.
+                if leftover and condition == 'Bueno':
                     material.quantity = (material.quantity or 0) + leftover
-                material.state = 'Disponible'
-                new_state = 'Finalizado'
+                material.state = new_material_state
+                new_loan_state = 'Finalizado'
+
             material.save()
 
             # 3. Cerrar el prestamo con el estado calculado.
-            loan.state = new_state
+            loan.state = new_loan_state
             loan.save(update_fields=['state'])
 
         out = self.get_serializer(loan_return)
