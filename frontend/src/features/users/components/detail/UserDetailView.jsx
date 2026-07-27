@@ -6,7 +6,7 @@ import { resendCredentials } from "../../services/userService.js";
 import { TailChase } from 'ldrs/react'
 import 'ldrs/react/TailChase.css'
 import { Undo2, Mail, Download } from "lucide-react";
-import { usersReportConfig } from "../../reports/usersReportConfig";
+import { generateUserProfileReport } from "@/shared/reports/generateUserProfileReport";
 
 export default function UserDetailView() {
     const navigate = useNavigate();
@@ -17,6 +17,7 @@ export default function UserDetailView() {
 
     // Estado local para el boton de reenviar credenciales
     const [resending, setResending] = useState(false);
+    const [generatingReport, setGeneratingReport] = useState(false);
 
     if (loading)
         return (
@@ -177,17 +178,27 @@ export default function UserDetailView() {
                         Editar
                     </Button>
                     <Button
-                        data={[user]}
-                        reportConfig={{
-                            ...usersReportConfig,
-                            reportTitle: "Reporte Individual de Usuario",
-                            fileNamePrefix: `reporte-usuario-${user.id}`,
-                        }}
                         variant="secondary"
                         size="md"
                         icon={Download}
+                        disabled={generatingReport}
+                        onClick={async () => {
+                            setGeneratingReport(true);
+                            try {
+                                await generateUserProfileReport(user);
+                            } catch {
+                                await showAlert({
+                                    icon: "error",
+                                    iconColor: "var(--color-error)",
+                                    title: "No se pudo generar el reporte",
+                                    text: "Ocurrió un error al crear el PDF. Intenta nuevamente.",
+                                });
+                            } finally {
+                                setGeneratingReport(false);
+                            }
+                        }}
                     >
-                        Generar reporte
+                        {generatingReport ? "Generando..." : "Generar reporte"}
                     </Button>
                 </div>
 
