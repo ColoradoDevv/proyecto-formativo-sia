@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button, DataTable } from "@/shared";
-import { Plus, CloudAlert } from "lucide-react";
+import { Plus, CloudAlert, Download } from "lucide-react";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 import useTasks from "../hooks/useTasks";
 import { getUsers } from "../services/selectServices";
 import { taskColumns } from "../table/taskColumns";
 import TaskModal from "../components/TaskModal";
+import { tasksReportConfig } from "../reports/tasksReportConfig";
 
 export default function TaskListPage() {
     const { tasks, setTasks, loading, error } = useTasks();
@@ -76,10 +77,20 @@ export default function TaskListPage() {
             {/* Encabezado */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 className="text-primary font-heading">Tareas</h2>
-                <Button className="flex gap-2" onClick={openCreate} variant="soft">
-                    <Plus size={18} />
-                    Registrar Tarea
-                </Button>
+                <div className="flex gap-3">
+                    <Button
+                        data={tasks}
+                        reportConfig={tasksReportConfig}
+                        variant="secondary"
+                        icon={Download}
+                    >
+                        Descargar Reporte
+                    </Button>
+                    <Button className="flex gap-2" onClick={openCreate} variant="soft">
+                        <Plus size={18} />
+                        Registrar Tarea
+                    </Button>
+                </div>
             </div>
 
             {/* Tabla (incluye buscador y paginacion propios). Doble click = ver */}
