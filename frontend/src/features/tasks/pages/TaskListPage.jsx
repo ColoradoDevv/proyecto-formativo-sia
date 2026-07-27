@@ -78,17 +78,16 @@ export default function TaskListPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 className="text-primary font-heading">Tareas</h2>
                 <div className="flex gap-3">
+                    <Button className="flex gap-2" onClick={openCreate} variant="soft" icon={Plus}>
+                        Registrar Tarea
+                    </Button>
                     <Button
                         data={tasks}
                         reportConfig={tasksReportConfig}
-                        variant="secondary"
+                        variant="primary"
                         icon={Download}
                     >
                         Descargar Reporte
-                    </Button>
-                    <Button className="flex gap-2" onClick={openCreate} variant="soft">
-                        <Plus size={18} />
-                        Registrar Tarea
                     </Button>
                 </div>
             </div>
