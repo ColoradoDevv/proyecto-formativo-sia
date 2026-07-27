@@ -76,6 +76,31 @@ def _reset_rate_limit(request, prefix: str) -> None:
 
 # ---------------------------------------------------------------------------
 
+class MyProfileView(APIView):
+    """Perfil del usuario autenticado, sin permisos administrativos."""
+
+    def get(self, request):
+        return Response(UserSerializer(request.user).data)
+
+    def patch(self, request):
+        # Por ahora el perfil personal solo permite actualizar la foto. Los
+        # demás campos siguen gestionándose desde el módulo de usuarios.
+        if "profile_picture" not in request.FILES:
+            return Response(
+                {"profile_picture": ["Debes seleccionar una imagen."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = UserSerializer(
+            request.user,
+            data={"profile_picture": request.FILES["profile_picture"]},
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
 class LoginView(APIView):
     # El login debe ser PUBLICO: nadie tiene token todavia al iniciar sesion.
     authentication_classes = []
