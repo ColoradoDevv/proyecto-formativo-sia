@@ -40,6 +40,7 @@ export default function UserRegisterForm() {
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [showAdditionalPhone, setShowAdditionalPhone] = useState(false);
+    const [showEmailInst, setShowEmailInst] = useState(false);
     const { can, isAdmin } = usePermissions();
     // RFADMIN02: crear usuarios requiere el rol ADMIN/SADMIN y el permiso.
     const canCreateUsers = isAdmin && can("create_user");
@@ -268,6 +269,32 @@ export default function UserRegisterForm() {
                                         value={formData.additionalPhone}
                                         onChange={handleChange}
                                         error={errors.additionalPhone}
+                                    />
+                                )}
+                            </div>
+                        }
+                        emailInst={
+                            // Correo institucional: se muestra solo al presionar "Agregar Correo Institucional"
+                            <div className="flex flex-col gap-2">
+                                <StatusLabel optional>Correo Institucional</StatusLabel>
+                                {!showEmailInst ? (
+                                  <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="md"
+                                        onClick={() => setShowEmailInst(true)}
+                                    >
+                                        Agregar Correo Institucional
+                                    </Button>
+                                ) : (
+                                    <Input
+                                        name="institutionalEmail"
+                                        type="email"
+                                        optional
+                                        placeholder="correo@sena.edu.co"
+                                        onChange={handleChange}
+                                        value={formData.institutionalEmail}
+                                        error={errors.institutionalEmail}
                                     />
                                 )}
                             </div>

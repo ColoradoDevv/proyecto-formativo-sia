@@ -34,6 +34,7 @@ export default function UserForm({
     datesOptional: datesOptionalProp = null,
     confirmEmailSlot = null,
     contactExtraSlot = null,
+    emailInst = null,
     systemExtraSlot = null,
 }) {
     const isActive = formData.isActive === "true" || formData.isActive === true;
@@ -146,16 +147,7 @@ export default function UserForm({
                         required
                     />
                     {confirmEmailSlot}
-                    <Input
-                        label="Correo institucional"
-                        name="institutionalEmail"
-                        type="email"
-                        optional
-                        placeholder="correo@sena.edu.co"
-                        value={formData.institutionalEmail}
-                        onChange={onChange}
-                        error={errors.institutionalEmail}
-                    />
+                    {emailInst}
                     <Input
                         label="Teléfono"
                         name="phone"
