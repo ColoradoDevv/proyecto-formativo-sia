@@ -3,7 +3,7 @@
 #
 
 from rest_framework import serializers
-from .models import Permission, Group, UserPermission, UserGroup, GroupPermission
+from .models import Permission, Group, UserPermission, UserGroup, GroupPermission, SYSTEM_GROUP_NAME
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -36,6 +36,9 @@ class GroupDetailSerializer(serializers.ModelSerializer):
     group_permissions = GroupPermissionSerializer(many=True, read_only=True)
 
     def validate_name(self, value):
+        value = value.strip()
+        if value.upper() == SYSTEM_GROUP_NAME:
+            raise serializers.ValidationError("Este es un grupo reservado del sistema.")
         # Unicidad insensible a mayúsculas/minúsculas: evita que "Admin" y
         # "ADMIN" coexistan como grupos distintos.
         qs = Group.objects.filter(name__iexact=value)
@@ -51,6 +54,7 @@ class GroupDetailSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+            "is_active",
             "permissions",
             "group_permissions",
             "created_at",

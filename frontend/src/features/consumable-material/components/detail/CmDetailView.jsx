@@ -3,7 +3,7 @@ import { Button, IconButton, Input, TextArea, StatusBadge, EditCard } from "@/sh
 import useCm from "../../hooks/useCm";
 import { TailChase } from 'ldrs/react';
 import 'ldrs/react/TailChase.css';
-import { Undo2, ImageOff } from "lucide-react";
+import { Undo2, ImageOff, FileText, CloudAlert } from "lucide-react";
 
 export default function CmDetailView() {
     const navigate = useNavigate();
@@ -18,15 +18,24 @@ export default function CmDetailView() {
             </div>
         );
 
-    if (error) return <p>Error al cargar material: {error.message}</p>;
+    if (error)
+        return (
+            <div className="h-full flex items-center justify-center">
+                <div className="flex items-center gap-3 bg-text-secondary border border-text-secondary text-text-inverse rounded-lg px-6 py-4 max-w-md">
+                    <span className="text-h1"><CloudAlert /></span>
+                    <div>
+                        <p className="font-heading">Error al cargar el material</p>
+                        <p className="text-small">{error.message}</p>
+                    </div>
+                </div>
+            </div>
+        );
 
     const formatCurrency = (value) =>
         value != null ? `$${Number(value).toLocaleString("es-CO")}` : "-";
 
-    // Valores de solo lectura (los selects de Editar se muestran como texto).
     const brandLabel = CM.brand?.name ?? "Sin marca";
-    const userLabel = CM.user ? `${CM.user.first_name} ${CM.user.last_name}` : "Sin cuentadante";
-    const isActive = CM.is_active;
+    const userLabel  = CM.user ? `${CM.user.first_name} ${CM.user.last_name}` : "Sin cuentadante";
 
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
@@ -47,15 +56,27 @@ export default function CmDetailView() {
                 <EditCard title="Información General" cols={1}>
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
 
-                        {/* Foto + estado */}
-                        <div className="flex flex-col items-center gap-2 shrink-0">
+                        {/* Foto + estado + ficha técnica — mismo layout que RmDetailView */}
+                        <div className="flex flex-col items-center gap-2 shrink-0 w-full sm:w-32">
                             <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                                 {CM.image
                                     ? <img src={CM.image} alt={CM.name} className="w-full h-full object-cover" />
                                     : <ImageOff size={40} className="text-text-muted" />
                                 }
                             </div>
-                            <StatusBadge active={isActive} />
+                            <StatusBadge active={CM.is_active} />
+                            {CM.technical_sheet
+                                ? <a
+                                    href={CM.technical_sheet}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-1 text-brand text-caption hover:underline"
+                                >
+                                    <FileText size={14} />
+                                    Ficha técnica
+                                </a>
+                                : <span className="text-caption italic text-text-muted">Sin ficha</span>
+                            }
                         </div>
 
                         {/* Campos generales */}

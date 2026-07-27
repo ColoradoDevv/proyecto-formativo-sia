@@ -20,6 +20,8 @@ class LoanReturnSerializer(serializers.ModelSerializer):
             'material': {'required': False},
             # Observaciones opcionales (ej. estado en que se devuelve).
             'observations': {'required': False, 'allow_blank': True},
+            # Condición del material: opcional, default Bueno.
+            'material_condition': {'required': False},
         }
 
     def validate(self, data):

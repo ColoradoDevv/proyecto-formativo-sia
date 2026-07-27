@@ -4,6 +4,7 @@ import { apiFetch, throwApiError } from "@/shared/services/api";
 // la misma convencion de nombres, compartida por ReturnableForm.
 const FIELD_MAP = {
     name: "name",
+    model: "model",
     sena_plate: "senaPlate",
     state: "state",
     brand_id: "brand",
@@ -19,8 +20,9 @@ const FIELD_MAP = {
     technical_sheet: "technicalSheet",
 };
 
-export async function getRMs() {
-    const response = await apiFetch("/api/products/returnables/");
+export async function getRMs(search = "") {
+    const query = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : "";
+    const response = await apiFetch(`/api/products/returnables/${query}`);
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 }
@@ -35,6 +37,7 @@ export async function createRM(rmData) {
     const formData = new FormData();
 
     formData.append("name", rmData.name);
+    formData.append("model", rmData.model);
     formData.append("sena_plate", rmData.senaPlate);
     formData.append("state", rmData.state);
     formData.append("brand_id", rmData.brand);
@@ -49,6 +52,12 @@ export async function createRM(rmData) {
     if (rmData.location)    formData.append("location", rmData.location);
     if (rmData.photo?.[0])  formData.append("image", rmData.photo[0]);
     if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);
+    
+    // Concatenar dimensiones si existen (formato: "30x50x20")
+    if (rmData.width || rmData.length || rmData.depth) {
+        const dimensions = `${rmData.width || ""}x${rmData.length || ""}x${rmData.depth || ""}`;
+        formData.append("dimensions", dimensions);
+    }
 
     const response = await apiFetch("/api/products/returnables/", {
         method: "POST",
@@ -64,6 +73,7 @@ export async function updateRM(id, rmData) {
     const formData = new FormData();
 
     formData.append("name", rmData.name);
+    formData.append("model", rmData.model);
     formData.append("sena_plate", rmData.senaPlate);
     formData.append("state", rmData.state);
     formData.append("brand_id", rmData.brand);
@@ -77,8 +87,12 @@ export async function updateRM(id, rmData) {
 
     if (rmData.location) formData.append("location", rmData.location);
     if (rmData.photo?.[0]) formData.append("image", rmData.photo[0]);
-    if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);
-
+    if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);    
+    // Concatenar dimensiones si existen (formato: "30x50x20")
+    if (rmData.width || rmData.length || rmData.depth) {
+        const dimensions = `${rmData.width || ""}x${rmData.length || ""}x${rmData.depth || ""}`;
+        formData.append("dimensions", dimensions);
+    }
     const response = await apiFetch(`/api/products/returnables/${id}/`, {
         method: "PATCH",
         body: formData,
@@ -90,11 +104,18 @@ export async function updateRM(id, rmData) {
 
 // El toggle de is_active va contra el ConsumableMaterial (donde vive el campo)
 export async function toggleRMActive(consumableId, isActive) {
-    const response = await apiFetch(`/api/products/consumables/${consumableId}/`, {
+    const response = await apiFetch(`/api/products/returnables/${consumableId}/toggle_active/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: isActive }),
     });
     if (!response.ok) await throwApiError(response);
     return response.json();
+}
+
+export async function deleteRM(consumableId) {
+    const response = await apiFetch(`/api/products/returnables/${consumableId}/`, {
+        method: "DELETE",
+    });
+    if (!response.ok) await throwApiError(response);
 }

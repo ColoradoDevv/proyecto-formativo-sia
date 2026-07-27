@@ -16,6 +16,8 @@ export default function Select({
     required,
     disabled = false,
     options = [],
+    disabledOptionValues = [],
+    placeholder = "Seleccione una opción",
 }){
     return(
         <div className={className || "w-full"}>
@@ -62,18 +64,24 @@ export default function Select({
                 `}
             >
                 <option value="">
-                    Seleccione una opción
+                    {placeholder}
                 </option>
 
-                {options.map((opt) => (
-                    <option
-                        key={opt.id}
-                        value={opt.id}
-                        title={opt.label}
-                    >
-                        {truncateLabel(opt.label)}
-                    </option>
-                ))}
+                {options.map((opt) => {
+                    const optionValue = String(opt.id);
+                    const isDisabled = disabledOptionValues.includes(optionValue) || disabledOptionValues.includes(opt.id) || opt.disabled;
+
+                    return (
+                        <option
+                            key={opt.id}
+                            value={opt.id}
+                            title={opt.label}
+                            disabled={isDisabled}
+                        >
+                            {truncateLabel(opt.label)}
+                        </option>
+                    );
+                })}
 
             </select>
 

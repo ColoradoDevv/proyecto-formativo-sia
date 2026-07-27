@@ -16,6 +16,7 @@ const FIELD_MAP = {
   quantity: "quantity",
   location: "location",
   image: "photo",
+  technical_sheet: "technicalSheet",
 };
 
 // METODO GET (obtener lista de products)
@@ -54,6 +55,8 @@ export async function createCm(cmData) {
     formData.append("location", cmData.location);
   if (cmData.photo?.[0])
     formData.append("image", cmData.photo[0]);
+  if (cmData.technicalSheet?.[0])
+    formData.append("technical_sheet", cmData.technicalSheet[0]);
 
   const response = await apiFetch("/api/products/consumables/", {
     method: "POST",
@@ -85,6 +88,8 @@ export async function updateCm(id, cmData) {
     formData.append("location", cmData.location);
   if (cmData.photo)
     formData.append("image", cmData.photo);
+  if (cmData.technicalSheet)
+    formData.append("technical_sheet", cmData.technicalSheet);
 
   const response = await apiFetch(`/api/products/consumables/${id}/`, {
     method: "PATCH",
@@ -97,12 +102,19 @@ export async function updateCm(id, cmData) {
 
 // METODO PATCH (activar o desactivar un material)
 export async function toggleCmActive(id, isActive) {
-  const response = await apiFetch(`/api/products/consumables/${id}/`, {
+  const response = await apiFetch(`/api/products/consumables/${id}/toggle_active/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ is_active: isActive }),
   });
   if (!response.ok) await throwApiError(response);
   return response.json();
+}
+
+export async function deleteCm(id) {
+  const response = await apiFetch(`/api/products/consumables/${id}/`, {
+    method: "DELETE",
+  });
+  if (!response.ok) await throwApiError(response);
 }
 

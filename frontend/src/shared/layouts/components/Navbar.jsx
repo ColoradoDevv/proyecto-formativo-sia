@@ -43,7 +43,7 @@ export default function Navbar({ onToggleSidebar }) {
 
             {/* Título — completo desde sm, abreviado en móvil */}
             <h1 className="text-h2 font-heading flex-1 truncate">
-                SIA - Inventario<span className="hidden sm:inline"> Teleínformatica</span>
+                SGI - Inventario<span className="hidden sm:inline"> Teleínformatica</span>
             </h1>
 
             {/* Menú de usuario */}

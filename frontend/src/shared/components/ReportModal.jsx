@@ -3,6 +3,7 @@ import { FileText, TableProperties } from "lucide-react";
 import { buildReportDataset } from "@/shared/reports/buildReportDataset";
 import { generateExcelReport } from "@/shared/reports/generateExcelReport";
 import { generatePdfReport } from "@/shared/reports/generatePdfReport";
+import { getStoredUser } from "@/shared/services/api";
 import Button from "./Button";
 import Checkbox from "./Checkbox";
 import Input from "./Input";
@@ -69,13 +70,32 @@ export default function ReportModal({
         }
 
         const date = new Date().toISOString().slice(0, 10);
+        const generatedAt = new Date();
+        const user = getStoredUser();
+        const generatedBy = [user?.first_name, user?.last_name]
+            .filter(Boolean)
+            .join(" ") || user?.email || "Usuario no disponible";
         const ext = format === "excel" ? "xlsx" : "pdf";
         const fileName = `${fileNamePrefix}-${date}.${ext}`;
 
         if (format === "excel") {
-            generateExcelReport({ headers, rows, reportTitle, fileName });
+            generateExcelReport({
+                headers,
+                rows,
+                reportTitle,
+                generatedBy,
+                generatedAt,
+                fileName,
+            });
         } else {
-            generatePdfReport({ headers, rows, reportTitle, fileName });
+            generatePdfReport({
+                headers,
+                rows,
+                reportTitle,
+                generatedBy,
+                generatedAt,
+                fileName,
+            });
         }
 
         onClose();

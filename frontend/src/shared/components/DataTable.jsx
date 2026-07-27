@@ -5,14 +5,16 @@ import {
   flexRender, // Permite renderizar contenido dinámico de columnas
   getPaginationRowModel, // Modelo de filas con paginación
   getFilteredRowModel, // Modelo de filas filtradas
+  getFacetedRowModel,
+  getFacetedUniqueValues,
 } from "@tanstack/react-table";
 
 // Hook de React para manejar estado
 import { useState } from "react";
 
 // Botón reutilizable del sistema de componentes
-import { Button, SearchField } from "@/shared";
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
+import { Button, IconButton, Input, SearchField, Select } from "@/shared";
+import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, ListFilter } from "lucide-react";
 
 // Componente reutilizable de tabla
 // Recibe:
@@ -31,6 +33,8 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
   // ================== ESTADO DEL FILTRO GLOBAL ==================
   // Se usa para el buscador de la tabla
   const [globalFilter, setGlobalFilter] = useState("");
+  const [columnFilters, setColumnFilters] = useState([]);
+  const [areFiltersVisible, setAreFiltersVisible] = useState(false);
 
   // ================== CONFIGURACIÓN DE LA TABLA ==================
   const table = useReactTable({
@@ -44,6 +48,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
     state: {
       globalFilter,
       pagination,
+      columnFilters,
     },
 
     // Función que se ejecuta cuando cambia la paginación
@@ -51,16 +56,23 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
 
     // Función que se ejecuta cuando cambia el filtro global
     onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: setColumnFilters,
 
     // Modelo base de filas
     getCoreRowModel: getCoreRowModel(),
 
     // Modelo con filtrado aplicado
     getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
 
     // Modelo con paginación aplicada
     getPaginationRowModel: getPaginationRowModel(),
   });
+
+  const filterableColumns = table
+    .getAllLeafColumns()
+    .filter((column) => column.getCanFilter());
 
   return (
     <div className="space-y-4 mt-4">
@@ -79,20 +91,94 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
           className="sm:w-auto sm:flex-1 sm:max-w-xs"
         />
 
-        {/* ================== SELECTOR DE FILAS ================== */}
-        {/* Permite cambiar cuántas filas se muestran por página */}
-        <select
-          value={table.getState().pagination.pageSize}
-          onChange={(e) => table.setPageSize(Number(e.target.value))}
-          className="border border-border rounded-2xl px-2 py-2 bg-surface-hover shrink-0"
-        >
-          {[5, 10, 20, 30, 50].map((size) => (
-            <option key={size} value={size}>
-              {size} Filas
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          {filterableColumns.length > 0 && (
+            <IconButton
+              ariaLabel={areFiltersVisible ? "Ocultar filtros por columna" : "Mostrar filtros por columna"}
+              aria-expanded={areFiltersVisible}
+              aria-controls="column-filters"
+              title={areFiltersVisible ? "Ocultar filtros" : "Mostrar filtros"}
+              variant="ghost"
+              isActive={areFiltersVisible || columnFilters.length > 0}
+              onClick={() => setAreFiltersVisible((visible) => !visible)}
+            >
+              <ListFilter size={20} />
+            </IconButton>
+          )}
+
+          {/* ================== SELECTOR DE FILAS ================== */}
+          {/* Permite cambiar cuántas filas se muestran por página */}
+          <select
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => table.setPageSize(Number(e.target.value))}
+            className="border border-border rounded-2xl px-2 py-2 bg-surface-hover shrink-0"
+          >
+            {[5, 10, 20, 30, 50].map((size) => (
+              <option key={size} value={size}>
+                {size} Filas
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
+      {filterableColumns.length > 0 && areFiltersVisible && (
+        <div id="column-filters" className="rounded-2xl border border-border bg-surface-hover p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-small font-heading text-text-primary">Filtros por columna</p>
+            {columnFilters.length > 0 && (
+              <Button
+                size="sm"
+                variant="table"
+                onClick={() => table.resetColumnFilters()}
+              >
+                Limpiar filtros
+              </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {filterableColumns.map((column) => {
+              const filterVariant = column.columnDef.meta?.filterVariant ?? "text";
+              const label = typeof column.columnDef.header === "string"
+                ? column.columnDef.header
+                : column.id;
+              const value = column.getFilterValue() ?? "";
+
+              if (filterVariant === "select") {
+                const options = Array.from(column.getFacetedUniqueValues().keys())
+                  .filter((option) => option !== null && option !== undefined && option !== "")
+                  .sort((a, b) => String(a).localeCompare(String(b), "es"))
+                  .map((option) => ({ id: String(option), label: String(option) }));
+
+                return (
+                  <Select
+                    key={column.id}
+                    name={`filter-${column.id}`}
+                    label={label}
+                    value={value}
+                    options={options}
+                    placeholder="Todos"
+                    onChange={(event) => column.setFilterValue(event.target.value || undefined)}
+                    className="w-full min-w-0"
+                  />
+                );
+              }
+
+              return (
+                <Input
+                  key={column.id}
+                  label={label}
+                  type={filterVariant === "date" ? "date" : "search"}
+                  value={value}
+                  onChange={(event) => column.setFilterValue(event.target.value || undefined)}
+                  placeholder={filterVariant === "date" ? undefined : `Filtrar ${label.toLowerCase()}...`}
+                  className="w-full min-w-0"
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ================== TABLA ================== */}
       <div className="overflow-x-auto border-border rounded-2xl">

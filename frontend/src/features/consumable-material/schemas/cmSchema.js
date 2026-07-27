@@ -119,6 +119,24 @@ export const cmSchema = z.object({
             (files) => files[0]?.size <= 2 * 1024 * 1024,
             { message: "La imagen no puede superar 2MB" }
         ),
+
+    // Ficha técnica: opcional. Si se sube, se valida formato (PDF, Excel, PNG)
+    // y tamaño máximo 3MB según RF RFADMIN14.
+    technicalSheet: z
+        .array(z.instanceof(File))
+        .refine(
+            (files) => files.length === 0 || [
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "image/png",
+            ].includes(files[0]?.type),
+            { message: "La ficha técnica debe ser PDF, Excel o PNG" }
+        )
+        .refine(
+            (files) => files.length === 0 || files[0]?.size <= 3 * 1024 * 1024,
+            { message: "La ficha técnica no puede superar 3MB" }
+        )
+        .optional(),
 }).superRefine((data, ctx) => {
 
     const hasSenaPlate = data.senaPlate && data.senaPlate.trim() !== "";
@@ -225,6 +243,24 @@ export const cmEditSchema = z.object({
         .refine((value) => value <= getTodayDateString(), {
             message: "La fecha de compra no puede ser futura",
         }),
+
+    // Ficha técnica: opcional en edición (solo se reemplaza si el usuario sube una nueva).
+    technicalSheet: z
+        .instanceof(File)
+        .refine(
+            (file) => [
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "image/png",
+            ].includes(file?.type),
+            { message: "La ficha técnica debe ser PDF, Excel o PNG" }
+        )
+        .refine(
+            (file) => file?.size <= 3 * 1024 * 1024,
+            { message: "La ficha técnica no puede superar 3MB" }
+        )
+        .optional()
+        .nullable(),
 }).superRefine((data, ctx) => {
     const hasSenaPlate = data.senaPlate && data.senaPlate.trim() !== "";
 

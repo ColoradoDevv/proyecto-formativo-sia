@@ -29,6 +29,9 @@ export function usePermissions() {
     }, [reload]);
 
     const isSuper = user?.is_superuser === true;
+    const isAdmin = isSuper || user?.groups?.some(
+        (group) => String(group).trim().toUpperCase() === "ADMIN"
+    );
 
     function can(codename) {
         if (isSuper) return true;
@@ -40,5 +43,5 @@ export function usePermissions() {
         return codenames.some((c) => permissions.includes(c));
     }
 
-    return { permissions, can, canAny, isSuper };
+    return { permissions, can, canAny, isSuper, isAdmin };
 }

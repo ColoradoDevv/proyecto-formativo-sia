@@ -1,6 +1,6 @@
-# Proyecto Formativo SIA
+# Proyecto Formativo SGI
 
-Sistema de Información y Administración (SIA) para la gestión de inventario, préstamos de materiales y usuarios dentro de una institución educativa (SENA).
+Sistema de Gestión de Inventario (SGI) para la gestión de inventario, préstamos de materiales y usuarios dentro de una institución educativa (SENA).
 
 ## Stack tecnológico
 

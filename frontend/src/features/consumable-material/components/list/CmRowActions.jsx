@@ -1,14 +1,32 @@
-import { IconButton } from "@/shared";
-import { Eye, Pencil } from "lucide-react";
+import { IconButton, cancelAlert, showAlert } from "@/shared";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { deleteCm } from "../../services/consumableService";
 
 // Acciones de cada fila de material de consumo: editar y visualizar.
 // El cambio de estado (habilitar/deshabilitar) vive en su propia columna (ActiveSwitch).
-export default function CmRowActions({ cm }) {
+export default function CmRowActions({ cm, onDeleted }) {
     const navigate = useNavigate();
 
     const handleEdit = () => navigate(`/consumibles/editar/${cm.id}`);
     const handleVisualizer = () => navigate(`/consumibles/visualizar/${cm.id}`);
+    const handleDelete = async () => {
+        const result = await cancelAlert({
+            title: "¿Eliminar material?",
+            text: `El material ${cm.name} será eliminado permanentemente.`,
+            confirmText: "Sí, eliminar",
+            cancelText: "Cancelar",
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            await deleteCm(cm.id);
+            onDeleted?.(cm.id);
+            showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material eliminado correctamente" });
+        } catch (error) {
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "No se pudo eliminar el material", text: error.message });
+        }
+    };
 
     return (
         <div className="flex gap-2">
@@ -17,6 +35,9 @@ export default function CmRowActions({ cm }) {
             </IconButton>
             <IconButton onClick={handleVisualizer} variant="ghost" hitSize={32} iconSize={16}>
                 <Eye size={16} />
+            </IconButton>
+            <IconButton onClick={handleDelete} variant="ghost" hitSize={32} iconSize={16} ariaLabel="Eliminar material">
+                <Trash2 size={16} />
             </IconButton>
         </div>
     );

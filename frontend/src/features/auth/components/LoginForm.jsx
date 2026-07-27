@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Asterisk } from "lucide-react";
 import { useState } from "react";
 import { loginSchemas } from "../schemas/loginSchemas";
@@ -7,6 +7,9 @@ import { Button, Input } from "@/shared"
 
 export default function LoginForm() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    // Si llegamos desde una redirección (p.ej. enlace de firma), volvemos allí tras el login.
+    const nextPath = searchParams.get("next") || "/";
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -45,7 +48,7 @@ export default function LoginForm() {
         try {
             setLoading(true);
             await login(formData.userEmail, formData.userPassword);
-            navigate("/");   // exito -> al inicio
+            navigate(nextPath, { replace: true });   // exito -> destino (o inicio)
         } catch (err) {
             setServerError(err.message);   // ej. "Credenciales inválidas"
         } finally {

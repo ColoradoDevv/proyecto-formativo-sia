@@ -4,10 +4,12 @@
 from django.db import transaction
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models.functions import Lower
 
 from .models import Brand, Category, ConsumableMaterial, ReturnableMaterial
 from .serializers import (
@@ -19,9 +21,16 @@ from .serializers import (
 from modules.permissions.permissions_drf import HasPermission
 
 
+FIXED_RETURNABLE_CATEGORY_NAMES = (
+    "Herramienta",
+    "Maquinaria y Equipos",
+    "Muebles y Enseres",
+)
+
+
 class BrandViewSet(viewsets.ModelViewSet):
     # CRUD de marcas.
-    queryset = Brand.objects.all().order_by("id")
+    queryset = Brand.objects.all().order_by(Lower("name"))
     serializer_class = BrandSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['is_active']
@@ -40,15 +49,19 @@ class BrandViewSet(viewsets.ModelViewSet):
         return [IsSuperUser()]
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    # CRUD de categorias.
-    queryset = Category.objects.all().order_by("id")
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    # Las categorías de devolutivos están definidas por el RFADMIN08.
+    # Solo se consultan: no se pueden crear, editar ni eliminar desde la API.
+    queryset = Category.objects.filter(name__in=FIXED_RETURNABLE_CATEGORY_NAMES).order_by("id")
     serializer_class = CategorySerializer
+
+    def get_permissions(self):
+        return [HasPermission("view_returnable")]
 
 
 class ConsumableMaterialViewSet(viewsets.ModelViewSet):
     # CRUD de materiales consumibles.
-    queryset = ConsumableMaterial.objects.all().order_by("id")
+    queryset = ConsumableMaterial.objects.all().order_by(Lower("name"))
     serializer_class = ConsumableMaterialSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
@@ -88,12 +101,20 @@ class ConsumableMaterialViewSet(viewsets.ModelViewSet):
             )
 
         material.is_active = bool(is_active)
-        material.save(update_fields=["is_active"])
+        # Un material inactivo no puede conservar un estado operativo.
+        # Al reactivarlo solo se restaura la disponibilidad si fue desactivado
+        # mediante este flujo; los demás estados (p. ej. Mantenimiento) se respetan.
+        if not material.is_active:
+            material.state = "No Disponible"
+        elif material.state == "No Disponible":
+            material.state = "Disponible"
+        material.save(update_fields=["is_active", "state"])
 
         return Response(
             {
                 "message": f"Material '{material.name}' {'activado' if material.is_active else 'desactivado'} correctamente.",
                 "is_active": material.is_active,
+                "state": material.state,
             },
             status=status.HTTP_200_OK,
         )
@@ -102,7 +123,7 @@ class ConsumableMaterialViewSet(viewsets.ModelViewSet):
 class ReturnableMaterialViewSet(viewsets.ModelViewSet):
     queryset = ReturnableMaterial.objects.select_related(
         'consumable', 'consumable__brand', 'consumable__user', 'category'
-    ).all().order_by("consumable_id")
+    ).all().order_by(Lower("consumable__name"))
     serializer_class = ReturnableMaterialSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = {
@@ -127,6 +148,19 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
         from modules.permissions.permissions_drf import IsSuperUser
         return [IsSuperUser()]
 
+    @staticmethod
+    def validate_fixed_category(category_id, current_category_id=None):
+        if str(category_id) == str(current_category_id):
+            return
+
+        if not Category.objects.filter(
+            pk=category_id,
+            name__in=FIXED_RETURNABLE_CATEGORY_NAMES,
+        ).exists():
+            raise ValidationError({
+                "category_id": "Debe seleccionar una de las categorías fijas permitidas.",
+            })
+
     @action(detail=True, methods=["patch"])
     def toggle_active(self, request, pk=None):
         """
@@ -149,12 +183,17 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
             )
 
         consumable.is_active = bool(is_active)
-        consumable.save(update_fields=["is_active"])
+        if not consumable.is_active:
+            consumable.state = "No Disponible"
+        elif consumable.state == "No Disponible":
+            consumable.state = "Disponible"
+        consumable.save(update_fields=["is_active", "state"])
 
         return Response(
             {
                 "message": f"Material '{consumable.name}' {'activado' if consumable.is_active else 'desactivado'} correctamente.",
                 "is_active": consumable.is_active,
+                "state": consumable.state,
             },
             status=status.HTTP_200_OK,
         )
@@ -162,6 +201,10 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data
         files = request.FILES
+        self.validate_fixed_category(data.get("category_id"))
+        model = str(data.get("model", "")).strip()
+        if not model:
+            raise ValidationError({"model": "El modelo es obligatorio."})
 
         with transaction.atomic():
             consumable = ConsumableMaterial.objects.create(
@@ -183,7 +226,7 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
             rm = ReturnableMaterial.objects.create(
                 consumable=consumable,
                 category_id=data.get('category_id'),
-                model=data.get('model', data.get('name', '')),
+                model=model,
                 serial=data.get('serial', ''),
                 dimensions=data.get('dimensions') or None,
                 technical_sheet=files.get('technical_sheet', ''),
@@ -231,9 +274,13 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
             consumable.save()
 
             if 'category_id' in data:
+                self.validate_fixed_category(data.get('category_id'), rm.category_id)
                 rm.category_id = data.get('category_id')
             if 'model' in data:
-                rm.model = data.get('model')
+                model = str(data.get('model', '')).strip()
+                if not model:
+                    raise ValidationError({"model": "El modelo es obligatorio."})
+                rm.model = model
             if 'serial' in data:
                 rm.serial = data.get('serial')
             if 'dimensions' in data:

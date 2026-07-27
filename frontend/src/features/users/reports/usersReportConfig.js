@@ -15,7 +15,7 @@ export const usersReportConfig = {
       key: "role",
       label: "Rol",
       default: true,
-      accessor: (row) => row.role?.name ?? "-",
+      accessor: (row) => row.groups?.map((g) => g.name).join(", ") || "-",
     },
     { key: "email", label: "Correo personal", default: true },
     {

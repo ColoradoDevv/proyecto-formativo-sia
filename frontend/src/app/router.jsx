@@ -19,7 +19,7 @@ import { CmHomePage, CmCreatePage, CmDetailPage, CmEditPage } from "@/features/c
 import { RmHomePage, RmCreatePage, RmDetailPage, RmEditPage } from "@/features/returnable-material";
 
 // Imports de Prestamos
-import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage } from "@/features/loans";
+import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage, LoanSignPage } from "@/features/loans";
 
 import { ConfigLayout, MainLayout } from "@/shared";
 
@@ -71,6 +71,9 @@ export default function AppRouter() {
                     <Route path="visualizar/:id" element={<LoansDetailPage />} />
                     <Route path="editar/:id" element={<LoansEditPage />} />
                 </Route>
+
+                {/* Firma electrónica de préstamo — requiere sesión */}
+                <Route path="/prestamos/firmar" element={<LoanSignPage />} />
 
                 {/* Marcas: se gestionan desde la pestaña de configuración (modales) */}
                 <Route path="/marcas" element={<MainLayout />}>

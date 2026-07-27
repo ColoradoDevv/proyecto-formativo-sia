@@ -7,22 +7,29 @@ function useUser(id) {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchUser = async() => {
+        // AbortController cancela el fetch si el componente se desmonta o cambia id,
+        // evitando que setState se llame sobre un componente ya desmontado.
+        const controller = new AbortController();
+
+        const fetchUser = async () => {
             try {
-                setLoading(true); // Reinicia el estado de carga si el efecto se vuelve a ejecutar
-                const data = await getUserById(id);
-                setUser(data) // Guarda los datos obtenidos
+                setLoading(true);
+                const data = await getUserById(id, controller.signal);
+                setUser(data);
             } catch (err) {
-                setError(err) // Captura el error si la API falla
+                // AbortError es cancelación intencional — no es un error real.
+                if (err.name !== "AbortError") setError(err);
             } finally {
-                setLoading(false); // Apaga el indicador de carga 
+                setLoading(false);
             }
         };
 
         fetchUser();
-    }, [id]) // Un array con `id` para que se ejecute cuando cambie
 
-    return { user, loading, error}
+        return () => controller.abort();
+    }, [id]);
+
+    return { user, loading, error };
 }
 
 export default useUser;

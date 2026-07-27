@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
-import { Undo2, Pencil, ImageOff } from "lucide-react";
+import { Button, IconButton, StatusBadge, showAlert, cancelAlert, FileInput, ProfileFileInput } from "@/shared";
+import { Undo2 } from "lucide-react";
 import useCm from "../../hooks/useCm";
 import { getBrands, getUsers, createBrand } from "../../services/selectServices";
 import { updateCm } from "../../services/consumableService";
@@ -21,7 +21,6 @@ export default function CmEditView() {
     useEffect(() => { getBrands().then(setBrands); }, []);
     useEffect(() => { getUsers().then(setUsers);   }, []);
 
-    // Crea una marca nueva, la agrega a las opciones y la devuelve al form.
     const handleCreateBrand = async (name) => {
         const option = await createBrand(name);
         setBrands((prev) => [...prev, option]);
@@ -42,11 +41,13 @@ export default function CmEditView() {
 
 // Componente interno: recibe CM ya cargado e inicializa el estado directamente
 function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
-    const navigate      = useNavigate();
-    const photoInputRef = useRef();
+    const navigate = useNavigate();
 
-    const [photoPreview, setPhotoPreview] = useState(CM.image ?? null);
-    const [photoFile,    setPhotoFile]    = useState(null);
+    // Foto: se inicializa con la URL actual para que ProfileFileInput muestre la preview.
+    const [photo,          setPhoto]          = useState(CM.image ? [CM.image] : []);
+    // Ficha técnica: se inicializa con la URL actual para que FileInput la muestre.
+    const [technicalSheet, setTechnicalSheet] = useState(CM.technical_sheet ? [CM.technical_sheet] : []);
+    const [submitting,     setSubmitting]     = useState(false);
 
     const [formData, setFormData] = useState({
         name:         CM.name ?? "",
@@ -69,7 +70,6 @@ function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
         setFormData((prev) => {
             const updated = { ...prev, [name]: value };
 
-            // Si se ingresa placa SENA, la cantidad siempre es 1 y no es editable
             if (name === "senaPlate") {
                 updated.quantity = value.trim() !== "" ? "1" : "";
             }
@@ -82,14 +82,6 @@ function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
             }
             return updated;
         });
-    };
-
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setPhotoFile(file);
-            setPhotoPreview(URL.createObjectURL(file));
-        }
     };
 
     async function handleSubmit(e) {
@@ -107,14 +99,22 @@ function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
         }
 
         setErrors({});
+        setSubmitting(true);
 
         try {
-            await updateCm(id, { ...formData, photo: photoFile });
+            // Solo se envía el archivo si el usuario seleccionó uno nuevo (instanceof File).
+            // Si es una URL string (la que ya estaba), no se toca.
+            const newPhoto  = photo[0]          instanceof File ? photo[0]          : null;
+            const newSheet  = technicalSheet[0] instanceof File ? technicalSheet[0] : null;
+
+            await updateCm(id, { ...formData, photo: newPhoto, technicalSheet: newSheet });
             await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material de consumo actualizado exitosamente" });
             navigate(-1);
         } catch (error) {
             if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
             showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar material de consumo", text: error.message });
+        } finally {
+            setSubmitting(false);
         }
     }
 
@@ -122,8 +122,6 @@ function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
         const result = await cancelAlert();
         if (result.isConfirmed) navigate(-1);
     }
-
-    const isActive = CM.is_active;
 
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
@@ -148,41 +146,42 @@ function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
                     users={users}
                     onCreateBrand={onCreateBrand}
                     photoSlot={
-                        <>
-                            <div className="relative">
-                                <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
-                                    {photoPreview
-                                        ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-cover" />
-                                        : <ImageOff size={40} className="text-text-muted" />
-                                    }
-                                </div>
-                                <button
-                                    type="button"
-                                    aria-label="Cambiar foto del material"
-                                    onClick={() => photoInputRef.current.click()}
-                                    className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
-                                >
-                                    <Pencil size={13} />
-                                </button>
-                                <input
-                                    ref={photoInputRef}
-                                    type="file"
-                                    hidden
-                                    accept=".jpg,.jpeg,.png,.svg"
-                                    onChange={handlePhotoChange}
-                                />
-                            </div>
-                            <StatusBadge active={isActive} />
-                        </>
+                        // Mismo layout que CmRegisterForm: foto arriba, ficha abajo.
+                        <div className="w-full sm:w-[var(--size-field-sm)] flex flex-col gap-4">
+                            <ProfileFileInput
+                                label="Foto del Material"
+                                name="photo"
+                                value={photo}
+                                onChange={setPhoto}
+                                error={errors.photo}
+                                accept="image/*"
+                                className="w-full h-25 rounded-2xl"
+                                description="Formato JPG o PNG. Tamaño máximo: 2MB."
+                            />
+                            <StatusBadge active={CM.is_active} />
+                            <FileInput
+                                label="Ficha Técnica"
+                                name="technicalSheet"
+                                placeholder="Reemplazar ficha técnica"
+                                value={technicalSheet}
+                                onChange={setTechnicalSheet}
+                                error={errors.technicalSheet}
+                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png"
+                                multiple={false}
+                                maxFiles={1}
+                                maxSixeMB={3}
+                                className="w-full h-14 rounded-2xl"
+                            />
+                        </div>
                     }
                 />
 
                 <div className="flex gap-4 justify-center md:justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={handleCancel}>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
                         Cancelar
                     </Button>
-                    <Button type="submit" variant="primary" size="md">
-                        Guardar cambios
+                    <Button type="submit" variant="primary" size="md" disabled={submitting}>
+                        {submitting ? "Guardando..." : "Guardar cambios"}
                     </Button>
                 </div>
 

@@ -1,26 +1,76 @@
 import { useState, useEffect } from "react";
 import { Input, TextArea, Button, Modal, showAlert } from "@/shared";
-import { buildReturnSchema } from "../schemas/returnSchema";
+import { buildReturnSchema, VALID_CONDITIONS } from "../schemas/returnSchema";
 import { returnLoan } from "../services/returnService";
+import { AlertTriangle } from "lucide-react";
+
+// Metadatos de cada condición: etiqueta, descripción y estilo visual.
+const CONDITION_META = {
+    Bueno: {
+        label: "Bueno",
+        description: "El material se devuelve en buen estado y vuelve al inventario disponible.",
+        style: "border-success text-success bg-success-soft",
+    },
+    Mantenimiento: {
+        label: "Mantenimiento",
+        description: "El material presenta daños o desgaste. Pasará a estado Mantenimiento para revisión técnica.",
+        style: "border-warning text-warning bg-warning-soft",
+    },
+    Baja: {
+        label: "Baja",
+        description: "El material está inutilizable. Será dado de baja permanentemente del inventario.",
+        style: "border-error text-error bg-error-soft",
+    },
+};
 
 // Modal para devolver un préstamo.
 // - Devolutivo: solo observaciones (el material vuelve al inventario).
 // - Consumo: cantidad sobrante (obligatoria) + observaciones.
 // Al confirmar, finaliza el préstamo y actualiza el inventario (backend).
 export default function ReturnLoanModal({ isOpen, onClose, loan, onReturned }) {
-    const [formData, setFormData] = useState({ leftoverQuantity: "", returnedQuantity: "", observations: "" });
+    const [formData, setFormData] = useState({
+        leftoverQuantity: "",
+        returnedQuantity: "",
+        observations: "",
+        materialCondition: "Bueno",
+    });
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
 
     // Limpia el formulario cada vez que se abre.
     useEffect(() => {
         if (isOpen) {
-            setFormData({ leftoverQuantity: "", returnedQuantity: "", observations: "" });
+            setFormData({ leftoverQuantity: "", returnedQuantity: "", observations: "", materialCondition: "Bueno" });
             setErrors({});
         }
     }, [isOpen]);
 
     if (!loan) return null;
+
+    // Un préstamo Pendiente no puede devolverse: aún no está activo.
+    if (loan.state === "Pendiente") {
+        return (
+            <Modal isOpen={isOpen} onClose={onClose} title="Devolver Material">
+                <div className="flex flex-col items-center gap-3 py-4 text-center">
+                    <p className="text-body text-text-primary font-medium">
+                        Préstamo pendiente de firma
+                    </p>
+                    <p className="text-small text-text-secondary">
+                        Este préstamo aún no está activo. Para registrar una devolución,
+                        ambas partes deben firmar primero el préstamo mediante el enlace
+                        enviado por correo.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="mt-2 text-small text-text-muted hover:text-text-secondary underline underline-offset-2 transition-colors"
+                    >
+                        Cerrar
+                    </button>
+                </div>
+            </Modal>
+        );
+    }
 
     const isConsumo = loan.material_type === "consumo";
 
@@ -56,22 +106,36 @@ export default function ReturnLoanModal({ isOpen, onClose, loan, onReturned }) {
                 leftoverQuantity: isConsumo ? result.data.leftoverQuantity : undefined,
                 returnedQuantity: isConsumo ? undefined : result.data.returnedQuantity,
                 observations: result.data.observations,
+                materialCondition: result.data.materialCondition,
             });
-            // En devolutivos, avisar si la devolución quedó incompleta.
-            const incomplete =
-                !isConsumo && Number(result.data.returnedQuantity) < loan.amount_lent;
-            await showAlert({
-                icon: incomplete ? "warning" : "success",
-                iconColor: incomplete ? "var(--color-error)" : "var(--color-success)",
-                title: isConsumo
-                    ? "Sobrante registrado y préstamo finalizado"
-                    : incomplete
-                    ? "Devolución incompleta registrada"
-                    : "Material devuelto exitosamente",
-                text: incomplete
-                    ? `Se devolvieron ${result.data.returnedQuantity} de ${loan.amount_lent}. El préstamo queda como incompleto.`
-                    : undefined,
-            });
+
+            const condition = result.data.materialCondition;
+            const incomplete = !isConsumo && Number(result.data.returnedQuantity) < loan.amount_lent;
+
+            // Determinar título y texto según condición y tipo de devolución
+            let icon  = "success";
+            let iconColor = "var(--color-success)";
+            let title = isConsumo ? "Sobrante registrado y préstamo finalizado" : "Material devuelto exitosamente";
+            let text  = undefined;
+
+            if (condition === "Mantenimiento") {
+                icon = "warning";
+                iconColor = "var(--color-warning)";
+                title = "Devolución registrada — Material en Mantenimiento";
+                text  = `El material "${loan.material}" ha sido enviado a Mantenimiento para revisión técnica.`;
+            } else if (condition === "Baja") {
+                icon = "warning";
+                iconColor = "var(--color-error)";
+                title = "Devolución registrada — Material dado de Baja";
+                text  = `El material "${loan.material}" ha sido dado de baja permanentemente del inventario.`;
+            } else if (incomplete) {
+                icon = "warning";
+                iconColor = "var(--color-error)";
+                title = "Devolución incompleta registrada";
+                text  = `Se devolvieron ${result.data.returnedQuantity} de ${loan.amount_lent}. El préstamo queda como incompleto.`;
+            }
+
+            await showAlert({ icon, iconColor, title, text });
             onReturned?.(loan.id_loan);
             onClose();
         } catch (error) {
@@ -164,6 +228,50 @@ export default function ReturnLoanModal({ isOpen, onClose, loan, onReturned }) {
                     onChange={handleChange}
                     error={errors.observations}
                 />
+
+                {/* Condición del material */}
+                <div className="flex flex-col gap-2">
+                    <p className="text-small font-medium text-text-primary">
+                        Condición del material <span className="text-error">*</span>
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                        {VALID_CONDITIONS.map((cond) => {
+                            const meta    = CONDITION_META[cond];
+                            const checked = formData.materialCondition === cond;
+                            return (
+                                <label
+                                    key={cond}
+                                    className={`flex flex-col gap-1 cursor-pointer rounded-[var(--radius-xl)] border-2 px-3 py-2 transition-all
+                                        ${checked ? meta.style : "border-border text-text-secondary hover:border-text-muted"}`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="materialCondition"
+                                        value={cond}
+                                        checked={checked}
+                                        onChange={handleChange}
+                                        className="sr-only"
+                                    />
+                                    <span className="text-small font-medium">{meta.label}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+
+                    {/* Descripción de la condición seleccionada */}
+                    {formData.materialCondition && formData.materialCondition !== "Bueno" && (
+                        <div className={`flex items-start gap-2 rounded-[var(--radius-xl)] border px-3 py-2
+                            ${CONDITION_META[formData.materialCondition]?.style ?? ""}`}>
+                            <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+                            <p className="text-small">
+                                {CONDITION_META[formData.materialCondition]?.description}
+                            </p>
+                        </div>
+                    )}
+                    {errors.materialCondition && (
+                        <p className="text-caption text-error">{errors.materialCondition}</p>
+                    )}
+                </div>
             </form>
         </Modal>
     );

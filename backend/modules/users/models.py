@@ -72,6 +72,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # --- Fechas de vinculacion ---
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
+    is_instructor_planta = models.BooleanField(default=False, help_text="Indica si el usuario es instructor de planta.")
 
     # --- Contacto ---
     email = models.EmailField(unique=True, max_length=254)
@@ -88,6 +89,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # --- Campos que Django necesita para el control de acceso ---
     is_active = models.BooleanField(default=True)   # si esta en False, no puede entrar
+    deactivation_reason = models.TextField(null=True, blank=True)
     is_staff = models.BooleanField(default=False)   # si puede entrar al panel /admin
 
     # --- Campos que Django necesita para el control de acceso ---

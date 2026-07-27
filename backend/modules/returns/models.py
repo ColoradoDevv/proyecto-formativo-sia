@@ -35,6 +35,23 @@ class LoanReturn(models.Model):
     # Observaciones del receptor de la devolucion - obligatorio segun diccionario
     observations = models.CharField(max_length=255)
 
+    # Condición del material al momento de la devolución.
+    # Determina el estado que se le asigna al material tras la devolución:
+    #   Bueno        → Disponible  (flujo normal)
+    #   Mantenimiento → Mantenimiento  (requiere revisión técnica)
+    #   Baja          → Baja           (fuera de servicio permanente)
+    CONDITION_CHOICES = [
+        ('Bueno',         'Bueno'),
+        ('Mantenimiento', 'Mantenimiento'),
+        ('Baja',          'Baja'),
+    ]
+    material_condition = models.CharField(
+        max_length=20,
+        choices=CONDITION_CHOICES,
+        default='Bueno',
+        help_text='Estado en que se recibe el material. Determina si pasa a Disponible, Mantenimiento o Baja.',
+    )
+
     # Fecha y hora de devolucion - se llena automaticamente al crear el registro
     return_date = models.DateTimeField(auto_now_add=True)  # CURRENT_TIMESTAMP segun diccionario
 

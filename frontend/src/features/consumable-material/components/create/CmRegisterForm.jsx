@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBrands, getUsers, createBrand } from "../../services/selectServices";
-import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput } from "@/shared";
+import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput, IconButton } from "@/shared";
 import { cmSchema } from "../../schemas/cmSchema";
 import { createCm } from "../../services/consumableService";
 import ConsumableForm from "../ConsumableForm";
+import { Undo2 } from "lucide-react";
 
 export default function CmRegisterForm() {
 
@@ -27,6 +28,7 @@ export default function CmRegisterForm() {
         user: "",
         purchaseDate: new Date().toISOString().split("T")[0],
         photo: [],
+        technicalSheet: [],
     });
 
     useEffect(() => { getBrands().then(setBrands); }, []);
@@ -105,7 +107,10 @@ export default function CmRegisterForm() {
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
             {/* Titulos */}
-            <div>
+            <div className="flex items-center gap-3">
+                <IconButton onClick={() => navigate(-1)} variant="ghost">
+                    <Undo2 size={20}/>
+                </IconButton>
                 <h2 className="text-primary">Crear Material de Consumo</h2>
             </div>
 
@@ -119,16 +124,34 @@ export default function CmRegisterForm() {
                     users={users}
                     onCreateBrand={handleCreateBrand}
                     photoSlot={
-                        <ProfileFileInput
-                            className="w-32 h-40 rounded-[var(--radius-xl)]"
-                            value={formData.photo}
-                            onChange={handleFileChange("photo")}
-                            error={errors.photo}
-                            label="Foto del Material"
-                            name="photo"
-                            required
-                            description="Formato JPG o PNG. Tamaño máximo: 2MB."
-                        />
+                        // Mismo layout que CmEditForm y RmRegisterForm.
+                        <div className="w-full sm:w-[var(--size-field-sm)] flex flex-col gap-4">
+                            <ProfileFileInput
+                                label="Foto del Material"
+                                name="photo"
+                                value={formData.photo}
+                                onChange={handleFileChange("photo")}
+                                error={errors.photo}
+                                accept="image/*"
+                                className="w-full h-25 rounded-2xl"
+                                required
+                                description="Formato JPG o PNG. Tamaño máximo: 2MB."
+                            />
+                            <FileInput
+                                label="Ficha Técnica"
+                                name="technicalSheet"
+                                placeholder="Subir ficha técnica"
+                                optional
+                                value={formData.technicalSheet}
+                                onChange={handleFileChange("technicalSheet")}
+                                error={errors.technicalSheet}
+                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png"
+                                multiple={false}
+                                maxFiles={1}
+                                maxSixeMB={3}
+                                className="w-full h-14 rounded-2xl"
+                            />
+                        </div>
                     }
                 />
 

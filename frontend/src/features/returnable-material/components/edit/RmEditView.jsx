@@ -3,10 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
 import { Undo2, Pencil, ImageOff } from "lucide-react";
 import useRm from "../../hooks/useRm";
-import { getBrands, getCategories, getStates, createBrand, createCategory } from "../../services/selectServices";
+import { getBrands, getCategories, getStates, createBrand } from "../../services/selectServices";
 import { rmEditSchema } from "../../schemas/rmSchema";
 import { updateRM } from "../../services/returnableService";
 import ReturnableForm from "../ReturnableForm";
+import { getReturnableCategoryOptions } from "../../utils/returnableCategoryRules";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
 
@@ -23,15 +24,10 @@ export default function RmEditView() {
     useEffect(() => { getBrands().then(setBrands);         }, []);
     useEffect(() => { getStates().then(setStates);         }, []);
 
-    // Crea marca/categoria nueva, la agrega a las opciones y la devuelve al form.
+    // Crea una marca nueva, la agrega a las opciones y la devuelve al formulario.
     const handleCreateBrand = async (name) => {
         const option = await createBrand(name);
         setBrands((prev) => [...prev, option]);
-        return option;
-    };
-    const handleCreateCategory = async (name) => {
-        const option = await createCategory(name);
-        setCategories((prev) => [...prev, option]);
         return option;
     };
 
@@ -44,11 +40,11 @@ export default function RmEditView() {
 
     if (error) return <p>Error al cargar material: {error.message}</p>;
 
-    return <RmEditForm RM={RM} categories={categories} brands={brands} states={states} onCreateBrand={handleCreateBrand} onCreateCategory={handleCreateCategory} />;
+    return <RmEditForm RM={RM} categories={categories} brands={brands} states={states} onCreateBrand={handleCreateBrand} />;
 }
 
 // Componente interno: recibe RM ya cargado e inicializa el estado directamente
-function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCategory }) {
+function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
@@ -56,8 +52,22 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
     const [photoFile,    setPhotoFile]    = useState(null);
     const [submitting,   setSubmitting]   = useState(false);
 
+    // Parsear dimensiones si existen (ej: "30x50x20" → {width: "30", length: "50", depth: "20"})
+    const parseDimensions = (dimensionsString) => {
+        if (!dimensionsString) return { width: "", length: "", depth: "" };
+        const parts = String(dimensionsString).split("x");
+        return {
+            width: parts[0] ?? "",
+            length: parts[1] ?? "",
+            depth: parts[2] ?? "",
+        };
+    };
+
+    const dimensions = parseDimensions(RM.dimensions);
+
     const [formData, setFormData] = useState({
         name:         RM.name ?? "",
+        model:        RM.model ?? "",
         senaPlate:    RM.sena_plate ?? "",
         serial:       RM.serial ?? "",
         category:     RM.category?.id != null ? String(RM.category.id) : "",
@@ -69,6 +79,9 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
         unitPrice:    RM.unit_price != null ? String(RM.unit_price) : "",
         totalPrice:   RM.total_price != null ? String(RM.total_price) : "",
         purchaseDate: RM.purchase_date ?? "",
+        width: dimensions.width,
+        length: dimensions.length,
+        depth: dimensions.depth,
     });
 
     const [errors, setErrors] = useState({});
@@ -98,7 +111,9 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const result = rmEditSchema.safeParse(formData);
+        const selectedCategory = categories.find((option) => String(option.id) === String(formData.category));
+        const payload = { ...formData, categoryName: selectedCategory?.label ?? selectedCategory?.name ?? "" };
+        const result = rmEditSchema.safeParse(payload);
 
         if (!result.success) {
             const fieldErrors = {};
@@ -150,11 +165,10 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand, onCreateCat
                     formData={formData}
                     errors={errors}
                     onChange={handleChange}
-                    categories={categories}
+                    categories={getReturnableCategoryOptions(categories)}
                     brands={brands}
                     states={states}
                     onCreateBrand={onCreateBrand}
-                    onCreateCategory={onCreateCategory}
                     photoSlot={
                         <>
                             <div className="relative">

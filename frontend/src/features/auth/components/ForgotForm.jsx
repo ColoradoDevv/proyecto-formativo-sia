@@ -1,19 +1,46 @@
 import { Link } from "react-router-dom";
 import { Asterisk, ArrowLeft, MailCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { forgotSchemas } from "../schemas/loginSchemas";
 import { requestPasswordReset } from "../services/authService";
 import { Button, Input } from "@/shared"
+
+const LOCKOUT_SECONDS = 15 * 60; // 15 minutos, igual que el backend
 
 export default function ForgotForm() {
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [serverError, setServerError] = useState("");
     const [sent, setSent] = useState(false);
+    // Segundos restantes de bloqueo; 0 = no bloqueado
+    const [lockout, setLockout] = useState(0);
+    const timerRef = useRef(null);
 
     const [formData, setFormData] = useState({
         userEmail: "",
     });
+
+    // Limpia el intervalo al desmontar
+    useEffect(() => () => clearInterval(timerRef.current), []);
+
+    const startLockoutTimer = () => {
+        setLockout(LOCKOUT_SECONDS);
+        timerRef.current = setInterval(() => {
+            setLockout((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timerRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
+
+    const formatLockout = (secs) => {
+        const m = Math.floor(secs / 60).toString().padStart(2, "0");
+        const s = (secs % 60).toString().padStart(2, "0");
+        return `${m}:${s}`;
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -45,6 +72,9 @@ export default function ForgotForm() {
             await requestPasswordReset(formData.userEmail);
             setSent(true);   // exito -> mostramos confirmacion
         } catch (err) {
+            if (err.status === 429) {
+                startLockoutTimer();
+            }
             setServerError(err.message);
         } finally {
             setLoading(false);
@@ -58,6 +88,9 @@ export default function ForgotForm() {
             setLoading(true);
             await requestPasswordReset(formData.userEmail);
         } catch (err) {
+            if (err.status === 429) {
+                startLockoutTimer();
+            }
             setServerError(err.message);
         } finally {
             setLoading(false);
@@ -84,10 +117,14 @@ export default function ForgotForm() {
                         type="button"
                         variant="secondary"
                         size="md"
-                        disabled={loading}
+                        disabled={loading || lockout > 0}
                         onClick={handleResend}
                     >
-                        {loading ? "Reenviando..." : "Reenviar enlace"}
+                        {loading
+                            ? "Reenviando..."
+                            : lockout > 0
+                            ? `Bloqueado ${formatLockout(lockout)}`
+                            : "Reenviar enlace"}
                     </Button>
                     {serverError && (
                         <p className="text-error text-small text-center">{serverError}</p>
@@ -137,11 +174,15 @@ export default function ForgotForm() {
                         {/* Botón */}
                         <Button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || lockout > 0}
                             variant="primary"
                             size="md"
                         >
-                            {loading ? "Enviando..." : "Enviar enlace"}
+                            {loading
+                                ? "Enviando..."
+                                : lockout > 0
+                                ? `Bloqueado ${formatLockout(lockout)}`
+                                : "Enviar enlace"}
                         </Button>
                     </form>
                 </>

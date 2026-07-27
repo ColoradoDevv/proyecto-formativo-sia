@@ -36,14 +36,20 @@ export const rmSchema = z.object({
     senaPlate: z
         .string()
         .trim()
-        .min(3, "La placa SENA debe tener mínimo 3 caracteres")
-        .max(20, "La placa SENA es demasiado larga"),
+        .optional()
+        .transform((value) => value ?? ""),
 
     name: z
         .string()
         .trim()
         .min(3, "El nombre debe tener mínimo 3 caracteres")
         .max(100, "El nombre es demasiado largo"),
+
+    model: z
+        .string()
+        .trim()
+        .min(2, "El modelo debe tener mínimo 2 caracteres")
+        .max(100, "El modelo es demasiado largo"),
 
     state: z
         .string()
@@ -60,8 +66,8 @@ export const rmSchema = z.object({
     serial: z
         .string()
         .trim()
-        .min(3, "El serial debe tener mínimo 3 caracteres")
-        .max(20, "El serial es demasiado largo"),
+        .optional()
+        .transform((value) => value ?? ""),
 
     quantity: z
         .string()
@@ -105,9 +111,53 @@ export const rmSchema = z.object({
             message: "La fecha de compra no puede ser futura",
         }),
 
-    technicalSheet: z.array(z.instanceof(File)).optional(),
+    // Ficha técnica obligatoria en creación (RF RFADMIN08).
+    // Formatos: PDF, Excel o PNG. Tamaño máximo 3MB. Mínimo 1 archivo.
+    technicalSheet: z
+        .array(z.instanceof(File))
+        .min(1, "La ficha técnica es obligatoria")
+        .refine(
+            (files) => files.every((f) => [
+                "application/pdf",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "image/png",
+            ].includes(f.type)),
+            { message: "La ficha técnica debe ser PDF, Excel o PNG" }
+        )
+        .refine(
+            (files) => files.every((f) => f.size <= 3 * 1024 * 1024),
+            { message: "Cada archivo no puede superar 3MB" }
+        ),
 
     photo: z.array(z.instanceof(File)).optional(),
+    width: z.string().trim().optional(),
+    length: z.string().trim().optional(),
+    depth: z.string().trim().optional(),
+    categoryName: z.string().optional(),
+}).superRefine((data, ctx) => {
+    const categoryName = String(data.categoryName || "").trim().toLowerCase();
+    
+    let categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    
+    if (categoryName === "herramienta") {
+        categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    } else if (categoryName === "maquinaria y equipos") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: false };
+    } else if (categoryName === "muebles y enseres") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: true };
+    }
+
+    if (categoryRules.requiresSenaPlate && !String(data.senaPlate || "").trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["senaPlate"], message: "La placa SENA es obligatoria para esta categoría" });
+    }
+    if (categoryRules.requiresId && !String(data.serial || "").trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["serial"], message: "El ID es obligatorio para esta categoría" });
+    }
+    if (categoryRules.requiresDimensions) {
+        if (!String(data.width || "").trim() || !String(data.length || "").trim() || !String(data.depth || "").trim()) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["width"], message: "Las dimensiones son obligatorias para esta categoría" });
+        }
+    }
 }).refine(
     (data) => toCents(data.unitPrice) * Number(data.quantity) === toCents(data.totalPrice),
     {
@@ -126,17 +176,23 @@ export const rmEditSchema = z.object({
         .min(3, "El nombre debe tener mínimo 3 caracteres")
         .max(100, "El nombre es demasiado largo"),
 
+    model: z
+        .string()
+        .trim()
+        .min(2, "El modelo debe tener mínimo 2 caracteres")
+        .max(100, "El modelo es demasiado largo"),
+
     senaPlate: z
         .string()
         .trim()
-        .min(3, "La placa SENA debe tener mínimo 3 caracteres")
-        .max(20, "La placa SENA es demasiado larga"),
+        .optional()
+        .transform((value) => value ?? ""),
 
     serial: z
         .string()
         .trim()
-        .min(3, "El serial debe tener mínimo 3 caracteres")
-        .max(20, "El serial es demasiado largo"),
+        .optional()
+        .transform((value) => value ?? ""),
 
     category: z
         .string()
@@ -193,6 +249,34 @@ export const rmEditSchema = z.object({
         .refine((value) => value <= getTodayDateString(), {
             message: "La fecha de compra no puede ser futura",
         }),
+    width: z.string().trim().optional(),
+    length: z.string().trim().optional(),
+    depth: z.string().trim().optional(),
+    categoryName: z.string().optional(),
+}).superRefine((data, ctx) => {
+    const categoryName = String(data.categoryName || "").trim().toLowerCase();
+    
+    let categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    
+    if (categoryName === "herramienta") {
+        categoryRules = { requiresSenaPlate: false, requiresId: false, requiresDimensions: false };
+    } else if (categoryName === "maquinaria y equipos") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: false };
+    } else if (categoryName === "muebles y enseres") {
+        categoryRules = { requiresSenaPlate: true, requiresId: true, requiresDimensions: true };
+    }
+
+    if (categoryRules.requiresSenaPlate && !String(data.senaPlate || "").trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["senaPlate"], message: "La placa SENA es obligatoria para esta categoría" });
+    }
+    if (categoryRules.requiresId && !String(data.serial || "").trim()) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["serial"], message: "El ID es obligatorio para esta categoría" });
+    }
+    if (categoryRules.requiresDimensions) {
+        if (!String(data.width || "").trim() || !String(data.length || "").trim() || !String(data.depth || "").trim()) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["width"], message: "Las dimensiones son obligatorias para esta categoría" });
+        }
+    }
 }).refine(
     (data) => toCents(data.unitPrice) * Number(data.quantity) === toCents(data.totalPrice),
     {

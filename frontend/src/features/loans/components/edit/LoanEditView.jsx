@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, Input, showAlert, cancelAlert } from "@/shared";
+import { Button, IconButton, showAlert, cancelAlert } from "@/shared";
 import { Undo2 } from "lucide-react";
 import useLoan from "../../hooks/useLoan";
 import { getUsers, getMaterials } from "../../services/selectServices";
@@ -111,14 +111,7 @@ function LoanEditForm({ loan, users, materials }) {
                     onChange={handleChange}
                     users={users}
                     materials={materials}
-                    extraSlot={
-                        <Input
-                            label="Fecha Préstamo"
-                            value={loan.loan_date ?? ""}
-                            disabled
-                            readOnly
-                        />
-                    }
+                    loanDepartureDate={loan.loan_date ?? ""}
                 />
 
                 <div className="flex gap-4 justify-center md:justify-end">

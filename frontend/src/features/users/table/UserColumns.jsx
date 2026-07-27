@@ -1,6 +1,40 @@
-import { ActiveSwitch } from "@/shared";
+import { ActiveSwitch, promptAlert } from "@/shared";
 import { toggleUserActive } from "@/features/users/services/userService"; // ajusta la ruta segun tu estructura real
 import UserRowActions from "@/features/users/components/list/UserRowActions"; // ajusta la ruta segun tu estructura real
+
+function UserActiveSwitch({ user }) {
+    const requestDeactivationReason = async (nextIsActive) => {
+        if (nextIsActive) return undefined;
+
+        const result = await promptAlert({
+            icon: "warning",
+            iconColor: "var(--color-warning)",
+            title: "Motivo de inactivación",
+            text: "Indique el motivo para deshabilitar esta cuenta de usuario.",
+            inputLabel: "Motivo de inactivación",
+            inputPlaceholder: "Describa el motivo de la inactivación",
+            confirmText: "Deshabilitar",
+            cancelText: "Cancelar",
+            inputValidator: (value) => value.trim().length < 10
+                ? "El motivo debe tener al menos 10 caracteres."
+                : "",
+        });
+
+        return result.isConfirmed
+            ? { deactivationReason: result.value.trim() }
+            : false;
+    };
+
+    return (
+        <ActiveSwitch
+            id={user.id}
+            isActive={user.is_active}
+            toggleFn={toggleUserActive}
+            entity="usuario"
+            beforeToggle={requestDeactivationReason}
+        />
+    );
+}
 
 export const getUserColumns = (onDeleted) => [
     {
@@ -14,11 +48,13 @@ export const getUserColumns = (onDeleted) => [
             : "Sin grupo",
         id: "groups",
         header: "Grupo",
+        meta: { filterVariant: "select" },
     },
     {
         accessorFn: (row) => row.document_type?.name ?? "Sin tipo de documento",
         id: "document_type",
         header: "Tipo de Documento",
+        meta: { filterVariant: "select" },
     },
     {
         accessorKey: "document_number",
@@ -33,16 +69,11 @@ export const getUserColumns = (onDeleted) => [
         header: "Teléfono",
     },
     {
-        accessorKey: "is_active",
+        accessorFn: (row) => row.is_active ? "Activo" : "Inactivo",
+        id: "is_active",
         header: "Estado",
-        cell: ({ row }) => (
-            <ActiveSwitch
-                id={row.original.id}
-                isActive={row.original.is_active}
-                toggleFn={toggleUserActive}
-                entity="usuario"
-            />
-        ),
+        meta: { filterVariant: "select" },
+        cell: ({ row }) => <UserActiveSwitch user={row.original} />,
     },
     {
         id: "actions",

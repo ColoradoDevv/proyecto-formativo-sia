@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getBrands, getStates, getCategories, createBrand, createCategory } from "../../services/selectServices";
+import { getBrands, getStates, getCategories, createBrand } from "../../services/selectServices";
 import { createRM } from "../../services/returnableService";
-import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput } from "@/shared";
+import { FileInput, Button, showAlert, cancelAlert, ProfileFileInput, IconButton } from "@/shared";
 import { rmSchema } from "../../schemas/rmSchema";
 import ReturnableForm from "../ReturnableForm";
+import { getReturnableCategoryOptions } from "../../utils/returnableCategoryRules";
+import { Undo2 } from "lucide-react";
+
 
 export default function RmRegisterForm() {
     const navigate = useNavigate();
@@ -17,6 +20,7 @@ export default function RmRegisterForm() {
     const [formData, setFormData] = useState({
         senaPlate: "",
         name: "",
+        model: "",
         state: "",
         category: "",
         brand: "",
@@ -29,6 +33,9 @@ export default function RmRegisterForm() {
         purchaseDate: "",
         technicalSheet: [],
         photo: [],
+        width: "",
+        length: "",
+        depth: "",
     });
     const [errors, setErrors] = useState({});
 
@@ -55,15 +62,10 @@ export default function RmRegisterForm() {
         setFormData((prev) => ({ ...prev, [name]: files }));
     };
 
-    // Crea marca/categoria nueva, la agrega a las opciones y la devuelve al form.
+    // Crea una marca nueva, la agrega a las opciones y la devuelve al formulario.
     const handleCreateBrand = async (name) => {
         const option = await createBrand(name);
         setBrands((prev) => [...prev, option]);
-        return option;
-    };
-    const handleCreateCategory = async (name) => {
-        const option = await createCategory(name);
-        setCategories((prev) => [...prev, option]);
         return option;
     };
 
@@ -75,7 +77,9 @@ export default function RmRegisterForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const result = rmSchema.safeParse(formData);
+        const selectedCategory = categories.find((option) => String(option.id) === String(formData.category));
+        const payload = { ...formData, categoryName: selectedCategory?.label ?? selectedCategory?.name ?? "" };
+        const result = rmSchema.safeParse(payload);
 
         if (!result.success) {
             const fieldErrors = {};
@@ -101,10 +105,15 @@ export default function RmRegisterForm() {
         }
     };
 
+    const availableCategories = getReturnableCategoryOptions(categories);
+
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
 
-            <div>
+            <div className="flex items-center gap-3">
+                <IconButton onClick={() => navigate(-1)} variant="ghost">
+                    <Undo2 size={20}/>
+                </IconButton>
                 <h2 className="text-primary">Crear Material Devolutivo</h2>
             </div>
 
@@ -114,11 +123,10 @@ export default function RmRegisterForm() {
                     formData={formData}
                     errors={errors}
                     onChange={handleChange}
-                    categories={categories}
+                    categories={availableCategories}
                     brands={brands}
                     states={states}
                     onCreateBrand={handleCreateBrand}
-                    onCreateCategory={handleCreateCategory}
                     photoSlot={
                         <div className="w-full sm:w-[var(--size-field-sm)] flex flex-col gap-4">
                             <ProfileFileInput
@@ -139,7 +147,7 @@ export default function RmRegisterForm() {
                                 value={formData.technicalSheet}
                                 onChange={handleFileChange("technicalSheet")}
                                 error={errors.technicalSheet}
-                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png"
                                 multiple
                                 required
                                 maxFiles={3}

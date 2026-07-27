@@ -42,18 +42,20 @@ export const userSchema = z.object({
         .max(15, "Número de documento demasiado largo"),
 
     groups: z
-        .array(z.string())
-        .min(1, "Debe seleccionar al menos un grupo"),
+        .string()
+        .min(1, "Debe seleccionar un rol"),
 
     startDate: z
         .string()
-        .min(1, "Debe ingresar una fecha de inicio")
-        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
+        .refine((value) => value === "" || isValidDateString(value), {
+            message: "Debe ingresar una fecha válida",
+        }),
 
     endDate: z
         .string()
-        .min(1, "Debe ingresar una fecha de finalización")
-        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
+        .refine((value) => value === "" || isValidDateString(value), {
+            message: "Debe ingresar una fecha válida",
+        }),
 
     email: z
         .string()
@@ -92,7 +94,11 @@ export const userSchema = z.object({
         .array(z.any())
         .optional(),
 
-})
+    isInstructorPlanta: z
+        .boolean()
+        .optional(),
+
+} )
 .refine(
     (data) => data.email === data.confirmEmail,
     { message: "Los correos no coinciden", path: ["confirmEmail"] }
@@ -163,8 +169,8 @@ export const userEditSchema = z.object({
         .optional(),
 
     groups: z
-        .array(z.string())
-        .min(1, "Debe seleccionar al menos un grupo"),
+        .string()
+        .min(1, "Debe seleccionar un grupo"),
 
     isActive: z
         .string()
@@ -172,8 +178,9 @@ export const userEditSchema = z.object({
 
     startDate: z
         .string()
-        .min(1, "Debe ingresar una fecha de inicio")
-        .refine(isValidDateString, { message: "Debe ingresar una fecha válida" }),
+        .refine((val) => val === "" || isValidDateString(val), {
+            message: "Debe ingresar una fecha válida",
+        }),
 
     endDate: z
         .string()

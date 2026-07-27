@@ -1,4 +1,4 @@
-import { Input, Select, TextArea, EditCard } from "@/shared";
+import { Input, Select, SelectMultiple, TextArea, EditCard } from "@/shared";
 
 // Campos de préstamo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange y las opciones de selects.
@@ -10,6 +10,9 @@ export default function LoanForm({
     onChange,
     users = [],
     materials = [],
+    multipleMaterials = false,
+    onMaterialQuantityChange,
+    loanDepartureDate = "",
     extraSlot = null,
 }) {
     return (
@@ -34,27 +37,63 @@ export default function LoanForm({
                     error={errors.loanReceptorUser}
                     required
                 />
-                <Select
-                    label="Material"
-                    name="loanMaterial"
-                    options={materials}
-                    value={formData.loanMaterial}
-                    onChange={onChange}
-                    error={errors.loanMaterial}
-                    required
-                />
-                <Input
-                    label="Cantidad del Préstamo"
-                    name="loanAmount"
-                    placeholder="Ingrese la cantidad del préstamo"
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={formData.loanAmount}
-                    onChange={onChange}
-                    error={errors.loanAmount}
-                    required
-                />
+                {multipleMaterials ? (
+                    <>
+                        <div className="sm:col-span-2">
+                            <SelectMultiple
+                                label="Materiales"
+                                name="loanMaterial"
+                                options={materials}
+                                value={formData.loanMaterial}
+                                onChange={onChange}
+                                error={errors.loanMaterial}
+                                required
+                            />
+                        </div>
+                        {formData.loanMaterial.map((materialId) => {
+                            const material = materials.find((item) => String(item.id) === String(materialId));
+                            return (
+                                <Input
+                                    key={materialId}
+                                    label={`Cantidad: ${material?.label ?? "Material seleccionado"}`}
+                                    name={`loanMaterialQuantities.${materialId}`}
+                                    placeholder="Cantidad a prestar"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={formData.loanMaterialQuantities?.[materialId] ?? ""}
+                                    onChange={(event) => onMaterialQuantityChange?.(materialId, event.target.value)}
+                                    error={errors.loanMaterialQuantities?.[materialId]}
+                                    required
+                                />
+                            );
+                        })}
+                    </>
+                ) : (
+                    <Select
+                        label="Material"
+                        name="loanMaterial"
+                        options={materials}
+                        value={formData.loanMaterial}
+                        onChange={onChange}
+                        error={errors.loanMaterial}
+                        required
+                    />
+                )}
+                {!multipleMaterials && (
+                    <Input
+                        label="Cantidad del Préstamo"
+                        name="loanAmount"
+                        placeholder="Ingrese la cantidad del préstamo"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={formData.loanAmount}
+                        onChange={onChange}
+                        error={errors.loanAmount}
+                        required
+                    />
+                )}
                 <Input
                     label="Numero de Grupo o Ficha"
                     name="loanGroup"
@@ -63,6 +102,13 @@ export default function LoanForm({
                     onChange={onChange}
                     error={errors.loanGroup}
                     required
+                />
+                <Input
+                    label="Fecha de salida"
+                    type="date"
+                    value={loanDepartureDate}
+                    disabled
+                    readOnly
                 />
                 <Input
                     label="Fecha Devolución"

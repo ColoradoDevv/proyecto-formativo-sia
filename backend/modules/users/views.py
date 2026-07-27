@@ -14,6 +14,7 @@ from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
 import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models.functions import Lower
 
 from .models import User, Role, DocumentType, BlacklistedToken
 from modules.permissions.models import UserGroup as PermUserGroup
@@ -146,12 +147,8 @@ class LoginView(APIView):
 
         # 9. Devolver el token y algunos datos utiles para el frontend
         # Obtener el primer grupo del usuario (si tiene)
-        user_groups = user.user_groups.all()
+        user_groups = user.user_groups.exclude(group__name__iexact="SADMIN")
         primary_group = user_groups.first().group.name if user_groups.exists() else None
-
-        # Si es superusuario, asignarlo al grupo SADMIN
-        if user.is_superuser and not primary_group:
-            primary_group = "SADMIN"
 
         return Response({
             "token": token,
@@ -276,7 +273,7 @@ class ForgetPasswordView(APIView):
         # 6. Enviar el correo. fail_silently=False para que un fallo real
         # se vea en los logs durante el desarrollo.
         send_mail(
-            subject="Restablece tu contraseña - SIA",
+            subject="Restablece tu contraseña - SGI",
             message=(
                 f"Hola {user.first_name},\n\n"
                 "Recibimos una solicitud para restablecer tu contraseña.\n"
@@ -306,7 +303,12 @@ class ResetPasswordView(APIView):
         password = request.data.get("password")
         confirm_password = request.data.get("confirm_password")
 
-        # 1. Validar que llegaron los datos
+        # 1. Verificar si la IP está bloqueada por exceso de intentos de reset
+        blocked = _check_rate_limit(request, "reset_attempts")
+        if blocked:
+            return blocked
+
+        # 2. Validar que llegaron los datos
         if not token or not password or not confirm_password:
             return Response(
                 {"error": "Token, contraseña y confirmación son obligatorios"},
@@ -331,17 +333,20 @@ class ResetPasswordView(APIView):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         except jwt.ExpiredSignatureError:
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace ha expirado (válido por 15 minutos). Solicita uno nuevo."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except jwt.InvalidTokenError:
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace no es válido."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if payload.get("scope") != "password_reset":
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace no es válido."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -350,6 +355,7 @@ class ResetPasswordView(APIView):
         # 5. Verificar que el token no haya sido usado ya (uso único)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         if BlacklistedToken.objects.filter(token_hash=token_hash).exists():
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "Este enlace ya fue utilizado. Solicita uno nuevo."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -359,6 +365,7 @@ class ResetPasswordView(APIView):
         try:
             user = User.objects.get(id=payload["user_id"])
         except User.DoesNotExist:
+            _record_failed_attempt(request, "reset_attempts")
             return Response(
                 {"error": "El enlace no es válido."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -381,6 +388,9 @@ class ResetPasswordView(APIView):
             token_hash=token_hash,
             defaults={"expires_at": expires_at},
         )
+
+        # 9. Reset exitoso: limpiar el contador de intentos de la IP
+        _reset_rate_limit(request, "reset_attempts")
 
         return Response(
             {"message": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."},
@@ -423,7 +433,7 @@ class UserFilter(django_filters.FilterSet):
 
 class UserListCreateView(generics.ListCreateAPIView):
     # Lista y crea usuarios.
-    queryset = User.objects.all().order_by("id")
+    queryset = User.objects.all().order_by(Lower("first_name"))
     serializer_class = UserSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class  = UserFilter

@@ -1,5 +1,4 @@
-import { Input, Select, SelectMultiple, ProfileFileInput, StatusBadge, EditCard, IconButton, showAlert, promptAlert } from "@/shared";
-import { Plus } from "lucide-react";
+import { Input, Select, SelectMultiple, ProfileFileInput, StatusBadge, EditCard, Checkbox } from "@/shared";
 
 
 const STATUS_OPTIONS = [
@@ -25,40 +24,39 @@ export default function UserForm({
     onPhotoChange,
     documentTypes = [],
     groups = [],
-    onCreateGroup = null,
     showStatus = false,
+    singleGroupSelection = false,
+    disabledOptionValues = [],
+    // Flags de rol pre-calculados por el padre (Opción A).
+    // Si no se reciben, se calculan aquí como fallback para compatibilidad
+    // con formularios que aún no los derivan externamente (ej. UserCreateForm).
+    isInstructorRole: isInstructorRoleProp = null,
+    datesOptional: datesOptionalProp = null,
     confirmEmailSlot = null,
     contactExtraSlot = null,
     systemExtraSlot = null,
 }) {
     const isActive = formData.isActive === "true" || formData.isActive === true;
 
-    // Pide el nombre del nuevo grupo, lo crea en el backend y lo selecciona
-    // automáticamente en el SelectMultiple. `onCreateGroup` es responsabilidad
-    // de la página (crea el grupo y actualiza la lista de opciones).
-    const handleCreateGroup = async () => {
-        if (!onCreateGroup) return;
-
-        const result = await promptAlert({
-            title: "Nuevo grupo",
-            inputLabel: "Nombre del grupo",
-            inputPlaceholder: "Ej. Administradores",
-            confirmText: "Crear",
-            cancelText: "Cancelar",
-            inputValidator: (value) => {
-                if (!value || !value.trim()) return "El nombre del grupo es obligatorio";
-            },
-        });
-
-        if (!result.isConfirmed) return;
-
-        try {
-            const newGroup = await onCreateGroup(result.value.trim());
-            onChange({ target: { name: "groups", value: [...formData.groups, String(newGroup.id)] } });
-        } catch (error) {
-            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "No se pudo crear el grupo", text: error.message });
-        }
-    };
+    // Si el padre ya calculó los flags, usarlos directamente.
+    // Si no (fallback), derivarlos localmente con la misma lógica.
+    let isInstructorRole, datesOptional;
+    if (isInstructorRoleProp !== null && datesOptionalProp !== null) {
+        isInstructorRole = isInstructorRoleProp;
+        datesOptional    = datesOptionalProp;
+    } else {
+        const selectedGroupIds = Array.isArray(formData.groups)
+            ? formData.groups.map(String)
+            : formData.groups ? [String(formData.groups)] : [];
+        const selectedGroupNames = groups
+            .filter((g) => selectedGroupIds.includes(String(g.id)))
+            .map((g) => g.label?.toUpperCase?.() ?? "");
+        isInstructorRole = selectedGroupNames.some(
+            (n) => n.includes("INST") || n.includes("INSTRUCTOR")
+        );
+        const isAdminLikeRole = selectedGroupNames.some((n) => /(ADMIN|SADMIN|SUPER)/.test(n));
+        datesOptional = Boolean(formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
+    }
 
     return (
         <>
@@ -178,41 +176,54 @@ export default function UserForm({
                         value={formData.startDate}
                         onChange={onChange}
                         error={errors.startDate}
-                        required
+                        required={!datesOptional}
+                        optional={datesOptional}
                     />
                     <Input
                         label="Fecha de finalización"
                         name="endDate"
                         type="date"
-                        optional
+                        required={!datesOptional}
+                        optional={datesOptional}
                         value={formData.endDate}
                         onChange={onChange}
                         error={errors.endDate}
                     />
                     <div>
-                        <SelectMultiple
-                            label="Tipo de usuario"
-                            name="groups"
-                            options={groups}
-                            value={formData.groups}
-                            onChange={onChange}
-                            error={errors.groups}
-                            required
-                            labelAction={
-                                onCreateGroup && (
-                                    <IconButton
-                                        type="button"
-                                        variant="ghost"
-                                        hitSize={28}
-                                        iconSize={16}
-                                        ariaLabel="Agregar nuevo grupo"
-                                        onClick={handleCreateGroup}
-                                    >
-                                        <Plus size={16} />
-                                    </IconButton>
-                                )
-                            }
-                        />
+                        {singleGroupSelection ? (
+                            <Select
+                                label="Tipo de usuario"
+                                name="groups"
+                                options={groups}
+                                value={formData.groups}
+                                onChange={onChange}
+                                error={errors.groups}
+                                required
+                                disabledOptionValues={disabledOptionValues}
+                            />
+                        ) : (
+                            <SelectMultiple
+                                label="Tipo de usuario"
+                                name="groups"
+                                options={groups}
+                                value={formData.groups}
+                                onChange={onChange}
+                                error={errors.groups}
+                                required
+                                disabledOptionValues={disabledOptionValues}
+                            />
+                        )}
+                        {isInstructorRole && (
+                            <div className="mt-2">
+                                <Checkbox
+                                    id="isInstructorPlanta"
+                                    name="isInstructorPlanta"
+                                    label="Instructor de planta"
+                                    checked={Boolean(formData.isInstructorPlanta)}
+                                    onChange={onChange}
+                                />
+                            </div>
+                        )}
                         {showStatus && (
                             <Select
                                 label="Estado"
