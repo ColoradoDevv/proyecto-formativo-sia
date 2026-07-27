@@ -24,6 +24,7 @@ class LoanSerializer(serializers.ModelSerializer):
         model = Loans
         fields = [
             'id_loan',
+            'batch_id',
             'id_responsable_user',
             'id_receptor_user',
             'id_material',

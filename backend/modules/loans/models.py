@@ -38,6 +38,19 @@ class Loans(models.Model):
         null=False
     )
 
+    # ── Agrupación de préstamos por lote ────────────────────────────────
+    # Cuando se crean varios préstamos en la misma transacción (multi-material),
+    # todos comparten el mismo batch_id. Esto permite emitir un único token de
+    # firma y un único OTP por rol que cubre todo el lote.
+    # Los préstamos de un solo material también reciben un batch_id propio
+    # para mantener la lógica uniforme.
+    batch_id = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='UUID compartido por todos los préstamos del mismo lote de creación.',
+    )
+
     # id_material: FK a Materiales (consumo Y devolutivos), obligatorio
     # Apunta a ConsumableMaterial porque Returnable_material hereda de ella
     id_material = models.ForeignKey(
@@ -174,7 +187,15 @@ class SignOTP(models.Model):
         Loans,
         on_delete=models.CASCADE,
         related_name='otps',
-        help_text='Préstamo al que pertenece este OTP.',
+        help_text='Préstamo representativo del lote al que pertenece este OTP.',
+    )
+    # Cuando el OTP cubre un lote completo este campo almacena el UUID del lote.
+    # Para préstamos individuales también se rellena (batch_id == loan.batch_id).
+    batch_id = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='UUID del lote de préstamos que cubre este OTP.',
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

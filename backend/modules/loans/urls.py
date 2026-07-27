@@ -9,5 +9,5 @@ router.register(r'', LoanViewSet, basename='loans')
 
 urlpatterns = [
     path('sign/request-otp/', LoanSignRequestOTPView.as_view(), name='loan-sign-request-otp'),
-    path('sign/', LoanSignView.as_view(), name='loan-sign'),
+    path('sign/',             LoanSignView.as_view(),           name='loan-sign'),
 ] + router.urls
