@@ -1,5 +1,6 @@
 import { Input, Select, TextArea, EditCard, CreateOptionButton } from "@/shared";
 import { getReturnableCategoryRules } from "../utils/returnableCategoryRules";
+import { Plus } from "lucide-react";
 
 // Campos de material devolutivo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange, las opciones de selects
@@ -105,6 +106,7 @@ export default function ReturnableForm({
                                         inputPlaceholder="Ej. Bosch"
                                         errorTitle="No se pudo crear la marca"
                                         ariaLabel="Agregar nueva marca"
+                                        icon={Plus}
                                     />
                                 }
                             />

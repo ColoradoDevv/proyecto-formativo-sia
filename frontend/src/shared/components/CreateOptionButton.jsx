@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { createElement } from "react";
 import { IconButton } from "./IconButton";
 import promptAlert from "../alerts/PromptAlert";
 import showAlert from "../alerts/Alert";
@@ -15,7 +15,13 @@ export default function CreateOptionButton({
     inputPlaceholder = "",
     errorTitle = "No se pudo crear",
     ariaLabel = "Agregar nuevo",
+    icon: Icon,
+    variant = "button",
 }) {
+    if (variant === "spacer") {
+        return <span aria-hidden="true" className="block shrink-0 size-7" />;
+    }
+
     if (!onCreate) return null;
 
     const handleClick = async () => {
@@ -49,7 +55,7 @@ export default function CreateOptionButton({
             ariaLabel={ariaLabel}
             onClick={handleClick}
         >
-            <Plus size={16} />
+            {Icon && createElement(Icon)}
         </IconButton>
     );
 }
