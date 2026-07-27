@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { CircleCheck, CircleX, Loader, ShieldCheck, RefreshCw } from "lucide-react";
-import { isAuthenticated } from "@/shared/services/api";
 import { requestSignOtp, signLoan } from "../../services/loanService";
 import { Button, Input } from "@/shared";
 
@@ -18,7 +17,6 @@ const OTP_RESEND_COOLDOWN = 60; // segundos antes de permitir reenvío
 
 export default function LoanSignPage() {
     const [searchParams] = useSearchParams();
-    const navigate        = useNavigate();
     const token           = searchParams.get("token");
 
     const [step,       setStep]       = useState(STEP.INIT);
@@ -40,11 +38,7 @@ export default function LoanSignPage() {
             setStep(STEP.ERROR);
             return;
         }
-        if (!isAuthenticated()) {
-            const next = encodeURIComponent(`/prestamos/firmar?token=${token}`);
-            navigate(`/iniciar-sesion?next=${next}`, { replace: true });
-            return;
-        }
+        // Si llegamos aquí, ProtectedRoute ya garantizó que hay sesión activa.
         sendOtp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
