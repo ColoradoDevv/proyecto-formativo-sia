@@ -1,4 +1,4 @@
-import { Input, Select, SelectMultiple, TextArea, EditCard } from "@/shared";
+import { Input, Select, SelectMultiple, TextArea, EditCard, CreateOptionButton } from "@/shared";
 
 // Campos de préstamo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange y las opciones de selects.
@@ -27,6 +27,8 @@ export default function LoanForm({
                     onChange={onChange}
                     error={errors.loanResponsableUser}
                     required
+                    labelAction={<CreateOptionButton variant="spacer" />}
+
                 />
                 <Select
                     label="Usuario Receptor del Préstamo"
@@ -36,6 +38,8 @@ export default function LoanForm({
                     onChange={onChange}
                     error={errors.loanReceptorUser}
                     required
+                    labelAction={<CreateOptionButton variant="spacer" />}
+
                 />
                 {multipleMaterials ? (
                     <>
@@ -48,6 +52,8 @@ export default function LoanForm({
                                 onChange={onChange}
                                 error={errors.loanMaterial}
                                 required
+                                labelAction={<CreateOptionButton variant="spacer" />}
+                
                             />
                         </div>
                         {formData.loanMaterial.map((materialId) => {
@@ -77,6 +83,7 @@ export default function LoanForm({
                         value={formData.loanMaterial}
                         onChange={onChange}
                         error={errors.loanMaterial}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         required
                     />
                 )}
@@ -91,6 +98,7 @@ export default function LoanForm({
                         value={formData.loanAmount}
                         onChange={onChange}
                         error={errors.loanAmount}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         required
                     />
                 )}
@@ -101,6 +109,7 @@ export default function LoanForm({
                     value={formData.loanGroup}
                     onChange={onChange}
                     error={errors.loanGroup}
+                    labelAction={<CreateOptionButton variant="spacer" />}
                     required
                 />
                 <Input
@@ -108,6 +117,7 @@ export default function LoanForm({
                     type="date"
                     value={loanDepartureDate}
                     disabled
+                    labelAction={<CreateOptionButton variant="spacer" />}
                     readOnly
                 />
                 <Input
@@ -117,6 +127,7 @@ export default function LoanForm({
                     value={formData.loanReturnDate}
                     onChange={onChange}
                     error={errors.loanReturnDate}
+                    labelAction={<CreateOptionButton variant="spacer" />}
                     required
                 />
                 {extraSlot}
@@ -128,6 +139,7 @@ export default function LoanForm({
                         value={formData.loanJustification}
                         onChange={onChange}
                         error={errors.loanJustification}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         required
                     />
                 </div>
