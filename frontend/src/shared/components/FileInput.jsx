@@ -105,7 +105,7 @@ export default function FileInput({
                 <label className={`
                         block
                         place-self-start
-                        text-medium
+                        text-small
                         mb-1
                         ${displayError ? "text-error" : "text-text-primary"}
                     `}>

@@ -61,7 +61,7 @@ export default function ProfileFileInput({
     return (
         <div className="flex flex-col items-center gap-1.5">
             {label && (
-                <label className={`block place-self-start text-medium mb-1 ${displayError ? "text-error" : "text-text-primary"}`}>
+                <label className={`block place-self-start text-small mb-1 ${displayError ? "text-error" : "text-text-primary"}`}>
                     {label}
                     {required && <span className="text-error ml-1">*</span>}
                     {optional && <span className="text-text-muted ml-1">(opcional)</span>}
