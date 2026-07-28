@@ -26,7 +26,7 @@ export default function Select({
                     <label
                         className={`
                             block
-                            place-self-start
+                            place-self-center
                             text-small
                             ${error ? "text-error" : "text-text-primary"}
                         `}

@@ -1,5 +1,6 @@
 import { Input, Select, TextArea, EditCard, CreateOptionButton } from "@/shared";
 import { getReturnableCategoryRules } from "../utils/returnableCategoryRules";
+import { Plus } from "lucide-react";
 
 // Campos de material devolutivo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange, las opciones de selects
@@ -47,6 +48,8 @@ export default function ReturnableForm({
                             value={formData.name}
                             onChange={onChange}
                             error={errors.name}
+                            labelAction={<CreateOptionButton variant="spacer" />}
+
                             required
                         />
                         <Input
@@ -56,6 +59,8 @@ export default function ReturnableForm({
                             value={formData.model}
                             onChange={onChange}
                             error={errors.model}
+                            labelAction={<CreateOptionButton variant="spacer" />}
+
                             required
                         />
                         <Input
@@ -67,6 +72,8 @@ export default function ReturnableForm({
                             error={errors.senaPlate}
                             required={categoryRules.requiresSenaPlate}
                             optional={!categoryRules.requiresSenaPlate}
+                            labelAction={<CreateOptionButton variant="spacer" />}
+
                         />
                         <Select
                             label="Categoría"
@@ -76,6 +83,7 @@ export default function ReturnableForm({
                             onChange={onChange}
                             error={errors.category}
                             required
+                            labelAction={<CreateOptionButton variant="spacer" />}
                         />    
                         <Input
                             label="ID"
@@ -86,7 +94,10 @@ export default function ReturnableForm({
                             error={errors.serial}
                             required={categoryRules.requiresId}
                             optional={!categoryRules.requiresId}
+                            labelAction={<CreateOptionButton variant="spacer" />}
+
                         />
+
                         
                         <Select
                                 label="Marca"
@@ -105,6 +116,7 @@ export default function ReturnableForm({
                                         inputPlaceholder="Ej. Bosch"
                                         errorTitle="No se pudo crear la marca"
                                         ariaLabel="Agregar nueva marca"
+                                        icon={Plus}
                                     />
                                 }
                             />
@@ -116,6 +128,7 @@ export default function ReturnableForm({
                                 onChange={onChange}
                                 error={errors.description}
                                 required
+                                labelAction={<CreateOptionButton variant="spacer" />}
                             />
 
                         {shouldShowDimensions && (
@@ -130,6 +143,7 @@ export default function ReturnableForm({
                                     value={formData.width ?? ""}
                                     onChange={onChange}
                                     error={errors.width}
+                                    labelAction={<CreateOptionButton variant="spacer" />}
                                     required
                                 />
                                 <Input
@@ -142,6 +156,7 @@ export default function ReturnableForm({
                                     value={formData.length ?? ""}
                                     onChange={onChange}
                                     error={errors.length}
+                                    labelAction={<CreateOptionButton variant="spacer" />}
                                     required
                                 />
                                 <Input
@@ -154,6 +169,7 @@ export default function ReturnableForm({
                                     value={formData.depth ?? ""}
                                     onChange={onChange}
                                     error={errors.depth}
+                                    labelAction={<CreateOptionButton variant="spacer" />}
                                     required
                                 />
                             </div>
@@ -173,6 +189,7 @@ export default function ReturnableForm({
                         value={formData.state}
                         onChange={onChange}
                         error={errors.state}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         required
                     />
                     <Input
@@ -185,6 +202,7 @@ export default function ReturnableForm({
                         value={formData.quantity}
                         onChange={onChange}
                         error={errors.quantity}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         required
                     />
                     <Input
@@ -194,6 +212,7 @@ export default function ReturnableForm({
                         value={formData.location}
                         onChange={onChange}
                         error={errors.location}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                     />
                     <Input
                         label="Fecha de compra"
@@ -202,6 +221,7 @@ export default function ReturnableForm({
                         value={formData.purchaseDate}
                         onChange={onChange}
                         error={errors.purchaseDate}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         required
                     />
                 </EditCard>
@@ -217,6 +237,7 @@ export default function ReturnableForm({
                         value={formData.unitPrice}
                         onChange={onChange}
                         error={errors.unitPrice}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         required
                     />
                     <Input
@@ -226,6 +247,7 @@ export default function ReturnableForm({
                         placeholder="Calculado automáticamente"
                         value={formData.totalPrice}
                         error={errors.totalPrice}
+                        labelAction={<CreateOptionButton variant="spacer" />}
                         readOnly
                     />
                 </EditCard>

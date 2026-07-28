@@ -10,7 +10,7 @@ import { LoginPage, ProtectedRoute, ForgotPasswordPage, ResetPasswordPage } from
 import { DashboardPage } from "@/features/dashboard";
 
 // Imports Usuarios 
-import { UserHomePage, UserCreatePage, UserDetailPage, UserEditPage} from "@/features/users";
+import { UserHomePage, UserCreatePage, UserDetailPage, UserEditPage } from "@/features/users";
 
 // Imports Material de Consumo
 import { CmHomePage, CmCreatePage, CmDetailPage, CmEditPage } from "@/features/consumable-material";

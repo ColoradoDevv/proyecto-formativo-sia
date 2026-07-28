@@ -163,6 +163,28 @@ export async function updateUser(id, userData) {
     return user;
 }
 
+// Actualiza únicamente la foto del perfil personal. Mantener esta operación
+// separada evita que un usuario modifique por accidente sus grupos, estado u
+// otros datos reservados para la administración.
+export async function getMyProfile(signal) {
+    const response = await apiFetch("/api/users/me/", { signal });
+    if (!response.ok) await throwApiError(response);
+    return response.json();
+}
+
+export async function updateUserProfilePicture(picture) {
+    const formData = new FormData();
+    formData.append("profile_picture", picture);
+
+    const response = await apiFetch("/api/users/me/", {
+        method: "PATCH",
+        body: formData,
+    });
+
+    if (!response.ok) await throwApiError(response, { profile_picture: "profilePicture" });
+    return response.json();
+}
+
 // METODO PATCH (activar o desactivar un usuario)
 export async function toggleUserActive(id, isActive, { deactivationReason } = {}) {
   const response = await apiFetch(`/api/users/${id}/`, {

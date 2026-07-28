@@ -3,6 +3,7 @@ import  TmHomePage  from "../../features/trademarks/pages/TmHomePage";
 import {AccessPage} from "@/features/access"
 import GroupManagement from "../../features/access/components/GroupManagement";
 import { TaskHomePage } from "@/features/tasks"
+import { ProfileEditPage } from "@/features/users";
 
 
 
@@ -39,7 +40,7 @@ export default function TabBar() {
 
         <Tab.Panels className="mt-6 px-4 sm:px-6">
           <Tab.Panel>
-            Editar Perfil
+            <ProfileEditPage />
           </Tab.Panel>
           <Tab.Panel>
             <TmHomePage/>

@@ -1,4 +1,5 @@
 import { Input, Select, TextArea, EditCard, CreateOptionButton } from "@/shared";
+import { Plus } from "lucide-react";
 
 const CM_STATE_OPTIONS = [
     { id: "Disponible",    label: "Disponible"    },
@@ -79,6 +80,7 @@ export default function ConsumableForm({
                                     inputPlaceholder="Ej. Bosch"
                                     errorTitle="No se pudo crear la marca"
                                     ariaLabel="Agregar nueva marca"
+                                    icon={Plus}
                                 />
                             }
                         />
@@ -90,6 +92,12 @@ export default function ConsumableForm({
                             onChange={onChange}
                             error={errors.user}
                             required
+                            labelAction={
+                                <CreateOptionButton
+                                    onCreate={onCreateBrand}
+                                    variant="spacer"
+                                />
+                            }
                         />
                         <div className="sm:col-span-2">
                             <TextArea

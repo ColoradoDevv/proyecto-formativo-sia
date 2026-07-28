@@ -66,7 +66,7 @@ export default function LoansListPage() {
                         {notification.message}
                     </Alert>
                 )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={isAdmin ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "flex justify-end"}>
                     {isAdmin && (
                         <Link to="/prestamos/crear" className="w-full">
                             <Button
