@@ -21,6 +21,9 @@ import { RmHomePage, RmCreatePage, RmDetailPage, RmEditPage } from "@/features/r
 // Imports de Prestamos
 import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage, LoanSignPage } from "@/features/loans";
 
+// Imports de Auditoría
+import { AuditLogPage } from "@/features/audit";
+
 import { ConfigLayout, MainLayout } from "@/shared";
 
 
@@ -83,6 +86,11 @@ export default function AppRouter() {
 
                 {/* Configuracion */}
                 <Route path="/configuracion" element={<ConfigLayout />} />
+
+                {/* Historial de Auditoría — solo superadministrador primigenio */}
+                <Route path="/auditoria" element={<MainLayout />}>
+                    <Route index element={<AuditLogPage />} />
+                </Route>
 
             </Route>
         </Routes>

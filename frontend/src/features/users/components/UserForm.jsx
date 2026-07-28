@@ -14,6 +14,8 @@ const STATUS_OPTIONS = [
 // - formData, errors, onChange, onPhotoChange
 // - documentTypes, groups: opciones para los selects
 // - showStatus: muestra el selector "Estado" (solo en editar)
+// - isPrimaryAdmin: si true, bloquea los campos de grupo y estado para proteger
+//   al superadministrador primigenio del sistema
 // - confirmEmailSlot / contactExtraSlot / systemExtraSlot: slots opcionales para
 //   inyectar campos propios de cada modo (confirmar correo, telefono adicional
 //   condicional, tareas, etc.)
@@ -27,6 +29,7 @@ export default function UserForm({
     showStatus = false,
     singleGroupSelection = false,
     disabledOptionValues = [],
+    isPrimaryAdmin = false,
     // Flags de rol pre-calculados por el padre (Opción A).
     // Si no se reciben, se calculan aquí como fallback para compatibilidad
     // con formularios que aún no los derivan externamente (ej. UserCreateForm).
@@ -192,6 +195,7 @@ export default function UserForm({
                                 error={errors.groups}
                                 required
                                 disabledOptionValues={disabledOptionValues}
+                                disabled={isPrimaryAdmin}
                             />
                         ) : (
                             <SelectMultiple
@@ -203,6 +207,7 @@ export default function UserForm({
                                 error={errors.groups}
                                 required
                                 disabledOptionValues={disabledOptionValues}
+                                disabled={isPrimaryAdmin}
                             />
                         )}
                         {isInstructorRole && (
@@ -225,6 +230,7 @@ export default function UserForm({
                                 onChange={onChange}
                                 error={errors.isActive}
                                 required
+                                disabled={isPrimaryAdmin}
                             />
                         )}
                     </div>

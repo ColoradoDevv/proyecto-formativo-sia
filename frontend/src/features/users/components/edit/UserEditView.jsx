@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, IconButton, Input, StatusLabel, showAlert, cancelAlert } from "@/shared";
-import { Undo2, ClipboardList } from "lucide-react";
+import { Undo2, ClipboardList, ShieldAlert } from "lucide-react";
 import useUser from "../../hooks/useUser.js";
 import useUserGroups from "../../hooks/useUserGroups";
 import { getDocumentTypes } from "../../services/selectServices";
@@ -217,6 +217,17 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
                 </div>
             </div>
 
+            {/* Banner: superadministrador primigenio — solo informativo */}
+            {user.is_primary_admin && (
+                <div className="flex items-start gap-2 rounded-[var(--radius-md)] border border-warning bg-warning/10 px-4 py-3 text-sm text-text-primary">
+                    <ShieldAlert size={18} className="shrink-0 mt-0.5 text-warning" />
+                    <p>
+                        Este es el <strong>superadministrador primigenio</strong> del sistema.
+                        Su tipo de usuario y estado no pueden modificarse para garantizar el acceso al sistema.
+                    </p>
+                </div>
+            )}
+
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
                 <UserForm
@@ -228,6 +239,7 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
                     groups={groups}
                     isInstructorRole={isInstructorRole}
                     datesOptional={datesOptional}
+                    isPrimaryAdmin={Boolean(user.is_primary_admin)}
                     showStatus
                     singleGroupSelection
                     contactExtraSlot={

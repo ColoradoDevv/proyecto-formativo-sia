@@ -25,6 +25,9 @@ from .models import Loans, SignOTP
 from .serializers import LoanSerializer
 from modules.permissions.permissions_drf import HasPermission, IsSuperUser
 from modules.users.models import BlacklistedToken
+from modules.audit.mixins import AuditMixin
+from modules.audit.utils import log as audit_log
+from modules.audit.models import AuditLog
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constantes
@@ -164,7 +167,7 @@ class LoanFilter(django_filters.FilterSet):
 # ViewSet principal
 # ─────────────────────────────────────────────────────────────────────────────
 
-class LoanViewSet(viewsets.ModelViewSet):
+class LoanViewSet(AuditMixin, viewsets.ModelViewSet):
     serializer_class = LoanSerializer
     filter_backends  = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class  = LoanFilter
@@ -675,6 +678,25 @@ class LoanSignView(APIView):
             )
 
         _reset_rl(request, "sign_attempt")
+
+        # Auditar la firma del lote
+        first = loans[0]
+        audit_log(
+            actor=request.user,
+            module=AuditLog.MODULE_LOANS,
+            action=AuditLog.ACTION_SIGN_LOAN,
+            target_id=first.pk,
+            target_repr=(
+                f"Lote {str(first.batch_id)[:8]}… — "
+                f"{len(loans)} préstamo(s)"
+            ),
+            detail=(
+                f"Rol: {'Responsable' if role == 'responsable' else 'Receptor'} | "
+                f"IP: {client_ip} | "
+                f"Activos: {all(l.state == 'Activo' for l in loans)}"
+            ),
+            request=request,
+        )
 
         activated  = all(l.state == 'Activo' for l in loans)
         role_label = "Responsable" if role == "responsable" else "Receptor"

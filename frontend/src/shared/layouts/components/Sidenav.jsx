@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
-import { House, Users, Wrench, Truck, Scroll, Settings, LogOut, X } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { House, Users, Wrench, Truck, Scroll, Settings, LogOut, X, ClipboardList } from "lucide-react";
 import { logout } from "@/features/auth/services/authService";
 import { cancelAlert } from "@/shared";
 import { usePermissions } from "@/shared/hooks/usePermissions";
@@ -54,7 +54,7 @@ const NAV_MODULES = [
 
 function NavLinks({ onLinkClick }) {
     const navigate = useNavigate();
-    const { canAny, isSuper } = usePermissions();
+    const { canAny, isSuper, isPrimaryAdmin } = usePermissions();
 
     // Filtramos los módulos según los permisos del usuario.
     // Si requiredPerms está vacío siempre pasa; si no, basta uno de ellos.
@@ -62,8 +62,12 @@ function NavLinks({ onLinkClick }) {
         requiredPerms.length === 0 ? true : canAny(requiredPerms)
     );
 
-    const linkClass =
-        "flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors";
+    const linkClass = ({ isActive }) =>
+        `flex items-center gap-3 p-2 rounded transition-colors ${
+            isActive
+                ? "bg-surface-muted text-primary font-medium"
+                : "hover:bg-surface-muted"
+        }`;
 
     async function handleLogout() {
         const result = await cancelAlert({
@@ -87,9 +91,14 @@ function NavLinks({ onLinkClick }) {
             <ul className="flex flex-col gap-5">
                 {visibleModules.map(({ to, icon, label }) => (
                     <li key={to}>
-                        <Link to={to} onClick={onLinkClick} className={linkClass}>
+                        <NavLink
+                            to={to}
+                            end={to === "/"}
+                            onClick={onLinkClick}
+                            className={linkClass}
+                        >
                             {icon} {label}
-                        </Link>
+                        </NavLink>
                     </li>
                 ))}
             </ul>
@@ -98,9 +107,18 @@ function NavLinks({ onLinkClick }) {
                 {/* Configuración: superusuarios o usuarios con gestión de grupos/roles */}
                 {(isSuper || canAny(["manage_groups", "manage_role_permissions", "create_role", "list_roles"])) && (
                     <li>
-                        <Link to="/configuracion" onClick={onLinkClick} className={linkClass}>
+                        <NavLink to="/configuracion" onClick={onLinkClick} className={linkClass}>
                             <Settings size={24} /> Configuración
-                        </Link>
+                        </NavLink>
+                    </li>
+                )}
+
+                {/* Auditoría: solo el superadministrador primigenio */}
+                {isPrimaryAdmin && (
+                    <li>
+                        <NavLink to="/auditoria" onClick={onLinkClick} className={linkClass}>
+                            <ClipboardList size={24} /> Auditoría
+                        </NavLink>
                     </li>
                 )}
 
@@ -109,7 +127,7 @@ function NavLinks({ onLinkClick }) {
                     <button
                         type="button"
                         onClick={handleLogout}
-                        className={`${linkClass} w-full text-left cursor-pointer`}
+                        className="flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors w-full text-left cursor-pointer"
                     >
                         <LogOut size={24} /> Cerrar sesión
                     </button>

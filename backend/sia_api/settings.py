@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'modules.loans',
     'modules.returns',
     'modules.tasks',
+    'modules.audit',
 ]
 
 AUTH_USER_MODEL = "users.User"

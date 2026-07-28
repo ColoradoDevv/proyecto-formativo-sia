@@ -43,8 +43,14 @@ class UserSerializer(serializers.ModelSerializer):
         memberships = obj.user_groups.exclude(group__name__iexact=SYSTEM_GROUP_NAME).select_related('group')
         return UserGroupSerializer(memberships, many=True).data
     
-    # URL absoluta para la foto de perfil (devuelve /media/... para que el proxy de Vite la redirija)
+    # URL absoluta para la foto de perfil (devuelve /media/... para que el proxy de Vite la redirija).
+    # Se usa get_profile_picture solo para leer; el campo del modelo acepta escritura
+    # normalmente via ImageField, pero lo necesitamos declarar explícitamente para
+    # que DRF no lo sobreescriba con el SerializerMethodField (que es read-only).
     profile_picture = serializers.SerializerMethodField()
+    profile_picture_upload = serializers.ImageField(
+        write_only=True, required=False, source="profile_picture"
+    )
 
     # Para escribir - acepta solo el ID en POST
     document_type_id = serializers.PrimaryKeyRelatedField(
@@ -82,6 +88,10 @@ class UserSerializer(serializers.ModelSerializer):
                 "allow_blank": True,
                 "validators": [],
             },
+            # is_primary_admin se expone en lectura para que el frontend pueda
+            # saber si está editando al superadmin primigenio y deshabilitar
+            # los controles sensibles. Nunca debe ser escritura desde la API.
+            "is_primary_admin": {"read_only": True},
         }
 
     def validate_document_number(self, value):

@@ -19,6 +19,10 @@ from .serializers import (
     ReturnableMaterialSerializer,
 )
 from modules.permissions.permissions_drf import HasPermission
+from modules.audit.mixins import AuditMixin
+from modules.audit.utils import log as audit_log
+from modules.audit.models import AuditLog
+from modules.audit.signals import audit_toggle_active
 
 
 FIXED_RETURNABLE_CATEGORY_NAMES = (
@@ -28,7 +32,7 @@ FIXED_RETURNABLE_CATEGORY_NAMES = (
 )
 
 
-class BrandViewSet(viewsets.ModelViewSet):
+class BrandViewSet(AuditMixin, viewsets.ModelViewSet):
     # CRUD de marcas.
     queryset = Brand.objects.all().order_by(Lower("name"))
     serializer_class = BrandSerializer
@@ -59,7 +63,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
         return [HasPermission("view_returnable")]
 
 
-class ConsumableMaterialViewSet(viewsets.ModelViewSet):
+class ConsumableMaterialViewSet(AuditMixin, viewsets.ModelViewSet):
     # CRUD de materiales consumibles.
     queryset = ConsumableMaterial.objects.all().order_by(Lower("name"))
     serializer_class = ConsumableMaterialSerializer
@@ -110,6 +114,14 @@ class ConsumableMaterialViewSet(viewsets.ModelViewSet):
             material.state = "Disponible"
         material.save(update_fields=["is_active", "state"])
 
+        audit_toggle_active.send(
+            sender=ConsumableMaterial,
+            instance=material,
+            is_active=material.is_active,
+            request=request,
+            module=AuditLog.MODULE_CONSUMABLES,
+        )
+
         return Response(
             {
                 "message": f"Material '{material.name}' {'activado' if material.is_active else 'desactivado'} correctamente.",
@@ -120,7 +132,7 @@ class ConsumableMaterialViewSet(viewsets.ModelViewSet):
         )
 
 
-class ReturnableMaterialViewSet(viewsets.ModelViewSet):
+class ReturnableMaterialViewSet(AuditMixin, viewsets.ModelViewSet):
     queryset = ReturnableMaterial.objects.select_related(
         'consumable', 'consumable__brand', 'consumable__user', 'category'
     ).all().order_by(Lower("consumable__name"))
@@ -188,6 +200,14 @@ class ReturnableMaterialViewSet(viewsets.ModelViewSet):
         elif consumable.state == "No Disponible":
             consumable.state = "Disponible"
         consumable.save(update_fields=["is_active", "state"])
+
+        audit_toggle_active.send(
+            sender=ReturnableMaterial,
+            instance=rm,
+            is_active=consumable.is_active,
+            request=request,
+            module=AuditLog.MODULE_RETURNABLES,
+        )
 
         return Response(
             {

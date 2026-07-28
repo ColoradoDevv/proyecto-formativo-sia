@@ -19,9 +19,11 @@ export default function SelectMultiple({
     onChange,
     required,
     optional,
+    disabled = false,
     options = [],
 }) {
     const toggle = (id) => {
+        if (disabled) return;
         const next = value.includes(id)
             ? value.filter((v) => v !== id)
             : [...value, id];
@@ -64,9 +66,11 @@ export default function SelectMultiple({
                         focus:outline-none
                         focus:ring-2
                         focus:border-focus-border
+                        ${disabled ? "opacity-60 cursor-not-allowed pointer-events-none" : ""}
                         ${error ? "border-error" : "border-border"}
                         ${selectedLabels.length === 0 ? "text-text-muted" : "text-text-primary"}
                     `}
+                    disabled={disabled}
                 >
                     <span className="truncate text-left flex-1">
                         {selectedLabels.length > 0 ? selectedLabels.join(", ") : "Seleccione una opción"}

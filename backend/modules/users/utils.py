@@ -32,6 +32,48 @@ def generate_secure_password(length=12):
 
     return "".join(password_chars)
 
+def send_password_change_otp_email(user, otp_code):
+    """
+    Envía el código OTP al correo del usuario para confirmar el cambio
+    de contraseña iniciado desde su perfil.
+    """
+    send_mail(
+        subject="Código de verificación - Cambio de contraseña SGI",
+        message=(
+            f"Hola {user.first_name},\n\n"
+            "Recibimos una solicitud para cambiar la contraseña de tu cuenta en SGI.\n\n"
+            f"Tu código de verificación es:\n\n"
+            f"    {otp_code}\n\n"
+            "Este código es válido por 10 minutos y solo puede usarse una vez.\n\n"
+            "Si no solicitaste este cambio, ignora este correo. "
+            "Tu contraseña actual no será modificada."
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
+def send_password_changed_confirmation_email(user):
+    """
+    Notifica al usuario que su contraseña fue cambiada exitosamente.
+    Si no fue él, le indica cómo actuar.
+    """
+    send_mail(
+        subject="Tu contraseña fue cambiada - SGI",
+        message=(
+            f"Hola {user.first_name},\n\n"
+            "Te confirmamos que la contraseña de tu cuenta en SGI fue cambiada exitosamente.\n\n"
+            "Si no realizaste este cambio, contacta al administrador del sistema "
+            "de inmediato para proteger tu cuenta.\n\n"
+            f"Puedes iniciar sesión aquí: {settings.FRONTEND_URL}/login"
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
 def send_welcome_email(user, plain_password):
     """
     Envia al correo del usuario recien creado sus credenciales de acceso.

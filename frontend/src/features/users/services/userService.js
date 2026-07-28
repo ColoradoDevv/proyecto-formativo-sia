@@ -185,6 +185,41 @@ export async function updateUserProfilePicture(picture) {
     return response.json();
 }
 
+// ── Cambio de contraseña con OTP ────────────────────────────────────────────
+
+// Paso 1: valida la contraseña actual, la nueva y solicita el envío del OTP
+// al correo del usuario autenticado.
+export async function requestPasswordChangeOtp({ currentPassword, newPassword, confirmNewPassword }) {
+    const OTP_FIELD_MAP = {
+        current_password: "currentPassword",
+        new_password: "newPassword",
+        confirm_new_password: "confirmNewPassword",
+    };
+    const response = await apiFetch("/api/users/me/change-password/request/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_new_password: confirmNewPassword,
+        }),
+    });
+    if (!response.ok) await throwApiError(response, OTP_FIELD_MAP);
+    return response.json();
+}
+
+// Paso 2: verifica el OTP ingresado por el usuario y aplica el cambio de contraseña.
+export async function confirmPasswordChange({ otpCode }) {
+    const OTP_FIELD_MAP = { otp_code: "otp" };
+    const response = await apiFetch("/api/users/me/change-password/confirm/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp_code: otpCode }),
+    });
+    if (!response.ok) await throwApiError(response, OTP_FIELD_MAP);
+    return response.json();
+}
+
 // METODO PATCH (activar o desactivar un usuario)
 export async function toggleUserActive(id, isActive, { deactivationReason } = {}) {
   const response = await apiFetch(`/api/users/${id}/`, {

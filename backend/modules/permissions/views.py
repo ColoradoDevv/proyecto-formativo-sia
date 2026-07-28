@@ -19,7 +19,9 @@ from .serializers import (
     AssignGroupSerializer,
 )
 from .services import PermissionService
-from .permissions_drf import IsSuperUser, HasPermission
+from .permissions_drf import IsSuperUser, HasPermission, is_primary_admin
+from modules.audit.utils import log as audit_log
+from modules.audit.models import AuditLog
 
 
 class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -252,6 +254,16 @@ class UserPermissionView(generics.GenericAPIView):
 
         PermissionService.invalidate_user_cache(user.id)
 
+        audit_log(
+            actor=request.user,
+            module=AuditLog.MODULE_PERMISSIONS,
+            action=AuditLog.ACTION_ASSIGN_PERM,
+            target_id=user.pk,
+            target_repr=f"{user.first_name} {user.last_name} <{user.email}>",
+            detail=f"Permiso asignado: {permission.codename}",
+            request=request,
+        )
+
         return Response(
             {
                 "message": f"Permiso '{permission.codename}' asignado a {user.email}",
@@ -263,6 +275,14 @@ class UserPermissionView(generics.GenericAPIView):
     def delete(self, request, user_id):
         """Remueve un permiso de un usuario"""
         user = self.get_user(user_id)
+
+        # Protección: el admin primigenio no puede perder permisos directos.
+        if is_primary_admin(user):
+            return Response(
+                {"error": "No se pueden quitar permisos al superadministrador primigenio del sistema."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = AssignPermissionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -283,6 +303,15 @@ class UserPermissionView(generics.GenericAPIView):
         PermissionService.invalidate_user_cache(user.id)
 
         if deleted:
+            audit_log(
+                actor=request.user,
+                module=AuditLog.MODULE_PERMISSIONS,
+                action=AuditLog.ACTION_REMOVE_PERM,
+                target_id=user.pk,
+                target_repr=f"{user.first_name} {user.last_name} <{user.email}>",
+                detail=f"Permiso removido: {permission.codename}",
+                request=request,
+            )
             return Response(
                 {
                     "message": f"Permiso '{permission.codename}' removido de {user.email}"
@@ -352,6 +381,16 @@ class UserGroupView(generics.GenericAPIView):
 
         PermissionService.invalidate_user_cache(user.id)
 
+        audit_log(
+            actor=request.user,
+            module=AuditLog.MODULE_PERMISSIONS,
+            action=AuditLog.ACTION_ASSIGN_GROUP,
+            target_id=user.pk,
+            target_repr=f"{user.first_name} {user.last_name} <{user.email}>",
+            detail=f"Grupo asignado: {group.name}",
+            request=request,
+        )
+
         return Response(
             {
                 "message": f"{user.email} agregado al grupo '{group.name}'",
@@ -363,6 +402,14 @@ class UserGroupView(generics.GenericAPIView):
     def delete(self, request, user_id):
         """Remueve un usuario de un grupo"""
         user = self.get_user(user_id)
+
+        # Protección: el admin primigenio no puede ser removido de ningún grupo.
+        if is_primary_admin(user):
+            return Response(
+                {"error": "No se puede quitar al superadministrador primigenio de ningún grupo."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = AssignGroupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -385,6 +432,15 @@ class UserGroupView(generics.GenericAPIView):
         PermissionService.invalidate_user_cache(user.id)
 
         if deleted:
+            audit_log(
+                actor=request.user,
+                module=AuditLog.MODULE_PERMISSIONS,
+                action=AuditLog.ACTION_REMOVE_GROUP,
+                target_id=user.pk,
+                target_repr=f"{user.first_name} {user.last_name} <{user.email}>",
+                detail=f"Grupo removido: {group.name}",
+                request=request,
+            )
             return Response(
                 {"message": f"{user.email} removido del grupo '{group.name}'"},
                 status=status.HTTP_200_OK,

@@ -92,6 +92,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     deactivation_reason = models.TextField(null=True, blank=True)
     is_staff = models.BooleanField(default=False)   # si puede entrar al panel /admin
 
+    # Marca al superadministrador original del sistema.
+    # Una vez marcado como True nunca puede revertirse a False desde la API.
+    # Protege contra la eliminación accidental o malintencionada del único
+    # superadmin garantizado del sistema.
+    is_primary_admin = models.BooleanField(
+        default=False,
+        help_text=(
+            "Indica si este usuario es el superadministrador primigenio del sistema. "
+            "No se puede quitar, cambiar de grupo ni desactivar a través de la API."
+        ),
+    )
+
     # --- Campos que Django necesita para el control de acceso ---
     is_deleted = models.BooleanField(default=False)  # si esta en True, no puede entrar y se oculta de la lista
     deleted_at = models.DateTimeField(null=True, blank=True)  # fecha de eliminacion logica
@@ -123,6 +135,67 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+
+class PasswordChangeOTP(models.Model):
+    """
+    Código OTP de un solo uso para confirmar el cambio de contraseña
+    desde el perfil del usuario autenticado.
+
+    Flujo:
+      1. Usuario envía contraseña actual + nueva → POST /api/users/me/change-password/request/
+         Se valida la contraseña actual, se genera este registro y se envía el
+         código al correo del usuario.
+      2. Usuario ingresa el código OTP → POST /api/users/me/change-password/confirm/
+         con { otp_code } → se valida y se aplica el cambio.
+
+    Seguridad:
+      - El código se almacena como SHA-256 (nunca en claro).
+      - Expira en 10 minutos.
+      - Máximo 5 intentos fallidos antes de invalidarse.
+      - Un OTP solo puede usarse una vez (used=True tras el primer uso correcto).
+      - La nueva contraseña se guarda hasheada en pending_password_hash para no
+        transmitirla de nuevo en el paso de confirmación.
+    """
+    user = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="password_change_otps",
+    )
+    code_hash = models.CharField(
+        max_length=64,
+        help_text="SHA-256 del código OTP. Nunca se almacena en claro.",
+    )
+    # Almacenamos el hash de la nueva contraseña para no pedirla otra vez en el
+    # paso de confirmación (el usuario ya la escribió en el paso 1).
+    pending_password_hash = models.CharField(
+        max_length=128,
+        help_text="Hash Django de la nueva contraseña. Se aplica al confirmar el OTP.",
+    )
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    OTP_MAX_ATTEMPTS = 5
+    OTP_TTL_MINUTES = 10
+
+    class Meta:
+        db_table = "password_change_otps"
+        verbose_name = "OTP de cambio de contraseña"
+        verbose_name_plural = "OTPs de cambio de contraseña"
+
+    def __str__(self):
+        return f"PasswordChangeOTP user={self.user_id} usado={self.used}"
+
+    @property
+    def is_valid(self):
+        """False si ya fue usado, expiró o superó el límite de intentos."""
+        return (
+            not self.used
+            and self.attempts < self.OTP_MAX_ATTEMPTS
+            and timezone.now() < self.expires_at
+        )
 
 
 class BlacklistedToken(models.Model):

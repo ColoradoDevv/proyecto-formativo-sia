@@ -10,9 +10,10 @@ from rest_framework.response import Response
 from .models import LoanReturn
 from .serializers import LoanReturnSerializer
 from modules.permissions.permissions_drf import HasPermission, IsSuperUser
+from modules.audit.mixins import AuditMixin
 
 
-class LoanReturnViewSet(viewsets.ModelViewSet):
+class LoanReturnViewSet(AuditMixin, viewsets.ModelViewSet):
     # CRUD de retornos de prestamos.
     queryset = LoanReturn.objects.select_related('loan', 'material').all().order_by('id')
     serializer_class = LoanReturnSerializer

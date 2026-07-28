@@ -21,6 +21,10 @@ export default function ProfileFileInput({
     const [isLoading, setIsLoading] = useState(false);
     const [sizeError, setSizeError] = useState(null);
 
+    // Guarda el blob URL anterior para revocarlo DESPUÉS de que el nuevo render
+    // ya pintó la imagen, evitando que la imagen quede rota entre renders.
+    const prevBlobRef = useRef(null);
+
     const preview = useMemo(() => {
         const file = value[0];
         if (!file) return null;
@@ -30,7 +34,23 @@ export default function ProfileFileInput({
     }, [value]);
 
     useEffect(() => {
-        return () => { if (preview && typeof value[0] !== "string") URL.revokeObjectURL(preview); };
+        // Cuando el preview cambia, revocamos el blob anterior (si lo había).
+        // El nuevo preview ya está pintado en este punto, así que es seguro.
+        if (prevBlobRef.current) {
+            URL.revokeObjectURL(prevBlobRef.current);
+            prevBlobRef.current = null;
+        }
+        // Si el preview actual es un blob, lo guardamos para revocarlo después.
+        if (preview && !preview.startsWith("/") && !preview.startsWith("http")) {
+            prevBlobRef.current = preview;
+        }
+        // Al desmontar el componente, revocamos el blob activo.
+        return () => {
+            if (prevBlobRef.current) {
+                URL.revokeObjectURL(prevBlobRef.current);
+                prevBlobRef.current = null;
+            }
+        };
     }, [preview]);
 
     const handleFiles = async (files) => {
