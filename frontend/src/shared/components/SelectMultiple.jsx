@@ -2,6 +2,20 @@ import { ChevronDown } from "lucide-react";
 import { Dropdown, DropdownTrigger, DropdownContent } from "./Dropdown";
 import Checkbox from "./Checkbox";
 
+const TYPE_STYLES = {
+    Consumo:    "bg-blue-500/15 text-blue-400 border border-blue-500/30",
+    Devolutivo: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30",
+};
+
+function TypeBadge({ type }) {
+    if (!type) return null;
+    return (
+        <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full leading-none ${TYPE_STYLES[type] ?? "bg-surface-muted text-text-muted border border-border"}`}>
+            {type}
+        </span>
+    );
+}
+
 const MAX_OPTION_LENGTH = 40;
 
 function truncateLabel(label, max = MAX_OPTION_LENGTH) {
@@ -84,7 +98,12 @@ export default function SelectMultiple({
                             key={opt.id}
                             id={`${name}-${opt.id}`}
                             name={name}
-                            label={truncateLabel(opt.label)}
+                            label={
+                                <span className="flex items-center gap-1.5 min-w-0">
+                                    <span className="truncate">{truncateLabel(opt.label)}</span>
+                                    <TypeBadge type={opt.type} />
+                                </span>
+                            }
                             title={opt.label}
                             checked={value.includes(String(opt.id))}
                             onChange={() => toggle(String(opt.id))}

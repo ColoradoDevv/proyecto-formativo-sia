@@ -15,12 +15,40 @@ export const materialColumns = (setCMs) => [
     },
     {
         accessorKey: "quantity",
-        header: "Cantidad",
+        header: "Cantidad disponible",
+        cell: ({ row }) => {
+            const { available_quantity, quantity, is_exhausted } = row.original;
+            const display = available_quantity ?? quantity;
+            if (display == null) return "—";
+            return (
+                <span className="flex items-center gap-1.5">
+                    {display}
+                    {is_exhausted && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-500/15 text-red-400 border border-red-500/30">
+                            Agotado
+                        </span>
+                    )}
+                </span>
+            );
+        },
     },
     {
         accessorKey: "state",
         header: "Disponibilidad",
         meta: { filterVariant: "select" },
+        cell: ({ row }) => {
+            const { state, is_exhausted } = row.original;
+            return (
+                <span className="flex items-center gap-1.5">
+                    {state ?? "—"}
+                    {is_exhausted && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-500/15 text-red-400 border border-red-500/30">
+                            Agotado
+                        </span>
+                    )}
+                </span>
+            );
+        },
     },
     {
         accessorKey: "location",

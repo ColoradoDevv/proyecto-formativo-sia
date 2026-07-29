@@ -37,7 +37,7 @@ export default function Checkbox({
                 className="w-5 h-5 accent-text-primary shrink-0"
             />
             {/* Texto del checkbox */}
-            <span className="truncate">{label}</span>
+            <span className="min-w-0 flex-1">{label}</span>
             {required && <span className="text-error ml-1">*</span>}
         </label>
     )

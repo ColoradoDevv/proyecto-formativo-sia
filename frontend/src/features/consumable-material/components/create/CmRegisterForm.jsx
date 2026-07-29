@@ -91,7 +91,9 @@ export default function CmRegisterForm() {
 
             setErrors({});
 
-            await createCm(result.data);
+            // Pasar los archivos directamente de formData (no de result.data) para
+            // evitar que z.instanceof(File) los descarte silenciosamente en Vite.
+            await createCm({ ...result.data, photo: formData.photo, technicalSheet: formData.technicalSheet });
 
             await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material de consumo creado exitosamente" });
             navigate("/consumibles");

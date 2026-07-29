@@ -249,8 +249,13 @@ class ReturnableMaterialViewSet(AuditMixin, viewsets.ModelViewSet):
                 model=model,
                 serial=data.get('serial', ''),
                 dimensions=data.get('dimensions') or None,
-                technical_sheet=files.get('technical_sheet', ''),
             )
+
+            # Guardar fichas técnicas (hasta 3: technical_sheet_0, _1, _2)
+            from .models import TechnicalSheet
+            for key in sorted(files.keys()):
+                if key == 'technical_sheet' or key.startswith('technical_sheet_'):
+                    TechnicalSheet.objects.create(material=consumable, file=files[key])
 
         serializer = self.get_serializer(rm)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -305,10 +310,41 @@ class ReturnableMaterialViewSet(AuditMixin, viewsets.ModelViewSet):
                 rm.serial = data.get('serial')
             if 'dimensions' in data:
                 rm.dimensions = data.get('dimensions') or None
-            if 'technical_sheet' in files:
-                rm.technical_sheet = files.get('technical_sheet')
+
+            # Fichas técnicas nuevas en el PATCH (se agregan al lote existente).
+            from .models import TechnicalSheet as TS
+            for key in sorted(files.keys()):
+                if key == 'technical_sheet' or key.startswith('technical_sheet_'):
+                    TS.objects.create(material=consumable, file=files[key])
 
             rm.save()
 
         serializer = self.get_serializer(rm)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endpoint: eliminar una ficha técnica individual
+# ─────────────────────────────────────────────────────────────────────────────
+
+from rest_framework.views import APIView as _APIView
+from rest_framework.response import Response as _Resp
+
+class TechnicalSheetDeleteView(_APIView):
+    """
+    DELETE /api/products/technical-sheets/<pk>/
+    Elimina una ficha técnica por su ID.
+    Solo accesible para usuarios con permiso edit_returnable.
+    """
+    def get_permissions(self):
+        return [HasPermission("edit_returnable")]
+
+    def delete(self, request, pk):
+        from .models import TechnicalSheet
+        try:
+            sheet = TechnicalSheet.objects.get(pk=pk)
+        except TechnicalSheet.DoesNotExist:
+            return _Resp({"error": "Ficha técnica no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        sheet.file.delete(save=False)   # borra el archivo del disco
+        sheet.delete()
+        return _Resp(status=status.HTTP_204_NO_CONTENT)

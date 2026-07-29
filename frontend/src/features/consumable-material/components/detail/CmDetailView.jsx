@@ -60,7 +60,7 @@ export default function CmDetailView() {
                         <div className="flex flex-col items-center gap-2 shrink-0 w-full sm:w-32">
                             <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                                 {CM.image
-                                    ? <img src={CM.image} alt={CM.name} className="w-full h-full object-cover" />
+                                    ? <img src={CM.image} alt={CM.name} className="w-full h-full object-contain" />
                                     : <ImageOff size={40} className="text-text-muted" />
                                 }
                             </div>
@@ -70,12 +70,15 @@ export default function CmDetailView() {
                                     href={CM.technical_sheet}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center gap-1 text-brand text-caption hover:underline"
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-full)] border border-brand/40 bg-brand/8 text-brand text-small font-medium hover:bg-brand/15 transition-colors"
                                 >
-                                    <FileText size={14} />
-                                    Ficha técnica
+                                    <FileText size={14} className="shrink-0" />
+                                    <span>Ficha técnica</span>
                                 </a>
-                                : <span className="text-caption italic text-text-muted">Sin ficha</span>
+                                : <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-full)] border border-border bg-surface-muted text-text-muted text-small italic">
+                                    <FileText size={13} className="shrink-0" />
+                                    Sin ficha
+                                  </span>
                             }
                         </div>
 

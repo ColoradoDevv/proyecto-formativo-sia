@@ -110,7 +110,7 @@ export default function ProfileFileInput({
                     </div>
                 ) : preview ? (
                     <>
-                        <img src={preview} className="w-full h-full object-cover object-top" />
+                        <img src={preview} className="w-full h-full object-contain" />
                         <div
                             className="
                                 absolute inset-0

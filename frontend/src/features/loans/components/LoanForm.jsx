@@ -2,8 +2,9 @@ import { Input, Select, SelectMultiple, TextArea, EditCard, CreateOptionButton }
 
 // Campos de préstamo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange y las opciones de selects.
-// `extraSlot` permite inyectar campos propios de un modo (ej. la fecha de
-// préstamo de solo lectura en edición).
+// Props de control de usuarios:
+//   hideResponsable — oculta el select de responsable (creación: ya viene de sesión)
+//   readonlyUsers   — muestra responsable y receptor como texto no editable (edición)
 export default function LoanForm({
     formData,
     errors = {},
@@ -14,33 +15,16 @@ export default function LoanForm({
     onMaterialQuantityChange,
     loanDepartureDate = "",
     extraSlot = null,
+    hideResponsable = false,
+    readonlyUsers = false,
 }) {
-    return (
+    // Nombre legible del responsable/receptor para los campos de solo lectura.
+    const responsableName = users.find((u) => String(u.id) === String(formData.loanResponsableUser))?.label ?? "—";
+    const receptorName    = users.find((u) => String(u.id) === String(formData.loanReceptorUser))?.label    ?? "—";
 
+    return (
         <EditCard title="Información del Préstamo" cols={1}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 w-full">
-                <Select
-                    label="Usuario Responsable del Préstamo"
-                    name="loanResponsableUser"
-                    options={users}
-                    value={formData.loanResponsableUser}
-                    onChange={onChange}
-                    error={errors.loanResponsableUser}
-                    required
-                    labelAction={<CreateOptionButton variant="spacer" />}
-
-                />
-                <Select
-                    label="Usuario Receptor del Préstamo"
-                    name="loanReceptorUser"
-                    options={users}
-                    value={formData.loanReceptorUser}
-                    onChange={onChange}
-                    error={errors.loanReceptorUser}
-                    required
-                    labelAction={<CreateOptionButton variant="spacer" />}
-
-                />
                 {multipleMaterials ? (
                     <>
                         <div className="sm:col-span-2">
@@ -87,6 +71,36 @@ export default function LoanForm({
                         required
                     />
                 )}
+
+                {/* ── Responsable ── */}
+                {!hideResponsable && (
+                    readonlyUsers
+                        ? <Input label="Usuario Responsable del Préstamo" value={responsableName} disabled readOnly />
+                        : <Select
+                            label="Usuario Responsable del Préstamo"
+                            name="loanResponsableUser"
+                            options={users}
+                            value={formData.loanResponsableUser}
+                            onChange={onChange}
+                            error={errors.loanResponsableUser}
+                            required
+                            labelAction={<CreateOptionButton variant="spacer" />}
+                          />
+                )}
+                {/* ── Receptor ── */}
+                {readonlyUsers
+                    ? <Input label="Usuario Receptor del Préstamo" value={receptorName} disabled readOnly />
+                    : <Select
+                        label="Usuario Receptor del Préstamo"
+                        name="loanReceptorUser"
+                        options={users}
+                        value={formData.loanReceptorUser}
+                        onChange={onChange}
+                        error={errors.loanReceptorUser}
+                        required
+                        labelAction={<CreateOptionButton variant="spacer" />}
+                      />
+                }
                 {!multipleMaterials && (
                     <Input
                         label="Cantidad del Préstamo"
@@ -102,6 +116,7 @@ export default function LoanForm({
                         required
                     />
                 )}
+
                 <Input
                     label="Numero de Grupo o Ficha"
                     name="loanGroup"

@@ -21,7 +21,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Loans, SignOTP
+from .models import Loans, LoanDraft, SignOTP
 from .serializers import LoanSerializer
 from modules.permissions.permissions_drf import HasPermission, IsSuperUser
 from modules.users.models import BlacklistedToken
@@ -317,10 +317,17 @@ class LoanViewSet(AuditMixin, viewsets.ModelViewSet):
             ])
 
     def destroy(self, request, *args, **kwargs):
+        from django.db.models import RestrictedError as DjRestrictedError
         instance = self.get_object()
         if instance.state == 'Pendiente':
             self._invalidate_pending_sign_tokens(instance)
-        return super().destroy(request, *args, **kwargs)
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except DjRestrictedError:
+            return Response(
+                {"error": "No se puede eliminar este préstamo porque tiene devoluciones registradas asociadas."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -716,3 +723,807 @@ class LoanSignView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers del flujo draft (compartidos por los tres endpoints nuevos)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _build_draft_sign_token(batch_id: str, role: str, user_id: int) -> str:
+    """JWT de firma para el flujo draft. scope='loan_draft_sign'."""
+    payload = {
+        "batch_id": str(batch_id),
+        "role":     role,
+        "user_id":  user_id,
+        "scope":    "loan_draft_sign",
+        "exp":      datetime.datetime.utcnow() + datetime.timedelta(minutes=_SIGN_TOKEN_TTL_MINUTES),
+        "iat":      datetime.datetime.utcnow(),
+    }
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+
+
+def _decode_draft_sign_token(raw_token):
+    """Decodifica token draft. Devuelve (payload, error_response)."""
+    try:
+        payload = jwt.decode(raw_token, settings.SECRET_KEY, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        return None, Response(
+            {"error": "El enlace de firma ha expirado."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except jwt.InvalidTokenError:
+        return None, Response(
+            {"error": "El enlace de firma no es válido."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if payload.get("scope") != "loan_draft_sign":
+        return None, Response(
+            {"error": "El enlace no es válido para esta operación."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    return payload, None
+
+
+def _get_draft_batch(batch_id_str):
+    """Devuelve (drafts, error_response) para un batch_id dado."""
+    try:
+        bid = uuid.UUID(batch_id_str)
+    except (ValueError, AttributeError):
+        return None, Response({"error": "El enlace no es válido."}, status=status.HTTP_400_BAD_REQUEST)
+
+    drafts = list(
+        LoanDraft.objects.select_related(
+            'id_responsable_user', 'id_receptor_user', 'id_material'
+        ).filter(batch_id=bid, state=LoanDraft.STATE_PENDING)
+    )
+    if not drafts:
+        return None, Response(
+            {"error": "No se encontraron borradores pendientes asociados al enlace."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    return drafts, None
+
+
+def _send_draft_sign_email(user, drafts: list, role: str, token: str) -> None:
+    """Correo de firma para el flujo draft."""
+    sign_link  = f"{settings.FRONTEND_URL}/prestamos/firmar?token={token}"
+    role_label = "responsable del préstamo" if role == "responsable" else "receptor del material"
+    first      = drafts[0]
+    materials_lines = "\n".join(
+        f"  • {d.id_material.name} — cantidad: {d.amount_lent}" for d in drafts
+    )
+    send_mail(
+        subject="Firma requerida — Préstamo de material SGI",
+        message=(
+            f"Hola {user.first_name},\n\n"
+            f"Se ha registrado una solicitud de préstamo en la que figuras como {role_label}.\n"
+            f"El préstamo quedará registrado definitivamente una vez que ambas partes firmen.\n\n"
+            f"Para firmar, haz clic en el siguiente enlace "
+            f"(válido por {_SIGN_TOKEN_TTL_MINUTES // 60} horas):\n\n"
+            f"{sign_link}\n\n"
+            f"Materiales:\n{materials_lines}\n"
+            f"  • Grupo:  {first.apprentice_group}\n"
+            f"  • Fecha solicitada: {first.loan_date}\n\n"
+            "Al abrir el enlace se te pedirá un código de verificación que recibirás "
+            "en un correo separado en ese momento.\n\n"
+            "Si no reconoces esta solicitud, avisa al administrador."
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
+def _send_draft_otp_email(user, code: str, drafts: list) -> None:
+    """Correo OTP para el flujo draft."""
+    materials_lines = "\n".join(
+        f"  • {d.id_material.name} — cantidad: {d.amount_lent}" for d in drafts
+    )
+    send_mail(
+        subject="Tu código de verificación de firma — SGI",
+        message=(
+            f"Hola {user.first_name},\n\n"
+            f"Tu código de verificación para firmar la solicitud de préstamo es:\n\n"
+            f"    {code}\n\n"
+            f"Materiales:\n{materials_lines}\n\n"
+            f"Este código es válido por {SignOTP.OTP_TTL_MINUTES} minutos y solo puede "
+            f"usarse una vez.\n\n"
+            "Si no solicitaste este código, contacta al administrador de inmediato."
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
+def _validate_draft_stock(drafts: list):
+    """
+    Valida que haya stock suficiente para cada borrador del lote.
+    Considera préstamos Activos y borradores Pending del mismo material.
+    Devuelve None si todo está bien, o una lista de errores.
+    """
+    from django.db.models import Sum
+    errors = []
+    for draft in drafts:
+        mat = draft.id_material
+        if mat.quantity is None:
+            continue   # material sin control de stock (devolutivo sin cantidad)
+
+        # Préstamos reales activos
+        real_lent = (
+            Loans.objects.filter(id_material=mat, state__in=['Activo', 'Pendiente'])
+            .aggregate(total=Sum('amount_lent'))['total'] or 0
+        )
+        # Borradores pendientes del mismo material (excluyendo los del propio lote)
+        draft_lent = (
+            LoanDraft.objects.filter(id_material=mat, state=LoanDraft.STATE_PENDING)
+            .exclude(batch_id=draft.batch_id)
+            .aggregate(total=Sum('amount_lent'))['total'] or 0
+        )
+        available = mat.quantity - real_lent - draft_lent
+        if draft.amount_lent > available:
+            errors.append(
+                f'Solo quedan {available} unidades disponibles de "{mat.name}" '
+                f'(stock: {mat.quantity}, préstamos activos: {real_lent}, '
+                f'otros borradores: {draft_lent}).'
+            )
+    return errors or None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endpoint: estado del borrador (polling de firmas)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class LoanDraftStatusView(APIView):
+    """
+    GET /api/loans/draft/<batch_id>/status/
+    Devuelve cuántas firmas se han registrado sobre el lote de borradores.
+    Usado por el frontend para hacer polling y saber cuándo ambas partes firmaron.
+    """
+
+    def get(self, request, batch_id):
+        try:
+            bid = uuid.UUID(str(batch_id))
+        except (ValueError, AttributeError):
+            return Response({"error": "batch_id inválido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Tomar el primer borrador del lote (todos comparten responsable/receptor)
+        draft = (
+            LoanDraft.objects.select_related('id_responsable_user', 'id_receptor_user')
+            .filter(batch_id=bid)
+            .first()
+        )
+        if not draft:
+            return Response({"error": "No se encontró el borrador."}, status=status.HTTP_404_NOT_FOUND)
+
+        signed_responsable = draft.signed_by_responsable_id is not None
+        signed_receptor    = draft.signed_by_receptor_id is not None
+        signatures         = int(signed_responsable) + int(signed_receptor)
+
+        return Response({
+            "batch_id":           str(bid),
+            "state":              draft.state,
+            "signatures":         signatures,           # 0, 1 o 2
+            "signed_responsable": signed_responsable,
+            "signed_receptor":    signed_receptor,
+            "responsable_name":   f"{draft.id_responsable_user.first_name} {draft.id_responsable_user.last_name}",
+            "receptor_name":      f"{draft.id_receptor_user.first_name} {draft.id_receptor_user.last_name}",
+            "committed":          draft.state == LoanDraft.STATE_COMMITTED,
+            "committed_loan_id":  draft.committed_loan_id,
+        }, status=status.HTTP_200_OK)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endpoint: crear borrador de préstamo y enviar correos de firma
+# ─────────────────────────────────────────────────────────────────────────────
+
+class LoanDraftCreateView(APIView):
+    """
+    POST /api/loans/draft/
+    Crea uno o varios borradores de préstamo (multi-material) y envía los
+    correos de firma a responsable y receptor.
+    El préstamo real NO se crea hasta que ambas partes firmen.
+    """
+
+    def get_permissions(self):
+        return [HasPermission("create_loan")]
+
+    def post(self, request):
+        data         = request.data
+        material_ids = data.get("id_material")
+        loan_amounts = data.get("amount_lent", {})
+
+        # DEBUG temporal — eliminar en producción
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning("DRAFT POST data: %s", dict(data))
+
+        responsable_id = data.get("id_responsable_user")
+        receptor_id    = data.get("id_receptor_user")
+        group          = data.get("apprentice_group", "").strip()
+        justification  = data.get("justification_use", "").strip()
+        return_date    = data.get("return_date")
+
+        # ── Validación básica de campos requeridos ────────────────────────
+        field_errors = {}
+        if not responsable_id:
+            field_errors["id_responsable_user"] = "Este campo es obligatorio."
+        if not receptor_id:
+            field_errors["id_receptor_user"] = "Este campo es obligatorio."
+        if not group:
+            field_errors["apprentice_group"] = "Este campo es obligatorio."
+        if not justification:
+            field_errors["justification_use"] = "Este campo es obligatorio."
+        if not return_date:
+            field_errors["return_date"] = "Este campo es obligatorio."
+
+        if not material_ids or (isinstance(material_ids, list) and len(material_ids) == 0):
+            field_errors["id_material"] = "Debe seleccionar al menos un material."
+        elif isinstance(material_ids, list):
+            if not isinstance(loan_amounts, dict) or any(
+                str(mid) not in loan_amounts for mid in material_ids
+            ):
+                field_errors["amount_lent"] = "Debe indicar una cantidad para cada material."
+
+        if field_errors:
+            return Response(field_errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # ── Normalizar lista de materiales ────────────────────────────────
+        if not isinstance(material_ids, list):
+            material_ids  = [material_ids]
+            loan_amounts  = {str(material_ids[0]): loan_amounts}
+
+        # ── Cargar entidades ──────────────────────────────────────────────
+        from django.contrib.auth import get_user_model
+        from modules.products.models import ConsumableMaterial
+        User = get_user_model()
+
+        try:
+            responsable = User.objects.get(pk=responsable_id)
+        except User.DoesNotExist:
+            return Response({"id_responsable_user": "Usuario no encontrado."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            receptor = User.objects.get(pk=receptor_id)
+        except User.DoesNotExist:
+            return Response({"id_receptor_user": "Usuario no encontrado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        materials = {}
+        for mid in material_ids:
+            try:
+                mat = ConsumableMaterial.objects.get(pk=mid)
+                if not mat.is_active:
+                    return Response(
+                        {"id_material": f'El material "{mat.name}" está deshabilitado y no puede prestarse.'},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                materials[str(mid)] = mat
+            except ConsumableMaterial.DoesNotExist:
+                return Response({"id_material": f"Material {mid} no encontrado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ── Crear borradores en memoria para validar stock ────────────────
+        batch   = uuid.uuid4()
+        ttl     = datetime.timedelta(hours=LoanDraft.DRAFT_TTL_HOURS)
+        expires = timezone.now() + ttl
+
+        draft_objs = []
+        for mid in material_ids:
+            try:
+                amount = int(loan_amounts[str(mid)])
+            except (ValueError, TypeError):
+                return Response(
+                    {"amount_lent": f"Cantidad inválida para el material {mid}."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if amount < 1:
+                return Response(
+                    {"amount_lent": "La cantidad debe ser al menos 1."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            draft_objs.append(LoanDraft(
+                batch_id          = batch,
+                id_responsable_user = responsable,
+                id_receptor_user  = receptor,
+                id_material       = materials[str(mid)],
+                amount_lent       = amount,
+                apprentice_group  = group,
+                justification_use = justification,
+                return_date       = return_date,
+                expires_at        = expires,
+            ))
+
+        # ── Validar stock antes de persistir ─────────────────────────────
+        stock_errors = _validate_draft_stock(draft_objs)
+        if stock_errors:
+            return Response({"amount_lent": stock_errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ── Persistir borradores ──────────────────────────────────────────
+        with transaction.atomic():
+            LoanDraft.objects.bulk_create(draft_objs)
+
+        # Recargar para tener PKs y relaciones completas
+        saved_drafts = list(
+            LoanDraft.objects.select_related(
+                'id_responsable_user', 'id_receptor_user', 'id_material'
+            ).filter(batch_id=batch)
+        )
+
+        # ── Enviar correos de firma ───────────────────────────────────────
+        for role, user in [("responsable", responsable), ("receptor", receptor)]:
+            token = _build_draft_sign_token(str(batch), role, user.id)
+            try:
+                _send_draft_sign_email(user, saved_drafts, role, token)
+            except Exception:
+                pass   # correo fallido no aborta — el admin puede reenviar
+
+        return Response(
+            {
+                "batch_id":    str(batch),
+                "message":     "Solicitud de préstamo creada. Se enviaron correos de firma a ambas partes.",
+                "draft_count": len(saved_drafts),
+                "expires_at":  expires.isoformat(),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endpoint: solicitar OTP para borrador
+# ─────────────────────────────────────────────────────────────────────────────
+
+class LoanDraftSignRequestOTPView(APIView):
+    """
+    POST /api/loans/draft/sign/request-otp/
+    Body: { "token": "<jwt draft_sign>" }
+    Genera y envía el OTP para confirmar la firma sobre el borrador.
+    """
+
+    def post(self, request):
+        blocked = _check_rl(request, "draft_otp_req", _OTP_RL_MAX, _OTP_RL_MSG)
+        if blocked:
+            return blocked
+
+        raw_token = request.data.get("token")
+        if not raw_token:
+            return Response({"error": "El token es obligatorio."}, status=status.HTTP_400_BAD_REQUEST)
+
+        payload, err = _decode_draft_sign_token(raw_token)
+        if err:
+            _record_rl(request, "draft_otp_req", _OTP_RL_WINDOW)
+            return err
+
+        if payload.get("user_id") != request.user.id:
+            return Response(
+                {"error": "El enlace de firma corresponde a otro usuario."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        if BlacklistedToken.objects.filter(token_hash=token_hash).exists():
+            return Response({"error": "Este enlace ya fue utilizado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        role     = payload.get("role")
+        batch_id = payload.get("batch_id")
+
+        if role not in ("responsable", "receptor"):
+            return Response({"error": "El enlace no es válido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        drafts, err = _get_draft_batch(batch_id)
+        if err:
+            return err
+
+        # Verificar que el borrador no haya expirado
+        if drafts[0].is_expired:
+            LoanDraft.objects.filter(batch_id=uuid.UUID(batch_id)).update(state=LoanDraft.STATE_EXPIRED)
+            return Response(
+                {"error": "La solicitud de préstamo ha expirado. Crea una nueva."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Verificar identidad
+        expected = drafts[0].id_responsable_user if role == "responsable" else drafts[0].id_receptor_user
+        if request.user.id != expected.id:
+            return Response(
+                {"error": "No tienes permiso para firmar esta solicitud."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Verificar que este rol no haya firmado ya
+        already_signed = (
+            drafts[0].signed_by_responsable_id is not None if role == "responsable"
+            else drafts[0].signed_by_receptor_id is not None
+        )
+        if already_signed:
+            return Response(
+                {"error": "Ya firmaste esta solicitud. Esperando la firma de la otra parte."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Invalidar OTPs previos del mismo batch/rol
+        SignOTP.objects.filter(
+            batch_id=uuid.UUID(batch_id), user=request.user, role=role, used=False
+        ).delete()
+
+        # Generar OTP
+        code       = "".join(random.choices(string.digits, k=6))
+        code_hash  = hashlib.sha256(code.encode()).hexdigest()
+        expires_at = timezone.now() + datetime.timedelta(minutes=SignOTP.OTP_TTL_MINUTES)
+
+        # SignOTP necesita un loan FK; usamos None-safe: creamos un OTP "draft"
+        # apuntando al primer draft usando loan=None workaround via batch_id only.
+        # Como el modelo requiere loan, buscamos si ya existe un Loans con este
+        # batch_id (no debería); si no, reutilizamos el campo batch_id directamente.
+        # Solución: guardamos en loan el primer draft via un préstamo dummy... No.
+        # La solución limpia: el SignOTP del draft NO necesita FK a Loans.
+        # Usamos un campo batch_id + role sin loan apuntando a None.
+        # SignOTP.loan es FK con on_delete=CASCADE — no permite null.
+        # Por eso creamos un registro especial usando batch_id solamente via cache.
+        cache_key  = f"draft_otp_{batch_id}_{role}"
+        cache.set(cache_key, {
+            "code_hash":  code_hash,
+            "expires_at": expires_at.isoformat(),
+            "attempts":   0,
+            "user_id":    request.user.id,
+        }, timeout=SignOTP.OTP_TTL_MINUTES * 60 + 30)
+
+        try:
+            _send_draft_otp_email(request.user, code, drafts)
+        except Exception:
+            cache.delete(cache_key)
+            return Response(
+                {"error": "No se pudo enviar el código de verificación. Intenta nuevamente."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        _reset_rl(request, "draft_otp_req")
+        return Response(
+            {
+                "message":          f"Código enviado a {request.user.email}. Válido por {SignOTP.OTP_TTL_MINUTES} minutos.",
+                "expires_in_minutes": SignOTP.OTP_TTL_MINUTES,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endpoint: confirmar firma del borrador con OTP → crea Loans al completarse
+# ─────────────────────────────────────────────────────────────────────────────
+
+class LoanDraftSignView(APIView):
+    """
+    POST /api/loans/draft/sign/
+    Body: { "token": "<jwt draft_sign>", "otp_code": "123456" }
+
+    Valida OTP (almacenado en cache), registra la firma en el borrador.
+    Cuando ambas partes firman, crea los registros Loans reales y marca
+    los borradores como 'committed'.
+    """
+
+    def post(self, request):
+        blocked = _check_rl(request, "draft_sign", _SIGN_RL_MAX, _SIGN_RL_MSG)
+        if blocked:
+            return blocked
+
+        raw_token = request.data.get("token")
+        otp_code  = str(request.data.get("otp_code", "")).strip()
+
+        if not raw_token or not otp_code:
+            return Response(
+                {"error": "El token y el código de verificación son obligatorios."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        payload, err = _decode_draft_sign_token(raw_token)
+        if err:
+            _record_rl(request, "draft_sign", _SIGN_RL_WINDOW)
+            return err
+
+        if payload.get("user_id") != request.user.id:
+            _record_rl(request, "draft_sign", _SIGN_RL_WINDOW)
+            return Response(
+                {"error": "El enlace de firma corresponde a otro usuario."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        if BlacklistedToken.objects.filter(token_hash=token_hash).exists():
+            return Response({"error": "Este enlace ya fue utilizado."}, status=status.HTTP_400_BAD_REQUEST)
+
+        role     = payload.get("role")
+        batch_id = payload.get("batch_id")
+
+        if role not in ("responsable", "receptor"):
+            return Response({"error": "El enlace no es válido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        drafts, err = _get_draft_batch(batch_id)
+        if err:
+            return err
+
+        if drafts[0].is_expired:
+            LoanDraft.objects.filter(batch_id=uuid.UUID(batch_id)).update(state=LoanDraft.STATE_EXPIRED)
+            return Response(
+                {"error": "La solicitud de préstamo ha expirado. Crea una nueva."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        expected = drafts[0].id_responsable_user if role == "responsable" else drafts[0].id_receptor_user
+        if request.user.id != expected.id:
+            _record_rl(request, "draft_sign", _SIGN_RL_WINDOW)
+            return Response(
+                {"error": "No tienes permiso para firmar esta solicitud."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Verificar que este rol no haya firmado ya
+        already_signed = (
+            drafts[0].signed_by_responsable_id is not None if role == "responsable"
+            else drafts[0].signed_by_receptor_id is not None
+        )
+        if already_signed:
+            return Response(
+                {"error": "Ya firmaste esta solicitud. Esperando la firma de la otra parte."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ── Validar OTP desde cache ───────────────────────────────────────
+        cache_key  = f"draft_otp_{batch_id}_{role}"
+        otp_entry  = cache.get(cache_key)
+
+        if otp_entry is None:
+            _record_rl(request, "draft_sign", _SIGN_RL_WINDOW)
+            return Response(
+                {"error": "El código no existe o ha expirado. Solicita uno nuevo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if otp_entry.get("user_id") != request.user.id:
+            _record_rl(request, "draft_sign", _SIGN_RL_WINDOW)
+            return Response({"error": "El código no corresponde a tu usuario."}, status=status.HTTP_403_FORBIDDEN)
+
+        expires_dt = datetime.datetime.fromisoformat(otp_entry["expires_at"])
+        if expires_dt.tzinfo is None:
+            expires_dt = expires_dt.replace(tzinfo=datetime.timezone.utc)
+        if timezone.now() > expires_dt:
+            cache.delete(cache_key)
+            _record_rl(request, "draft_sign", _SIGN_RL_WINDOW)
+            return Response(
+                {"error": "El código ha expirado. Solicita uno nuevo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        attempts = otp_entry.get("attempts", 0)
+        if attempts >= SignOTP.OTP_MAX_ATTEMPTS:
+            cache.delete(cache_key)
+            return Response(
+                {"error": "Límite de intentos superado. Solicita un nuevo código."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if hashlib.sha256(otp_code.encode()).hexdigest() != otp_entry["code_hash"]:
+            otp_entry["attempts"] = attempts + 1
+            remaining = SignOTP.OTP_MAX_ATTEMPTS - otp_entry["attempts"]
+            ttl_left  = int((expires_dt - timezone.now()).total_seconds())
+            cache.set(cache_key, otp_entry, timeout=max(ttl_left, 1))
+            _record_rl(request, "draft_sign", _SIGN_RL_WINDOW)
+            msg = (
+                f"Código incorrecto. Te quedan {remaining} intento(s)."
+                if remaining > 0
+                else "Código incorrecto. Límite de intentos superado. Solicita uno nuevo."
+            )
+            return Response({"error": msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ── OTP correcto: registrar firma en todos los borradores del lote ─
+        now        = timezone.now()
+        client_ip  = _get_client_ip(request)
+        user_agent = request.META.get("HTTP_USER_AGENT", "")[:500]
+
+        sign_fields = {}
+        if role == "responsable":
+            sign_fields = dict(
+                signed_by_responsable = request.user,
+                signed_at_responsable = now,
+                signed_ip_responsable = client_ip,
+                signed_ua_responsable = user_agent,
+            )
+        else:
+            sign_fields = dict(
+                signed_by_receptor = request.user,
+                signed_at_receptor = now,
+                signed_ip_receptor = client_ip,
+                signed_ua_receptor = user_agent,
+            )
+
+        with transaction.atomic():
+            for draft in drafts:
+                for field, value in sign_fields.items():
+                    setattr(draft, field, value)
+                draft.save()
+
+            # Recargar para evaluar both_signed con los datos persistidos
+            drafts = list(
+                LoanDraft.objects.select_related(
+                    'id_responsable_user', 'id_receptor_user', 'id_material'
+                ).filter(batch_id=uuid.UUID(batch_id), state=LoanDraft.STATE_PENDING)
+            )
+
+            all_signed = all(d.both_signed for d in drafts)
+            created_loans = []
+
+            if all_signed:
+                # ── Crear los préstamos reales ────────────────────────────
+                batch_uuid = uuid.UUID(batch_id)
+                for draft in drafts:
+                    loan = Loans.objects.create(
+                        batch_id            = batch_uuid,
+                        id_responsable_user = draft.id_responsable_user,
+                        id_receptor_user    = draft.id_receptor_user,
+                        id_material         = draft.id_material,
+                        amount_lent         = draft.amount_lent,
+                        apprentice_group    = draft.apprentice_group,
+                        justification_use   = draft.justification_use,
+                        return_date         = draft.return_date,
+                        state               = 'Activo',
+                        # Copiar trazabilidad de firmas
+                        signed_by_responsable  = draft.signed_by_responsable,
+                        signed_at_responsable  = draft.signed_at_responsable,
+                        signed_ip_responsable  = draft.signed_ip_responsable,
+                        signed_ua_responsable  = draft.signed_ua_responsable,
+                        signed_by_receptor     = draft.signed_by_receptor,
+                        signed_at_receptor     = draft.signed_at_receptor,
+                        signed_ip_receptor     = draft.signed_ip_receptor,
+                        signed_ua_receptor     = draft.signed_ua_receptor,
+                    )
+                    draft.committed_loan_id = loan.id_loan
+                    draft.state             = LoanDraft.STATE_COMMITTED
+                    draft.save(update_fields=['committed_loan_id', 'state'])
+                    created_loans.append(loan)
+
+            # Invalidar token de firma (uso único)
+            exp_ts     = payload.get("exp")
+            expires_at = (
+                datetime.datetime.fromtimestamp(exp_ts, tz=datetime.timezone.utc)
+                if exp_ts else now + datetime.timedelta(minutes=_SIGN_TOKEN_TTL_MINUTES)
+            )
+            BlacklistedToken.objects.get_or_create(
+                token_hash=token_hash,
+                defaults={"expires_at": expires_at},
+            )
+
+        # Limpiar OTP del cache
+        cache.delete(cache_key)
+        _reset_rl(request, "draft_sign")
+
+        # Auditoría
+        audit_log(
+            actor=request.user,
+            module=AuditLog.MODULE_LOANS,
+            action=AuditLog.ACTION_SIGN_LOAN,
+            target_id=drafts[0].pk,
+            target_repr=f"Draft lote {str(batch_id)[:8]}… — {len(drafts)} ítem(s)",
+            detail=(
+                f"Rol: {'Responsable' if role == 'responsable' else 'Receptor'} | "
+                f"IP: {client_ip} | "
+                f"Comprometido: {all_signed}"
+            ),
+            request=request,
+        )
+
+        role_label = "Responsable" if role == "responsable" else "Receptor"
+        if all_signed:
+            return Response(
+                {
+                    "message": (
+                        f"Firma registrada como {role_label}. "
+                        f"Ambas partes firmaron. El préstamo ha sido creado y está Activo."
+                    ),
+                    "state":    "Activo",
+                    "batch_id": batch_id,
+                    "loans":    [l.id_loan for l in created_loans],
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {
+                    "message": (
+                        f"Firma registrada como {role_label}. "
+                        f"El préstamo se creará cuando la otra parte también firme."
+                    ),
+                    "state":    "pending",
+                    "batch_id": batch_id,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Endpoint: listado de préstamos agrupados por lote (batch_id)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class LoanBatchListView(APIView):
+    """
+    GET /api/loans/batches/
+    Devuelve una lista de lotes de préstamos agrupados por batch_id.
+    Cada lote incluye metadata del grupo y la lista de préstamos individuales.
+
+    Estado agregado del lote:
+      - 'Activo'     si algún loan del lote está Activo
+      - 'Pendiente'  si algún loan está Pendiente (ninguno Activo)
+      - 'Finalizado' si todos están Finalizado o Incompleto
+    """
+
+    def get_permissions(self):
+        return [HasPermission("view_loan")]
+
+    def _batch_state(self, loans):
+        states = {l.state for l in loans}
+        if 'Activo' in states:
+            return 'Activo'
+        if 'Pendiente' in states:
+            return 'Pendiente'
+        if states <= {'Finalizado', 'Incompleto'}:
+            # Si hay al menos un Incompleto → Incompleto, si no → Finalizado
+            return 'Incompleto' if 'Incompleto' in states else 'Finalizado'
+        return loans[0].state
+
+    def _user_is_admin(self, request):
+        if request.user.is_superuser:
+            return True
+        from modules.permissions.models import UserGroup
+        return UserGroup.objects.filter(
+            user=request.user, group__name__iexact='admin'
+        ).exists()
+
+    def get(self, request):
+        qs = Loans.objects.select_related(
+            'id_responsable_user', 'id_receptor_user', 'id_material',
+        ).order_by('batch_id', 'id_loan')
+
+        if not self._user_is_admin(request):
+            qs = qs.filter(
+                Q(id_responsable_user=request.user) | Q(id_receptor_user=request.user)
+            )
+
+        # Agrupar por batch_id en Python (evita JOIN costoso y mantiene compatibilidad SQLite)
+        from itertools import groupby
+        batches = []
+        for batch_id, group in groupby(qs, key=lambda l: l.batch_id):
+            loans = list(group)
+            first = loans[0]
+
+            batch_state = self._batch_state(loans)
+
+            loan_items = []
+            for l in loans:
+                is_returnable = hasattr(l.id_material, 'returnablematerial')
+                loan_items.append({
+                    'id_loan':       l.id_loan,
+                    'material':      l.id_material.name,
+                    'material_id':   l.id_material.id,
+                    'material_type': 'devolutivo' if is_returnable else 'consumo',
+                    'amount_lent':   l.amount_lent,
+                    'state':         l.state,
+                    'is_active':     l.state == 'Activo',
+                })
+
+            batches.append({
+                'batch_id':            str(batch_id) if batch_id else None,
+                'loan_date':           str(first.loan_date),
+                'return_date':         str(first.return_date),
+                'apprentice_group':    first.apprentice_group,
+                'justification_use':   first.justification_use,
+                'usuario_responsable': (
+                    f"{first.id_responsable_user.first_name} {first.id_responsable_user.last_name}"
+                ),
+                'usuario_receptor': (
+                    f"{first.id_receptor_user.first_name} {first.id_receptor_user.last_name}"
+                ),
+                'state':       batch_state,
+                'is_active':   batch_state == 'Activo',
+                'loan_count':  len(loans),
+                'loans':       loan_items,
+            })
+
+        # Ordenar: Activos primero, luego Pendientes, luego Finalizados
+        ORDER = {'Activo': 0, 'Pendiente': 1, 'Finalizado': 2, 'Incompleto': 3}
+        batches.sort(key=lambda b: (ORDER.get(b['state'], 9), b['loan_date']), reverse=False)
+
+        return Response(batches, status=status.HTTP_200_OK)

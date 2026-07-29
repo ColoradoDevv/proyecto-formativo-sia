@@ -8,6 +8,26 @@ export const RmColumns = (setRMs, setNotification) => [
         header: "Nombre",
     },
     {
+        accessorKey: "quantity",
+        header: "Cantidad disponible",
+        cell: ({ row }) => {
+            const { available_quantity, quantity, is_exhausted } = row.original;
+            // Mostrar cantidad disponible si existe, si no el total
+            const display = available_quantity ?? quantity;
+            if (display == null) return "—";
+            return (
+                <span className="flex items-center gap-1.5">
+                    {display}
+                    {is_exhausted && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-500/15 text-red-400 border border-red-500/30">
+                            Agotado
+                        </span>
+                    )}
+                </span>
+            );
+        },
+    },
+    {
         accessorKey: "state",
         header: "Disponibilidad",
         meta: { filterVariant: "select" },

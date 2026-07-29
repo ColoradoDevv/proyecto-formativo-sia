@@ -1,19 +1,34 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { CircleCheck, CircleX, Loader, ShieldCheck, RefreshCw } from "lucide-react";
-import { requestSignOtp, signLoan } from "../../services/loanService";
+import { requestSignOtp, signLoan, requestDraftSignOtp, signLoanDraft } from "../../services/loanService";
 import { Button, Input } from "@/shared";
 
 // ── Estados del flujo ─────────────────────────────────────────────────────
 const STEP = {
-    INIT:       "init",       // verificando sesión / cargando
-    OTP_SENT:   "otp_sent",   // OTP enviado, usuario debe ingresarlo
-    SIGNING:    "signing",    // llamada de firma en curso
-    SUCCESS:    "success",    // firma registrada
-    ERROR:      "error",      // error irrecuperable
+    INIT:     "init",
+    OTP_SENT: "otp_sent",
+    SIGNING:  "signing",
+    SUCCESS:  "success",
+    ERROR:    "error",
 };
 
-const OTP_RESEND_COOLDOWN = 60; // segundos antes de permitir reenvío
+const OTP_RESEND_COOLDOWN = 60;
+
+/**
+ * Detecta si el token JWT pertenece al flujo draft leyendo el campo `scope`
+ * del payload (sin verificar la firma, solo para enrutar al servicio correcto).
+ */
+function isDraftToken(raw) {
+    try {
+        const parts = raw.split(".");
+        if (parts.length < 2) return false;
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+        return payload.scope === "loan_draft_sign";
+    } catch {
+        return false;
+    }
+}
 
 export default function LoanSignPage() {
     const [searchParams] = useSearchParams();
@@ -28,17 +43,19 @@ export default function LoanSignPage() {
     const [expiresMin, setExpiresMin] = useState(10);
     const timerRef = useRef(null);
 
-    // Limpia el intervalo al desmontar
+    // Determinar el flujo una sola vez — draft o préstamo existente.
+    const isDraft     = token ? isDraftToken(token) : false;
+    const requestOtp  = isDraft ? requestDraftSignOtp : requestSignOtp;
+    const confirmSign = isDraft ? signLoanDraft       : signLoan;
+
     useEffect(() => () => clearInterval(timerRef.current), []);
 
-    // Envía la petición inicial al montar
     useEffect(() => {
         if (!token) {
             setMessage("El enlace no contiene un token de firma. Verifica que lo copiaste completo.");
             setStep(STEP.ERROR);
             return;
         }
-        // Si llegamos aquí, ProtectedRoute ya garantizó que hay sesión activa.
         sendOtp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -56,7 +73,7 @@ export default function LoanSignPage() {
     const sendOtp = async () => {
         setOtpError("");
         try {
-            const data = await requestSignOtp(token);
+            const data = await requestOtp(token);
             setExpiresMin(data.expires_in_minutes ?? 10);
             setStep(STEP.OTP_SENT);
             startCooldown();
@@ -75,7 +92,7 @@ export default function LoanSignPage() {
         }
         setStep(STEP.SIGNING);
         try {
-            const data = await signLoan(token, otpCode);
+            const data = await confirmSign(token, otpCode);
             setMessage(data.message || "Firma registrada correctamente.");
             setLoanState(data.state ?? null);
             setStep(STEP.SUCCESS);
@@ -112,11 +129,7 @@ export default function LoanSignPage() {
                             registrado. Válido por <strong>{expiresMin} minutos</strong>.
                         </p>
 
-                        <form
-                            onSubmit={handleConfirm}
-                            className="flex flex-col gap-3 w-full"
-                            noValidate
-                        >
+                        <form onSubmit={handleConfirm} className="flex flex-col gap-3 w-full" noValidate>
                             <Input
                                 type="text"
                                 inputMode="numeric"
@@ -130,7 +143,6 @@ export default function LoanSignPage() {
                                 className="text-center tracking-widest text-h3"
                                 autoFocus
                             />
-
                             <Button
                                 type="submit"
                                 variant="primary"
@@ -145,7 +157,6 @@ export default function LoanSignPage() {
                             </Button>
                         </form>
 
-                        {/* Reenviar código */}
                         <button
                             type="button"
                             disabled={cooldown > 0 || step === STEP.SIGNING}
@@ -170,7 +181,7 @@ export default function LoanSignPage() {
                                 Ambas partes firmaron. El préstamo ya está activo.
                             </p>
                         )}
-                        {loanState === "Pendiente" && (
+                        {(loanState === "Pendiente" || loanState === "pending") && (
                             <p className="text-center text-small text-text-secondary">
                                 Tu firma quedó registrada. El préstamo se activará
                                 automáticamente cuando la otra parte también firme.

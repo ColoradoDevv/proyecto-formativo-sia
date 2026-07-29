@@ -112,6 +112,7 @@ function LoanEditForm({ loan, users, materials }) {
                     users={users}
                     materials={materials}
                     loanDepartureDate={loan.loan_date ?? ""}
+                    readonlyUsers
                 />
 
                 <div className="flex gap-4 justify-center md:justify-end">

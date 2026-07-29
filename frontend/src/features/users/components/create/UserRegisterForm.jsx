@@ -48,7 +48,11 @@ export default function UserRegisterForm() {
     const [documentTypes, setDocumentTypes] = useState([]);
     useEffect(() => {
         getDocumentTypes()
-            .then(setDocumentTypes)
+            .then((types) => {
+                // Ocultar la entrada duplicada "C.C" del formulario de creación.
+                const filtered = types.filter((t) => t.label !== "C.C");
+                setDocumentTypes(filtered);
+            })
             .catch((err) =>
                 showAlert({
                     icon: "error",

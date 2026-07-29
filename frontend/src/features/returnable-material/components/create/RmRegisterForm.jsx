@@ -94,7 +94,9 @@ export default function RmRegisterForm() {
         setSubmitting(true);
 
         try {
-            await createRM(result.data);
+            // Pasar los archivos directamente de formData (no de result.data) para
+            // evitar que z.instanceof(File) los descarte silenciosamente en Vite.
+            await createRM({ ...result.data, photo: formData.photo, technicalSheet: formData.technicalSheet });
             await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material devolutivo creado exitosamente" });
             navigate("/devolutivos");
         } catch (err) {
@@ -141,9 +143,9 @@ export default function RmRegisterForm() {
                                 className="w-full h-25 rounded-2xl"
                             />
                             <FileInput
-                                label="Ficha Técnica"
+                                label="Fichas Técnicas"
                                 name="technicalSheet"
-                                placeholder="Subir ficha técnica"
+                                placeholder="Subir fichas técnicas (máx. 3)"
                                 value={formData.technicalSheet}
                                 onChange={handleFileChange("technicalSheet")}
                                 error={errors.technicalSheet}
@@ -153,8 +155,7 @@ export default function RmRegisterForm() {
                                 maxFiles={3}
                                 maxSixeMB={3}
                                 className="w-full h-14 rounded-2xl"
-                            />
-                        </div>
+                            />                        </div>
                     }
                 />
 

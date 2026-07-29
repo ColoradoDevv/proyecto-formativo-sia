@@ -166,6 +166,103 @@ class Loans(models.Model):
         return self.signed_by_responsable_id is not None and self.signed_by_receptor_id is not None
 
 
+class LoanDraft(models.Model):
+    """
+    Borrador de préstamo: almacena los datos antes de que se cree el préstamo real.
+    El préstamo (Loans) solo se crea cuando ambas partes firman el borrador.
+
+    Ciclo de vida:
+      1. POST /api/loans/draft/  → se crea este registro, se envían correos de firma.
+      2. Cada parte firma via /api/loans/draft/sign/ (token JWT + OTP).
+      3. Cuando both_signed == True → se crea el Loans real y este borrador
+         pasa a state='committed' (ya no se necesita, pero se conserva para auditoría).
+      4. Borradores en state='pending' que no se firman en DRAFT_TTL_HOURS horas
+         se pueden limpiar periódicamente sin dejar basura en Loans.
+    """
+
+    STATE_PENDING   = 'pending'
+    STATE_COMMITTED = 'committed'
+    STATE_EXPIRED   = 'expired'
+    STATE_CHOICES   = [
+        (STATE_PENDING,   'Pendiente de firma'),
+        (STATE_COMMITTED, 'Comprometido (Loans creado)'),
+        (STATE_EXPIRED,   'Expirado'),
+    ]
+
+    DRAFT_TTL_HOURS = 24   # borradores sin firmar expiran en 24 h
+
+    # UUID compartido por todos los borradores del mismo lote (multi-material).
+    batch_id = models.UUIDField(db_index=True)
+
+    # Datos del préstamo (espejo de Loans, sin las firmas).
+    id_responsable_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='draft_prestamos_responsable',
+    )
+    id_receptor_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='draft_prestamos_recibidos',
+    )
+    id_material = models.ForeignKey(
+        'products.ConsumableMaterial',
+        on_delete=models.CASCADE,
+        related_name='loan_drafts',
+    )
+    amount_lent       = models.IntegerField()
+    apprentice_group  = models.CharField(max_length=10)
+    justification_use = models.CharField(max_length=255)
+    return_date       = models.DateField()
+    loan_date         = models.DateField(auto_now_add=True)
+
+    state = models.CharField(max_length=20, choices=STATE_CHOICES, default=STATE_PENDING)
+
+    # Firma del responsable.
+    signed_by_responsable  = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='draft_firmas_responsable',
+    )
+    signed_at_responsable  = models.DateTimeField(null=True, blank=True)
+    signed_ip_responsable  = models.GenericIPAddressField(null=True, blank=True)
+    signed_ua_responsable  = models.CharField(max_length=500, null=True, blank=True)
+
+    # Firma del receptor.
+    signed_by_receptor  = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='draft_firmas_receptor',
+    )
+    signed_at_receptor  = models.DateTimeField(null=True, blank=True)
+    signed_ip_receptor  = models.GenericIPAddressField(null=True, blank=True)
+    signed_ua_receptor  = models.CharField(max_length=500, null=True, blank=True)
+
+    # ID del Loans creado al comprometer (para trazabilidad).
+    committed_loan_id = models.IntegerField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(
+        help_text='Momento en que el borrador expira si no se firma.',
+    )
+
+    class Meta:
+        db_table = 'loan_drafts'
+
+    def __str__(self):
+        return f'LoanDraft batch={str(self.batch_id)[:8]} material={self.id_material_id} state={self.state}'
+
+    @property
+    def both_signed(self):
+        return (
+            self.signed_by_responsable_id is not None
+            and self.signed_by_receptor_id is not None
+        )
+
+    @property
+    def is_expired(self):
+        from django.utils import timezone
+        return timezone.now() >= self.expires_at
+
+
 class SignOTP(models.Model):
     """
     Código OTP de un solo uso para confirmar la firma electrónica de un préstamo.

@@ -1,17 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, IconButton, StatusBadge, showAlert, cancelAlert } from "@/shared";
-import { Undo2, Pencil, ImageOff } from "lucide-react";
+import { Button, IconButton, StatusBadge, showAlert, cancelAlert, FileInput } from "@/shared";
+import { Undo2, Pencil, ImageOff, FileText, Trash2, Plus } from "lucide-react";
 import useRm from "../../hooks/useRm";
 import { getBrands, getCategories, getStates, createBrand } from "../../services/selectServices";
 import { rmEditSchema } from "../../schemas/rmSchema";
-import { updateRM } from "../../services/returnableService";
+import { updateRM, deleteTechnicalSheet } from "../../services/returnableService";
 import ReturnableForm from "../ReturnableForm";
 import { getReturnableCategoryOptions } from "../../utils/returnableCategoryRules";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
+import { useEffect } from "react";
 
-// Componente externo: maneja el fetch, loading y error
+// ── Componente externo ────────────────────────────────────────────────────────
 export default function RmEditView() {
     const { id } = useParams();
     const { RM, loading, error } = useRm(id);
@@ -24,7 +25,6 @@ export default function RmEditView() {
     useEffect(() => { getBrands().then(setBrands);         }, []);
     useEffect(() => { getStates().then(setStates);         }, []);
 
-    // Crea una marca nueva, la agrega a las opciones y la devuelve al formulario.
     const handleCreateBrand = async (name) => {
         const option = await createBrand(name);
         setBrands((prev) => [...prev, option]);
@@ -43,7 +43,7 @@ export default function RmEditView() {
     return <RmEditForm RM={RM} categories={categories} brands={brands} states={states} onCreateBrand={handleCreateBrand} />;
 }
 
-// Componente interno: recibe RM ya cargado e inicializa el estado directamente
+// ── Componente interno ────────────────────────────────────────────────────────
 function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
@@ -52,17 +52,16 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
     const [photoFile,    setPhotoFile]    = useState(null);
     const [submitting,   setSubmitting]   = useState(false);
 
-    // Parsear dimensiones si existen (ej: "30x50x20" → {width: "30", length: "50", depth: "20"})
-    const parseDimensions = (dimensionsString) => {
-        if (!dimensionsString) return { width: "", length: "", depth: "" };
-        const parts = String(dimensionsString).split("x");
-        return {
-            width: parts[0] ?? "",
-            length: parts[1] ?? "",
-            depth: parts[2] ?? "",
-        };
-    };
+    // Fichas existentes (vienen del backend como [{ id, url }])
+    const [existingSheets, setExistingSheets] = useState(RM.technical_sheets ?? []);
+    // Fichas nuevas que el usuario quiere agregar en este PATCH
+    const [newSheets, setNewSheets] = useState([]);
 
+    const parseDimensions = (str) => {
+        if (!str) return { width: "", length: "", depth: "" };
+        const p = String(str).split("x");
+        return { width: p[0] ?? "", length: p[1] ?? "", depth: p[2] ?? "" };
+    };
     const dimensions = parseDimensions(RM.dimensions);
 
     const [formData, setFormData] = useState({
@@ -79,11 +78,10 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
         unitPrice:    RM.unit_price != null ? String(RM.unit_price) : "",
         totalPrice:   RM.total_price != null ? String(RM.total_price) : "",
         purchaseDate: RM.purchase_date ?? "",
-        width: dimensions.width,
-        length: dimensions.length,
-        depth: dimensions.depth,
+        width:        dimensions.width,
+        length:       dimensions.length,
+        depth:        dimensions.depth,
     });
-
     const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
@@ -102,65 +100,66 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setPhotoFile(file);
-            setPhotoPreview(URL.createObjectURL(file));
+        if (file) { setPhotoFile(file); setPhotoPreview(URL.createObjectURL(file)); }
+    };
+
+    // Eliminar una ficha existente (llama al backend)
+    const handleDeleteSheet = async (sheetId) => {
+        try {
+            await deleteTechnicalSheet(sheetId);
+            setExistingSheets((prev) => prev.filter((s) => s.id !== sheetId));
+        } catch {
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "No se pudo eliminar la ficha" });
         }
     };
 
+    const totalSheets = existingSheets.length + newSheets.length;
+    const canAddMore  = totalSheets < 3;
+
     async function handleSubmit(e) {
         e.preventDefault();
-
-        const selectedCategory = categories.find((option) => String(option.id) === String(formData.category));
+        const selectedCategory = categories.find((o) => String(o.id) === String(formData.category));
         const payload = { ...formData, categoryName: selectedCategory?.label ?? selectedCategory?.name ?? "" };
         const result = rmEditSchema.safeParse(payload);
 
         if (!result.success) {
             const fieldErrors = {};
-            result.error.issues.forEach((issue) => {
-                fieldErrors[issue.path[0]] = issue.message;
-            });
+            result.error.issues.forEach((i) => { fieldErrors[i.path[0]] = i.message; });
             setErrors(fieldErrors);
             return;
         }
 
         setErrors({});
         setSubmitting(true);
-
         try {
-            await updateRM(RM.consumable_id, { ...formData, photo: photoFile ? [photoFile] : null });
+            await updateRM(RM.consumable_id, {
+                ...formData,
+                photo:         photoFile ? [photoFile] : null,
+                technicalSheet: newSheets,   // solo las nuevas se envían al PATCH
+            });
             await showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material devolutivo actualizado exitosamente" });
             navigate(-1);
-        } catch (error) {
-            if (error.fieldErrors) setErrors((prev) => ({ ...prev, ...error.fieldErrors }));
-            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar material devolutivo", text: error.message });
+        } catch (err) {
+            if (err.fieldErrors) setErrors((prev) => ({ ...prev, ...err.fieldErrors }));
+            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al actualizar", text: err.message });
         } finally {
             setSubmitting(false);
         }
     }
 
     async function handleCancel() {
-        const result = await cancelAlert();
-        if (result.isConfirmed) navigate(-1);
+        const r = await cancelAlert();
+        if (r.isConfirmed) navigate(-1);
     }
-
-    const isActive = RM.is_active;
 
     return (
         <div className="h-full p-3 sm:p-4 text-text-primary flex flex-col gap-3">
-
-            {/* Encabezado */}
             <div className="flex items-center gap-3">
-                <IconButton onClick={() => navigate(-1)} variant="ghost">
-                    <Undo2 size={18}/>
-                </IconButton>
-                <div>
-                    <h2 className="text-primary">Editar Material Devolutivo</h2>
-                </div>
+                <IconButton onClick={() => navigate(-1)} variant="ghost"><Undo2 size={18} /></IconButton>
+                <h2 className="text-primary">Editar Material Devolutivo</h2>
             </div>
 
             <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
-
                 <ReturnableForm
                     formData={formData}
                     errors={errors}
@@ -170,46 +169,104 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
                     states={states}
                     onCreateBrand={onCreateBrand}
                     photoSlot={
-                        <>
+                        <div className="flex flex-col items-center gap-3 w-full sm:w-36">
+                            {/* Foto */}
                             <div className="relative">
                                 <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                                     {photoPreview
-                                        ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-cover" />
+                                        ? <img src={photoPreview} alt={formData.name} className="w-full h-full object-contain" />
                                         : <ImageOff size={40} className="text-text-muted" />
                                     }
                                 </div>
                                 <button
                                     type="button"
-                                    aria-label="Cambiar foto del material"
+                                    aria-label="Cambiar foto"
                                     onClick={() => photoInputRef.current.click()}
-                                    className="absolute bottom-2 right-2 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
+                                    className="absolute bottom-1 right-1 size-7 bg-brand text-text-inverse rounded-[var(--radius-full)] flex items-center justify-center shadow-[var(--shadow-elevation-1)] hover:opacity-90 transition-opacity"
                                 >
                                     <Pencil size={13} />
                                 </button>
-                                <input
-                                    ref={photoInputRef}
-                                    type="file"
-                                    hidden
-                                    accept=".jpg,.jpeg,.png,.svg"
-                                    onChange={handlePhotoChange}
-                                />
+                                <input ref={photoInputRef} type="file" hidden accept=".jpg,.jpeg,.png,.svg" onChange={handlePhotoChange} />
                             </div>
-                            <StatusBadge active={isActive} />
-                        </>
+                            <StatusBadge active={RM.is_active} />
+
+                            {/* Fichas existentes */}
+                            <div className="flex flex-col gap-1.5 w-full">
+                                <p className="text-caption text-text-muted font-medium">Fichas técnicas</p>
+                                {existingSheets.map((sheet, i) => (
+                                    <div key={sheet.id} className="flex items-center gap-1">
+                                        <a
+                                            href={sheet.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex-1 flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-full)] border border-brand/40 bg-brand/8 text-brand text-small font-medium hover:bg-brand/15 transition-colors min-w-0"
+                                        >
+                                            <FileText size={12} className="shrink-0" />
+                                            <span className="truncate">Ficha {i + 1}</span>
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteSheet(sheet.id)}
+                                            className="shrink-0 text-error hover:opacity-70 transition-opacity p-0.5"
+                                            aria-label="Eliminar ficha"
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/* Fichas nuevas pendientes de guardar */}
+                                {newSheets.map((file, i) => (
+                                    <div key={i} className="flex items-center gap-1">
+                                        <span className="flex-1 flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-full)] border border-warning/40 bg-warning/8 text-warning text-small min-w-0">
+                                            <FileText size={12} className="shrink-0" />
+                                            <span className="truncate">{file.name}</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setNewSheets((prev) => prev.filter((_, idx) => idx !== i))}
+                                            className="shrink-0 text-error hover:opacity-70 transition-opacity p-0.5"
+                                            aria-label="Quitar ficha"
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/* Botón para agregar nuevas fichas */}
+                                {canAddMore && (
+                                    <FileInput
+                                        placeholder={
+                                            <span className="flex items-center gap-1 text-small text-brand">
+                                                <Plus size={13} /> Agregar ficha
+                                            </span>
+                                        }
+                                        accept="application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/png"
+                                        multiple={false}
+                                        maxFiles={1}
+                                        maxSixeMB={3}
+                                        className="w-full h-10 rounded-[var(--radius-full)]"
+                                        value={[]}
+                                        onChange={(files) => {
+                                            if (files[0]) setNewSheets((prev) => [...prev, files[0]]);
+                                        }}
+                                    />
+                                )}
+                                {!canAddMore && (
+                                    <p className="text-caption text-text-muted italic">Máximo 3 fichas</p>
+                                )}
+                            </div>
+                        </div>
                     }
                 />
 
                 <div className="flex gap-4 justify-center md:justify-end">
-                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
-                        Cancelar
-                    </Button>
+                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>Cancelar</Button>
                     <Button type="submit" variant="primary" size="md" disabled={submitting}>
                         {submitting ? "Guardando..." : "Guardar cambios"}
                     </Button>
                 </div>
-
             </form>
-
         </div>
     );
 }
