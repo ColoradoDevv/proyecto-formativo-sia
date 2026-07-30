@@ -53,6 +53,10 @@ def log(
     ip = ip_address or get_client_ip(request)
     name = get_actor_name(actor)
 
+    # El superadmin no deja rastro en la auditoría.
+    if actor and getattr(actor, "is_superuser", False):
+        return None
+
     return AuditLog.objects.create(
         actor=actor if (actor and getattr(actor, "pk", None)) else None,
         actor_name=name,

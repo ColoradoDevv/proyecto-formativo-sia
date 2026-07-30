@@ -104,6 +104,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         ),
     )
 
+    # Obliga al usuario a cambiar la contraseña en el próximo inicio de sesión.
+    # Se activa al crear la cuenta o reenviar credenciales temporales.
+    must_change_password = models.BooleanField(
+        default=False,
+        help_text="Si es True, el usuario debe cambiar su contraseña antes de usar el sistema.",
+    )
+
     # --- Campos que Django necesita para el control de acceso ---
     is_deleted = models.BooleanField(default=False)  # si esta en True, no puede entrar y se oculta de la lista
     deleted_at = models.DateTimeField(null=True, blank=True)  # fecha de eliminacion logica

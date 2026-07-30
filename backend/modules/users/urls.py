@@ -12,6 +12,7 @@ urlpatterns = [
     path("me/", views.MyProfileView.as_view(), name="my-profile"),
     path("me/change-password/request/", views.RequestPasswordChangeOTPView.as_view(), name="change-password-request"),
     path("me/change-password/confirm/", views.ConfirmPasswordChangeView.as_view(), name="change-password-confirm"),
+    path("me/change-password/first-login/", views.FirstLoginPasswordChangeView.as_view(), name="change-password-first-login"),
 
     path("", views.UserListCreateView.as_view(), name="users-list"),
     path("trash/", views.UserTrashListView.as_view(), name="users-trash"),

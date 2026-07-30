@@ -122,6 +122,7 @@ class UserSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             user = User(**validated_data)
             user.set_password(plain_password)
+            user.must_change_password = True
             user.save()
 
             try:
@@ -154,6 +155,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         if password:
             instance.set_password(password)
+            instance.must_change_password = True
         instance.save()
         return instance
 

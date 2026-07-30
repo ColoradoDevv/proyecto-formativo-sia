@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Plus, ArrowLeft, ClipboardList } from "lucide-react";
+import { Plus, ArrowLeft, ClipboardList, Search } from "lucide-react";
 import { Input, TextArea, Select, Button, Modal, showAlert } from "@/shared";
 import { taskSchema, TASK_STATES } from "../schemas/taskSchema";
-import { getTasksByUser, createTask } from "../services/taskService";
+import { getTasks, getTasksByUser, createTask } from "../services/taskService";
 import TaskStateBadge from "./TaskStateBadge";
 
 const EMPTY_TASK = {
@@ -23,6 +23,7 @@ export default function UserTasksModal({
     userId = null,
     pendingTasks = [],
     onAddPending,
+    onRemovePending,
 }) {
     const isPersisted = Boolean(userId);
 
@@ -36,6 +37,11 @@ export default function UserTasksModal({
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
 
+    // Vista "existing": todas las tareas del sistema para reasignar
+    const [allTasks,     setAllTasks]     = useState([]);
+    const [taskSearch,   setTaskSearch]   = useState("");
+    const [loadingAll,   setLoadingAll]   = useState(false);
+
     // Al abrir: carga tareas del usuario (si existe) y resetea la vista.
     useEffect(() => {
         if (!isOpen) return;
@@ -43,6 +49,7 @@ export default function UserTasksModal({
         setView("list");
         setFormData(EMPTY_TASK);
         setErrors({});
+        setTaskSearch("");
 
         if (isPersisted) {
             setLoading(true);
@@ -52,6 +59,16 @@ export default function UserTasksModal({
                 .finally(() => setLoading(false));
         }
     }, [isOpen, userId, isPersisted]);
+
+    // Cargar todas las tareas al entrar a la vista "existing"
+    useEffect(() => {
+        if (view !== "existing") return;
+        setLoadingAll(true);
+        getTasks()
+            .then(setAllTasks)
+            .catch(() => setAllTasks([]))
+            .finally(() => setLoadingAll(false));
+    }, [view]);
 
     // Tareas a mostrar segun el modo.
     const displayTasks = isPersisted
@@ -119,11 +136,13 @@ export default function UserTasksModal({
         </>
     ) : null;
 
+    const titleMap = { list: "Tareas", form: "Nueva Tarea", existing: "Tareas existentes" };
+
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={view === "form" ? "Nueva Tarea" : "Tareas"}
+            title={titleMap[view] ?? "Tareas"}
             footer={footer}
         >
             {/* VISTA LISTA */}
@@ -141,12 +160,24 @@ export default function UserTasksModal({
                                     <span className="text-small text-text-primary truncate" title={task.title}>
                                         {task.title}
                                     </span>
-                                    <TaskStateBadge state={task.state} />
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <TaskStateBadge state={task.state} />
+                                        {/* Quitar tarea pendiente (solo en modo registro) */}
+                                        {!isPersisted && onRemovePending && (
+                                            <button
+                                                type="button"
+                                                onClick={() => onRemovePending(task.key)}
+                                                className="text-text-muted hover:text-error transition-colors text-base leading-none"
+                                                aria-label={`Quitar tarea ${task.title}`}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        // Empty state: sin tareas -> invitar a crear una.
                         <div className="flex flex-col items-center gap-3 text-center py-6">
                             <ClipboardList size={32} className="text-text-muted" />
                             <p className="text-small text-text-muted">
@@ -155,10 +186,105 @@ export default function UserTasksModal({
                         </div>
                     )}
 
-                    <Button type="button" variant="primary" size="md" className="flex gap-2 justify-center" onClick={() => setView("form")}>
-                        <Plus size={16} />
-                        Crear nueva tarea
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                        <Button type="button" variant="primary" size="md" className="flex gap-2 justify-center" onClick={() => setView("form")}>
+                            <Plus size={16} />
+                            Crear nueva tarea
+                        </Button>
+                        <Button type="button" variant="secondary" size="md" className="flex gap-2 justify-center" onClick={() => setView("existing")}>
+                            <Search size={16} />
+                            Asignar tarea existente
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* VISTA TAREAS EXISTENTES */}
+            {view === "existing" && (
+                <div className="flex flex-col gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setView("list")}
+                        className="flex items-center gap-1 text-small text-text-muted hover:text-text-secondary w-fit cursor-pointer"
+                    >
+                        <ArrowLeft size={14} />
+                        Volver
+                    </button>
+
+                    <Input
+                        placeholder="Buscar tarea por nombre…"
+                        value={taskSearch}
+                        onChange={(e) => setTaskSearch(e.target.value)}
+                    />
+
+                    <div className="flex flex-col gap-2 max-h-72 overflow-y-auto">
+                        {loadingAll ? (
+                            <p className="text-small text-text-muted text-center py-6">Cargando tareas…</p>
+                        ) : (() => {
+                            const q = taskSearch.trim().toLowerCase();
+                            const filtered = allTasks.filter((t) =>
+                                (t.name ?? "").toLowerCase().includes(q)
+                            );
+                            if (filtered.length === 0)
+                                return <p className="text-small text-text-muted text-center py-6">No hay tareas que coincidan.</p>;
+                            return filtered.map((t) => (
+                                <div
+                                    key={t.id}
+                                    className="flex items-center justify-between gap-3 bg-surface-hover border border-border rounded-[var(--radius-xl)] px-4 py-2.5"
+                                >
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-small text-text-primary truncate font-medium">{t.name}</span>
+                                        {t.description && (
+                                            <span className="text-[11px] text-text-muted truncate">{t.description}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <TaskStateBadge state={t.state} />
+                                        <Button
+                                            type="button"
+                                            variant="soft"
+                                            size="sm"
+                                            onClick={() => {
+                                                // En modo registro: agregar a la lista en memoria como tarea nueva con los datos de la existente
+                                                if (!isPersisted) {
+                                                    onAddPending?.({
+                                                        taskName:        t.name,
+                                                        taskDescription: t.description ?? "",
+                                                        taskState:       t.state ?? "Pendiente",
+                                                        taskStartDate:   t.start_date ?? "",
+                                                        taskEndDate:     t.end_date   ?? "",
+                                                    });
+                                                    setView("list");
+                                                } else {
+                                                    // En modo editar: crear una copia asignada a este usuario
+                                                    setSubmitting(true);
+                                                    createTask({
+                                                        taskName:        t.name,
+                                                        taskDescription: t.description ?? "",
+                                                        taskState:       t.state ?? "Pendiente",
+                                                        taskStartDate:   t.start_date ?? "",
+                                                        taskEndDate:     t.end_date   ?? "",
+                                                        taskUser:        String(userId),
+                                                    })
+                                                        .then((created) => {
+                                                            setTasks((prev) => [...prev, created]);
+                                                            setView("list");
+                                                            showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Tarea asignada correctamente" });
+                                                        })
+                                                        .catch((err) => {
+                                                            showAlert({ icon: "error", iconColor: "var(--color-error)", title: "Error al asignar tarea", text: err.message });
+                                                        })
+                                                        .finally(() => setSubmitting(false));
+                                                }
+                                            }}
+                                        >
+                                            Asignar
+                                        </Button>
+                                    </div>
+                                </div>
+                            ));
+                        })()}
+                    </div>
                 </div>
             )}
 

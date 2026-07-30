@@ -85,7 +85,15 @@ class ConsumableMaterialSerializer(serializers.ModelSerializer):
         available = self.get_available_quantity(obj)
         return available is not None and available <= 0
 
-    # ── Validación ────────────────────────────────────────────────────────
+    def validate_sena_plate(self, value):
+        if not value:
+            return None
+        qs = ConsumableMaterial.objects.filter(sena_plate__iexact=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Ya existe un material con esta placa SENA.")
+        return value
 
     def validate(self, data):
         if 'sena_plate' in data or 'quantity' in data:
@@ -155,13 +163,26 @@ class ReturnableMaterialSerializer(serializers.ModelSerializer):
         model = ReturnableMaterial
         fields = ['consumable', 'category', 'model', 'serial', 'technical_sheet', 'dimensions', 'technical_sheets']
         extra_kwargs = {
+            "serial":         {"required": False, "allow_null": True},
             "dimensions":     {"required": False, "allow_null": True},
             "technical_sheet": {"required": False},
         }
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
+
+        # IMPORTANTE: usar el consumable ya asociado a esta instancia,
+        # NUNCA crear uno nuevo aquí. to_representation() se ejecuta en
+        # cada lectura (GET/list/create response), así que cualquier
+        # .objects.create() en este método duplicaría registros en la DB.
         c = instance.consumable
+
+        # Refrescar desde la DB: si esta instancia viene de un create()/save()
+        # reciente en la vista (típico con multipart/form-data), los campos
+        # numéricos pueden seguir siendo str en memoria (p.ej. "10" en vez
+        # de 10), lo que rompe las comparaciones numéricas de abajo.
+        c.refresh_from_db()
+
         rep['consumable_id'] = c.id
         rep['name']          = c.name
         rep['sena_plate']    = c.sena_plate
@@ -178,12 +199,14 @@ class ReturnableMaterialSerializer(serializers.ModelSerializer):
         else:
             from modules.loans.models import Loans
             from django.db.models import Sum as _Sum
+
+            qty = int(c.quantity)  # cast defensivo por si vuelve a llegar como str
             already_lent = (
                 Loans.objects.filter(id_material=c, state='Activo')
                 .aggregate(total=_Sum('amount_lent'))['total'] or 0
             )
-            rep['is_exhausted']       = c.quantity <= 0 or max(0, c.quantity - already_lent) == 0
-            rep['available_quantity'] = max(0, c.quantity - already_lent)
+            rep['is_exhausted']       = qty <= 0 or max(0, qty - already_lent) == 0
+            rep['available_quantity'] = max(0, qty - already_lent)
 
         if rep['is_exhausted']:
             rep['state'] = 'No Disponible'

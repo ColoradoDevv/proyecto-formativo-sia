@@ -138,7 +138,7 @@ export default function ProfileFileInput({
                     </>
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-text-muted group-hover:text-brand transition-colors duration-[var(--duration-base)] p-2">
-                        <IconButton className="p-2" variant="ghost">
+                        <IconButton className="p-2" variant="ghost" ariaLabel="Subir foto">
                             <Upload size={18} />
                         </IconButton>
                         <span className="text-small font-medium text-center leading-tight">
@@ -157,12 +157,12 @@ export default function ProfileFileInput({
             />
 
             {description && (
-                <p className="text-text-muted text-small text-center leading-tight max-w-[160px]">
+                <p className="text-text-muted text-small text-center leading-tight w-full">
                     {description}
                 </p>
             )}
 
-            {displayError && <span className="text-error text-small text-center max-w-[160px]">{displayError}</span>}
+            {displayError && <span className="text-error text-small text-center w-full">{displayError}</span>}
         </div>
     );
 }

@@ -150,6 +150,7 @@ REST_FRAMEWORK={
         # Por defecto, TODAS las rutas exigen estar autenticado
         'DEFAULT_PERMISSION_CLASSES': [
             'rest_framework.permissions.IsAuthenticated',
+            'modules.users.permissions.NotBlockedByPasswordChange',
         ],
 
         # Backends de filtrado globales: django-filter para filtros exactos/rango,

@@ -256,7 +256,8 @@ class ConfirmPasswordChangeView(APIView):
         otp.save(update_fields=["used"])
 
         request.user.password = otp.pending_password_hash
-        request.user.save(update_fields=["password"])
+        request.user.must_change_password = False
+        request.user.save(update_fields=["password", "must_change_password"])
 
         # Auditar cambio de contraseña autenticado
         audit_log(
@@ -274,6 +275,85 @@ class ConfirmPasswordChangeView(APIView):
 
         return Response(
             {"message": "Contraseña actualizada correctamente."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class FirstLoginPasswordChangeView(APIView):
+    """
+    Cambio obligatorio de contraseña en el primer inicio de sesión.
+
+    Recibe: { current_password, new_password, confirm_new_password }
+    No requiere OTP: el usuario acaba de autenticarse con la contraseña temporal.
+    """
+
+    allow_during_password_change = True
+
+    def post(self, request):
+        if not request.user.must_change_password:
+            return Response(
+                {"error": "No es necesario cambiar la contraseña en este momento."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        current_password = request.data.get("current_password", "").strip()
+        new_password = request.data.get("new_password", "").strip()
+        confirm_new_password = request.data.get("confirm_new_password", "").strip()
+
+        if not current_password or not new_password or not confirm_new_password:
+            return Response(
+                {"error": "Todos los campos son obligatorios."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not check_password(current_password, request.user.password):
+            return Response(
+                {"current_password": ["La contraseña actual es incorrecta."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if new_password != confirm_new_password:
+            return Response(
+                {"confirm_new_password": ["Las contraseñas no coinciden."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not ResetPasswordView._password_is_valid(new_password):
+            return Response(
+                {"new_password": [
+                    "La contraseña debe tener mínimo 10 caracteres e incluir "
+                    "mayúscula, minúscula, número y carácter especial."
+                ]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if check_password(new_password, request.user.password):
+            return Response(
+                {"new_password": ["La nueva contraseña no puede ser igual a la actual."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        request.user.set_password(new_password)
+        request.user.must_change_password = False
+        request.user.save(update_fields=["password", "must_change_password"])
+
+        audit_log(
+            actor=request.user,
+            module=AuditLog.MODULE_AUTH,
+            action=AuditLog.ACTION_PASSWORD_CHANGE,
+            target_id=request.user.pk,
+            target_repr=f"{request.user.first_name} {request.user.last_name} <{request.user.email}>",
+            detail="Cambio obligatorio de contraseña en el primer inicio de sesión.",
+            request=request,
+        )
+
+        send_password_changed_confirmation_email(request.user)
+
+        return Response(
+            {
+                "message": "Contraseña actualizada correctamente.",
+                "must_change_password": False,
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -371,6 +451,7 @@ class LoginView(APIView):
                 "last_name": user.last_name,
                 "is_superuser": user.is_superuser,  # Para que el frontend pueda usar usePermissions()
                 "is_primary_admin": user.is_primary_admin,  # Protección del superadmin primigenio en UI
+                "must_change_password": user.must_change_password,
                 "role": primary_group,  # Devuelve el nombre del grupo principal
                 "groups": [g.group.name for g in user_groups],  # Lista todos los grupos
             },
@@ -596,7 +677,8 @@ class ResetPasswordView(APIView):
 
         # 7. Guardar la nueva contrasena (hasheada) y confirmar
         user.set_password(password)
-        user.save(update_fields=["password"])
+        user.must_change_password = False
+        user.save(update_fields=["password", "must_change_password"])
 
         # 8. Invalidar el token para que no pueda reutilizarse
         exp_timestamp = payload.get("exp")
@@ -794,7 +876,8 @@ class ResendCredentialsView(APIView):
         # Solo guardamos la nueva contrasena si el correo se envio con exito,
         # para no dejar al usuario con una contrasena que nadie conoce.
         user.set_password(new_password)
-        user.save(update_fields=["password"])
+        user.must_change_password = True
+        user.save(update_fields=["password", "must_change_password"])
 
         return Response(
             {"mensaje": f"Credenciales reenviadas a {user.email}"},

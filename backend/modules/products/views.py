@@ -1,7 +1,7 @@
 # Vistas del modulo productos.
 # Aqui viven los endpoints CRUD.
 
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -10,6 +10,9 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 import django_filters
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models.functions import Lower
+from django.db.models import Count
+
+from .models import Brand, Category, ConsumableMaterial, ReturnableMaterial
 
 from .models import Brand, Category, ConsumableMaterial, ReturnableMaterial
 from .serializers import (
@@ -221,41 +224,81 @@ class ReturnableMaterialViewSet(AuditMixin, viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data
         files = request.FILES
-        self.validate_fixed_category(data.get("category_id"))
+        category_id = data.get("category_id")
+        self.validate_fixed_category(category_id)
+
+        category = Category.objects.filter(pk=category_id).first()
+        cat_name = category.name.strip().lower() if category else ""
+
+        requires_sena_plate = cat_name in ("maquinaria y equipos", "muebles y enseres")
+        requires_serial = cat_name in ("maquinaria y equipos", "muebles y enseres")
+        requires_dimensions = cat_name == "muebles y enseres"
+
         model = str(data.get("model", "")).strip()
         if not model:
             raise ValidationError({"model": "El modelo es obligatorio."})
 
-        with transaction.atomic():
-            consumable = ConsumableMaterial.objects.create(
-                name=data.get('name', ''),
-                sena_plate=data.get('sena_plate') or None,
-                state=data.get('state', 'Disponible'),
-                brand_id=data.get('brand_id') or None,
-                quantity=data.get('quantity') or None,
-                unit_price=data.get('unit_price', 0),
-                total_price=data.get('total_price', 0),
-                description=data.get('description', data.get('name', '')),
-                purchase_date=data.get('purchase_date') or None,
-                location=data.get('location') or None,
-                is_active=True,
-                user=request.user,
-                image=files.get('image', ''),
-            )
+        serial = str(data.get("serial", "")).strip()
+        if requires_serial and not serial:
+            raise ValidationError({"serial": "El número de serie es obligatorio para esta categoría."})
+        serial = serial or None
 
-            rm = ReturnableMaterial.objects.create(
-                consumable=consumable,
-                category_id=data.get('category_id'),
-                model=model,
-                serial=data.get('serial', ''),
-                dimensions=data.get('dimensions') or None,
-            )
+        if serial and ReturnableMaterial.objects.filter(serial__iexact=serial).exists():
+            raise ValidationError({"serial": "Ya existe un material devolutivo con este número de serie."})
 
-            # Guardar fichas técnicas (hasta 3: technical_sheet_0, _1, _2)
-            from .models import TechnicalSheet
-            for key in sorted(files.keys()):
-                if key == 'technical_sheet' or key.startswith('technical_sheet_'):
-                    TechnicalSheet.objects.create(material=consumable, file=files[key])
+        sena_plate = data.get("sena_plate")
+        if sena_plate:
+            sena_plate = str(sena_plate).strip() or None
+
+        if requires_sena_plate and not sena_plate:
+            raise ValidationError({"sena_plate": "La placa SENA es obligatoria para esta categoría."})
+
+        if sena_plate and ConsumableMaterial.objects.filter(sena_plate__iexact=sena_plate).exists():
+            raise ValidationError({"sena_plate": "Ya existe un material con esta placa SENA."})
+
+        dimensions = data.get("dimensions")
+        if requires_dimensions and not dimensions:
+            raise ValidationError({"dimensions": "Las dimensiones son obligatorias para esta categoría."})
+        dimensions = dimensions or None
+
+        try:
+            with transaction.atomic():
+                consumable = ConsumableMaterial.objects.create(
+                    name=data.get('name', ''),
+                    sena_plate=sena_plate,
+                    state=data.get('state', 'Disponible'),
+                    brand_id=data.get('brand_id') or None,
+                    quantity=data.get('quantity') or None,
+                    unit_price=data.get('unit_price', 0),
+                    total_price=data.get('total_price', 0),
+                    description=data.get('description', data.get('name', '')),
+                    purchase_date=data.get('purchase_date') or None,
+                    location=data.get('location') or None,
+                    is_active=True,
+                    user=request.user,
+                    image=files.get('image', ''),
+                )
+
+                rm = ReturnableMaterial.objects.create(
+                    consumable=consumable,
+                    category_id=category_id,
+                    model=model,
+                    serial=serial,
+                    dimensions=dimensions,
+                )
+
+                # Guardar fichas técnicas (hasta 3: technical_sheet_0, _1, _2)
+                from .models import TechnicalSheet
+                for key in sorted(files.keys()):
+                    if key == 'technical_sheet' or key.startswith('technical_sheet_'):
+                        TechnicalSheet.objects.create(material=consumable, file=files[key])
+        except IntegrityError as exc:
+            err_msg = str(exc)
+            if "serial" in err_msg:
+                raise ValidationError({"serial": "Ya existe un material devolutivo con este número de serie."})
+            elif "sena_plate" in err_msg:
+                raise ValidationError({"sena_plate": "Ya existe un material con esta placa SENA."})
+            raise ValidationError({"detail": "Error de integridad de datos: ya existe un registro con la misma información."})
 
         serializer = self.get_serializer(rm)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -269,11 +312,53 @@ class ReturnableMaterialViewSet(AuditMixin, viewsets.ModelViewSet):
         data = request.data
         files = request.FILES
 
+        category_id = data.get('category_id', rm.category_id)
+        if 'category_id' in data:
+            self.validate_fixed_category(category_id, rm.category_id)
+
+        category = Category.objects.filter(pk=category_id).first()
+        cat_name = category.name.strip().lower() if category else ""
+
+        requires_sena_plate = cat_name in ("maquinaria y equipos", "muebles y enseres")
+        requires_serial = cat_name in ("maquinaria y equipos", "muebles y enseres")
+        requires_dimensions = cat_name == "muebles y enseres"
+
+        if 'model' in data:
+            model = str(data.get('model', '')).strip()
+            if not model:
+                raise ValidationError({"model": "El modelo es obligatorio."})
+            rm.model = model
+
+        if 'serial' in data or ('category_id' in data and requires_serial):
+            serial_val = data.get('serial') if 'serial' in data else rm.serial
+            serial = str(serial_val or '').strip()
+            if requires_serial and not serial:
+                raise ValidationError({"serial": "El número de serie es obligatorio para esta categoría."})
+            serial = serial or None
+            if serial and ReturnableMaterial.objects.filter(serial__iexact=serial).exclude(pk=rm.pk).exists():
+                raise ValidationError({"serial": "Ya existe un material devolutivo con este número de serie."})
+            rm.serial = serial
+
+        if 'sena_plate' in data or ('category_id' in data and requires_sena_plate):
+            sp_val = data.get('sena_plate') if 'sena_plate' in data else consumable.sena_plate
+            sena_plate = str(sp_val or '').strip() or None
+            if requires_sena_plate and not sena_plate:
+                raise ValidationError({"sena_plate": "La placa SENA es obligatoria para esta categoría."})
+            if sena_plate and ConsumableMaterial.objects.filter(sena_plate__iexact=sena_plate).exclude(pk=consumable.pk).exists():
+                raise ValidationError({"sena_plate": "Ya existe un material con esta placa SENA."})
+            consumable.sena_plate = sena_plate
+
+        if 'dimensions' in data or ('category_id' in data and requires_dimensions):
+            dim_val = data.get('dimensions') if 'dimensions' in data else rm.dimensions
+            dimensions = str(dim_val or '').strip() or None
+            if requires_dimensions and not dimensions:
+                raise ValidationError({"dimensions": "Las dimensiones son obligatorias para esta categoría."})
+            rm.dimensions = dimensions
+
         # Mapa campo-del-request -> atributo del ConsumableMaterial.
         # Los valores se asignan tal cual; los vacios se normalizan a None.
         consumable_fields = {
             'name': 'name',
-            'sena_plate': 'sena_plate',
             'state': 'state',
             'brand_id': 'brand_id',
             'quantity': 'quantity',
@@ -283,41 +368,39 @@ class ReturnableMaterialViewSet(AuditMixin, viewsets.ModelViewSet):
             'purchase_date': 'purchase_date',
             'location': 'location',
         }
-        nullable = {'sena_plate', 'brand_id', 'quantity', 'purchase_date', 'location'}
+        nullable = {'brand_id', 'quantity', 'purchase_date', 'location'}
 
-        with transaction.atomic():
-            for key, attr in consumable_fields.items():
-                if key in data:
-                    value = data.get(key)
-                    if key in nullable:
-                        value = value or None
-                    setattr(consumable, attr, value)
+        try:
+            with transaction.atomic():
+                for key, attr in consumable_fields.items():
+                    if key in data:
+                        value = data.get(key)
+                        if key in nullable:
+                            value = value or None
+                        setattr(consumable, attr, value)
 
-            if 'image' in files:
-                consumable.image = files.get('image')
+                if 'image' in files:
+                    consumable.image = files.get('image')
 
-            consumable.save()
+                consumable.save()
 
-            if 'category_id' in data:
-                self.validate_fixed_category(data.get('category_id'), rm.category_id)
-                rm.category_id = data.get('category_id')
-            if 'model' in data:
-                model = str(data.get('model', '')).strip()
-                if not model:
-                    raise ValidationError({"model": "El modelo es obligatorio."})
-                rm.model = model
-            if 'serial' in data:
-                rm.serial = data.get('serial')
-            if 'dimensions' in data:
-                rm.dimensions = data.get('dimensions') or None
+                if 'category_id' in data:
+                    rm.category_id = category_id
 
-            # Fichas técnicas nuevas en el PATCH (se agregan al lote existente).
-            from .models import TechnicalSheet as TS
-            for key in sorted(files.keys()):
-                if key == 'technical_sheet' or key.startswith('technical_sheet_'):
-                    TS.objects.create(material=consumable, file=files[key])
+                # Fichas técnicas nuevas en el PATCH (se agregan al lote existente).
+                from .models import TechnicalSheet as TS
+                for key in sorted(files.keys()):
+                    if key == 'technical_sheet' or key.startswith('technical_sheet_'):
+                        TS.objects.create(material=consumable, file=files[key])
 
-            rm.save()
+                rm.save()
+        except IntegrityError as exc:
+            err_msg = str(exc)
+            if "serial" in err_msg:
+                raise ValidationError({"serial": "Ya existe un material devolutivo con este número de serie."})
+            elif "sena_plate" in err_msg:
+                raise ValidationError({"sena_plate": "Ya existe un material con esta placa SENA."})
+            raise ValidationError({"detail": "Error de integridad de datos: ya existe un registro con la misma información."})
 
         serializer = self.get_serializer(rm)
         return Response(serializer.data, status=status.HTTP_200_OK)

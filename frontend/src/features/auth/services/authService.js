@@ -22,17 +22,21 @@ export async function login(email, password) {
     setSession(data.token, data.user);
 
     // Obtenemos los codenames de permiso del usuario y los guardamos
-    try {
-        const permRes = await fetch("/api/permissions/permissions/my_permission_codes/", {
-            headers: { Authorization: `Bearer ${data.token}` },
-        });
-        if (permRes.ok) {
-            const permData = await permRes.json();
-            setStoredPermissions(permData.permissions ?? []);
+    if (!data.user?.must_change_password) {
+        try {
+            const permRes = await fetch("/api/permissions/permissions/my_permission_codes/", {
+                headers: { Authorization: `Bearer ${data.token}` },
+            });
+            if (permRes.ok) {
+                const permData = await permRes.json();
+                setStoredPermissions(permData.permissions ?? []);
+            }
+        } catch {
+            // Si falla la carga de permisos no interrumpimos el login;
+            // el backend sigue haciendo la validación real.
+            setStoredPermissions([]);
         }
-    } catch {
-        // Si falla la carga de permisos no interrumpimos el login;
-        // el backend sigue haciendo la validación real.
+    } else {
         setStoredPermissions([]);
     }
 
@@ -93,4 +97,31 @@ export async function logout() {
     }
 
     clearSession();
+}
+
+// Cambio obligatorio de contraseña en el primer inicio de sesión (sin OTP).
+export async function changePasswordFirstLogin({ currentPassword, newPassword, confirmNewPassword }) {
+    const FIELD_MAP = {
+        current_password: "currentPassword",
+        new_password: "newPassword",
+        confirm_new_password: "confirmNewPassword",
+    };
+
+    const { apiFetch, throwApiError, updateStoredUser } = await import("@/shared/services/api");
+
+    const response = await apiFetch("/api/users/me/change-password/first-login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_new_password: confirmNewPassword,
+        }),
+    });
+
+    if (!response.ok) await throwApiError(response, FIELD_MAP);
+
+    const data = await response.json();
+    updateStoredUser({ must_change_password: false });
+    return data;
 }

@@ -243,7 +243,7 @@ export default function UserRegisterForm() {
                         singleGroupSelection
                         confirmEmailSlot={
                             <Input
-                                label="Confirmar correo"
+                                label="Confirmar correo electrónico"
                                 name="confirmEmail"
                                 type="email"
                                 placeholder="Confirma el correo electrónico"
@@ -320,8 +320,19 @@ export default function UserRegisterForm() {
 
                                 {/* Tareas ya agregadas */}
                                 {formData.userTasks.map((task, i) => (
-                                    <span key={i} className="text-small text-text-primary bg-surface-muted border border-border rounded-[var(--radius-full)] px-3 py-1 w-fit">
+                                    <span key={i} className="flex items-center gap-1.5 text-small text-text-primary bg-surface-muted border border-border rounded-[var(--radius-full)] px-3 py-1 w-fit">
                                         {task.taskName}
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData((prev) => ({
+                                                ...prev,
+                                                userTasks: prev.userTasks.filter((_, idx) => idx !== i),
+                                            }))}
+                                            className="text-text-muted hover:text-error transition-colors leading-none"
+                                            aria-label={`Quitar tarea ${task.taskName}`}
+                                        >
+                                            ×
+                                        </button>
                                     </span>
                                 ))}
                             </div>
@@ -343,6 +354,12 @@ export default function UserRegisterForm() {
                 onClose={() => setShowTaskModal(false)}
                 pendingTasks={formData.userTasks}
                 onAddPending={handleAddTask}
+                onRemovePending={(idx) =>
+                    setFormData((prev) => ({
+                        ...prev,
+                        userTasks: prev.userTasks.filter((_, i) => i !== idx),
+                    }))
+                }
             />
         </>
     );

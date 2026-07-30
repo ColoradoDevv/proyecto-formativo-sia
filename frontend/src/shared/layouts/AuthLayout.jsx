@@ -1,6 +1,5 @@
 import { Outlet } from "react-router-dom";
 import bgLogin from "@/assets/images/auth/bg-login.png";
-import officeImg from "@/assets/images/auth/office-imagen.png";
 import senaLogo from "@/assets/images/auth/logo-sena-verde-png-2022 1.png";
 
 // Estructura visual para las vistas de autenticacion (sin navegacion principal).
@@ -14,13 +13,13 @@ export default function AuthLayout({ children }) {
             <img
                 src={bgLogin}
                 alt="Background"
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none "
             />
 
             {/* Tarjeta glassmorphism — contiene TODO */}
             <div className="
                 relative z-10
-                w-[90%] max-w-md md:max-w-5xl
+                w-min max-w-md md:max-w-5xl
                 h-auto md:h-[85vh]
                 rounded-[var(--radius-3xl)]
                 flex flex-row
@@ -31,7 +30,7 @@ export default function AuthLayout({ children }) {
                 overflow-hidden
             ">
                     {/* Logo SENA: SIEMPRE visible (incluido movil) */}
-                    <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
+                    <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20 pointer-events-none ">
                         <img
                             src={senaLogo}
                             alt="Logo SENA"
@@ -39,16 +38,6 @@ export default function AuthLayout({ children }) {
                         />
                     </div>
 
-                
-                {/* ── Lado izquierdo: ilustración (solo desde md) ── */}
-                <div className="relative flex-1 hidden md:flex items-center justify-center p-8">
-                    {/* Ilustración recepcionista */}
-                    <img
-                        src={officeImg}
-                        alt="Recepción SENA"
-                        className="max-w-full max-h-full object-contain"
-                    />
-                </div>
 
                 {/* ── Lado derecho: formulario ── */}
                 <div className="relative grid items-center justify-center p-6 pt-20 sm:pt-24 md:p-0 ">

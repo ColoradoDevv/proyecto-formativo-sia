@@ -85,18 +85,18 @@ export default function UserForm({
                     {/* Campos personales */}
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
                         <Input
-                            label="Nombres"
+                            label="Primer Nombre"
                             name="firstName"
-                            placeholder="Ingresa el nombre"
+                            placeholder="Ingrese su primer nombre"
                             value={formData.firstName}
                             onChange={onChange}
                             error={errors.firstName}
                             required
                         />
                         <Input
-                            label="Apellidos"
+                            label="Primer Apellido"
                             name="lastName"
-                            placeholder="Ingresa los apellidos"
+                            placeholder="Ingrese su primer apellido"
                             value={formData.lastName}
                             onChange={onChange}
                             error={errors.lastName}
@@ -122,9 +122,9 @@ export default function UserForm({
                         />
                         <div className="sm:col-span-2">
                             <Input
-                                label="Dirección"
+                                label="Dirección de domicilio"
                                 name="address"
-                                placeholder="Ingresa la dirección"
+                                placeholder="Ingrese la dirección de su domicilio"
                                 value={formData.address}
                                 onChange={onChange}
                                 error={errors.address}
@@ -164,26 +164,6 @@ export default function UserForm({
                 </EditCard>
 
                 <EditCard title="Información del Sistema">
-                    <Input
-                        label="Fecha de inicio"
-                        name="startDate"
-                        type="date"
-                        value={formData.startDate}
-                        onChange={onChange}
-                        error={errors.startDate}
-                        required={!datesOptional}
-                        optional={datesOptional}
-                    />
-                    <Input
-                        label="Fecha de finalización"
-                        name="endDate"
-                        type="date"
-                        required={!datesOptional}
-                        optional={datesOptional}
-                        value={formData.endDate}
-                        onChange={onChange}
-                        error={errors.endDate}
-                    />
                     <div>
                         {singleGroupSelection ? (
                             <Select
@@ -234,9 +214,41 @@ export default function UserForm({
                             />
                         )}
                     </div>
-
-
                     {systemExtraSlot}
+                    <Input
+                        label="Fecha de inicio"
+                        name="startDate"
+                        type="date"
+                        value={formData.startDate}
+                        onChange={onChange}
+                        error={errors.startDate}
+                        required={!datesOptional}
+                        optional={datesOptional}
+                    />
+                    <Input
+                        label="Fecha de finalización"
+                        name="endDate"
+                        type="date"
+                        required={!datesOptional}
+                        optional={datesOptional}
+                        value={formData.endDate}
+                        onChange={onChange}
+                        error={errors.endDate}
+                    />
+
+                    {datesOptional && (
+                        <div className="flex items-start gap-2 rounded-[var(--radius-xl)] border border-brand/30 bg-brand/6 px-3 py-2.5">
+                            <span className="text-brand mt-0.5 shrink-0 text-base leading-none">ℹ</span>
+                            <p className="text-small text-text-secondary leading-snug">
+                                {formData.isInstructorPlanta
+                                    ? "Los instructores de planta no tienen fecha de vinculación definida — las fechas son opcionales."
+                                    : "Los usuarios con rol Admin no requieren fechas de vinculación — puedes dejarlas vacías."
+                                }
+                            </p>
+                        </div>
+                    )}
+
+
                 </EditCard>
             </div>
         </>

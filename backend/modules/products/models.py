@@ -107,8 +107,8 @@ class ReturnableMaterial(models.Model):
     # Obligatorio segun diccionario
     model = models.CharField(max_length=100)
 
-    # Unico y obligatorio segun diccionario
-    serial = models.CharField(max_length=20, unique=True)
+    # Unico y opcional (segun categoria, ej. Herramienta)
+    serial = models.CharField(max_length=20, unique=True, null=True, blank=True)
 
     technical_sheet = models.FileField(upload_to='specs/', blank=True, default='')
 
