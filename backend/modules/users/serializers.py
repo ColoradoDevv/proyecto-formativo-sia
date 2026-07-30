@@ -78,8 +78,11 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "is_active": {"required": False, "default": True},
             "is_instructor_planta": {"required": False, "default": False},
+            "is_accountable": {"required": False, "default": False},
             "second_phone_number": {"required": False, "allow_null": True},
             "institutional_email": {"required": False, "allow_null": True},
+            "start_date": {"required": False, "allow_null": True},
+            "end_date": {"required": False, "allow_null": True},
             # Se valida manualmente para devolver un mensaje claro y mapearlo
             # al input documentNumber del formulario.
             "document_number": {
@@ -112,6 +115,38 @@ class UserSerializer(serializers.ModelSerializer):
             )
 
         return document_number
+
+    def _validate_dates(self, attrs):
+        start = attrs.get("start_date")
+        end = attrs.get("end_date")
+
+        if self.instance is None:
+            if not start:
+                raise serializers.ValidationError(
+                    {"start_date": "La fecha de inicio es obligatoria."}
+                )
+            if not end:
+                raise serializers.ValidationError(
+                    {"end_date": "La fecha de finalización es obligatoria."}
+                )
+        else:
+            start = start if "start_date" in attrs else self.instance.start_date
+            end = end if "end_date" in attrs else self.instance.end_date
+            if not start:
+                raise serializers.ValidationError(
+                    {"start_date": "La fecha de inicio es obligatoria."}
+                )
+            if not end:
+                raise serializers.ValidationError(
+                    {"end_date": "La fecha de finalización es obligatoria."}
+                )
+
+        if start and end and end < start:
+            raise serializers.ValidationError(
+                {"end_date": "La fecha de finalización no puede ser anterior a la de inicio."}
+            )
+
+        return attrs
 
     def create(self, validated_data):
         # Ignoramos cualquier password que llegue del frontend: siempre se genera
@@ -166,6 +201,8 @@ class UserSerializer(serializers.ModelSerializer):
         no lance un falso error de unicidad.
         """
         instance = self.instance  # None en creación, User en edición
+        attrs = self._validate_dates(attrs)
+
         if instance is None:
             return attrs
 

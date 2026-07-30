@@ -30,11 +30,7 @@ export default function UserForm({
     singleGroupSelection = false,
     disabledOptionValues = [],
     isPrimaryAdmin = false,
-    // Flags de rol pre-calculados por el padre (Opción A).
-    // Si no se reciben, se calculan aquí como fallback para compatibilidad
-    // con formularios que aún no los derivan externamente (ej. UserCreateForm).
     isInstructorRole: isInstructorRoleProp = null,
-    datesOptional: datesOptionalProp = null,
     confirmEmailSlot = null,
     contactExtraSlot = null,
     emailInst = null,
@@ -42,12 +38,9 @@ export default function UserForm({
 }) {
     const isActive = formData.isActive === "true" || formData.isActive === true;
 
-    // Si el padre ya calculó los flags, usarlos directamente.
-    // Si no (fallback), derivarlos localmente con la misma lógica.
-    let isInstructorRole, datesOptional;
-    if (isInstructorRoleProp !== null && datesOptionalProp !== null) {
+    let isInstructorRole;
+    if (isInstructorRoleProp !== null) {
         isInstructorRole = isInstructorRoleProp;
-        datesOptional    = datesOptionalProp;
     } else {
         const selectedGroupIds = Array.isArray(formData.groups)
             ? formData.groups.map(String)
@@ -58,8 +51,6 @@ export default function UserForm({
         isInstructorRole = selectedGroupNames.some(
             (n) => n.includes("INST") || n.includes("INSTRUCTOR")
         );
-        const isAdminLikeRole = selectedGroupNames.some((n) => /(ADMIN|SADMIN|SUPER)/.test(n));
-        datesOptional = Boolean(formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
     }
 
     return (
@@ -190,8 +181,8 @@ export default function UserForm({
                                 disabled={isPrimaryAdmin}
                             />
                         )}
-                        {isInstructorRole && (
-                            <div className="mt-2">
+                        <div className="mt-2 flex flex-col gap-2">
+                            {isInstructorRole && (
                                 <Checkbox
                                     id="isInstructorPlanta"
                                     name="isInstructorPlanta"
@@ -199,8 +190,15 @@ export default function UserForm({
                                     checked={Boolean(formData.isInstructorPlanta)}
                                     onChange={onChange}
                                 />
-                            </div>
-                        )}
+                            )}
+                            <Checkbox
+                                id="isAccountable"
+                                name="isAccountable"
+                                label="Cuentadante"
+                                checked={Boolean(formData.isAccountable)}
+                                onChange={onChange}
+                            />
+                        </div>
                         {showStatus && (
                             <Select
                                 label="Estado"
@@ -222,33 +220,17 @@ export default function UserForm({
                         value={formData.startDate}
                         onChange={onChange}
                         error={errors.startDate}
-                        required={!datesOptional}
-                        optional={datesOptional}
+                        required
                     />
                     <Input
                         label="Fecha de finalización"
                         name="endDate"
                         type="date"
-                        required={!datesOptional}
-                        optional={datesOptional}
                         value={formData.endDate}
                         onChange={onChange}
                         error={errors.endDate}
+                        required
                     />
-
-                    {datesOptional && (
-                        <div className="flex items-start gap-2 rounded-[var(--radius-xl)] border border-brand/30 bg-brand/6 px-3 py-2.5">
-                            <span className="text-brand mt-0.5 shrink-0 text-base leading-none">ℹ</span>
-                            <p className="text-small text-text-secondary leading-snug">
-                                {formData.isInstructorPlanta
-                                    ? "Los instructores de planta no tienen fecha de vinculación definida — las fechas son opcionales."
-                                    : "Los usuarios con rol Admin no requieren fechas de vinculación — puedes dejarlas vacías."
-                                }
-                            </p>
-                        </div>
-                    )}
-
-
                 </EditCard>
             </div>
         </>

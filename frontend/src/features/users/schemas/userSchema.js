@@ -47,13 +47,15 @@ export const userSchema = z.object({
 
     startDate: z
         .string()
-        .refine((value) => value === "" || isValidDateString(value), {
+        .min(1, "Debe ingresar una fecha de inicio")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
         }),
 
     endDate: z
         .string()
-        .refine((value) => value === "" || isValidDateString(value), {
+        .min(1, "Debe ingresar una fecha de finalización")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
         }),
 
@@ -95,6 +97,10 @@ export const userSchema = z.object({
         .optional(),
 
     isInstructorPlanta: z
+        .boolean()
+        .optional(),
+
+    isAccountable: z
         .boolean()
         .optional(),
 
@@ -178,16 +184,17 @@ export const userEditSchema = z.object({
 
     startDate: z
         .string()
-        .refine((val) => val === "" || isValidDateString(val), {
+        .min(1, "Debe ingresar una fecha de inicio")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
         }),
 
     endDate: z
         .string()
-        .refine((val) => val === "" || isValidDateString(val), {
+        .min(1, "Debe ingresar una fecha de finalización")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
-        })
-        .optional(),
+        }),
 
     profilePicture: z
         .array(z.any())

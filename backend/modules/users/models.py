@@ -84,8 +84,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     # --- Multimedia ---
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
 
-    # Cuentadante: persona responsable de responder por los materiales
-    accountable = models.CharField(max_length=100, null=True, blank=True)
+    # Cuentadante: persona responsable de responder por los materiales.
+    # Si es True, aparece en los selectores de cuentadante del sistema.
+    is_accountable = models.BooleanField(
+        default=False,
+        help_text="Indica si el usuario puede ser asignado como cuentadante de materiales.",
+    )
 
     # --- Campos que Django necesita para el control de acceso ---
     is_active = models.BooleanField(default=True)   # si esta en False, no puede entrar

@@ -735,6 +735,7 @@ class UserFilter(django_filters.FilterSet):
     last_name   = django_filters.CharFilter(lookup_expr='icontains')
     document_number = django_filters.CharFilter(lookup_expr='icontains')
     is_active   = django_filters.BooleanFilter()
+    is_accountable = django_filters.BooleanFilter()
     # ?group=Administrador  →  filtra por nombre del grupo vía UserGroup
     group = django_filters.CharFilter(
         field_name='user_groups__group__name',
@@ -744,7 +745,7 @@ class UserFilter(django_filters.FilterSet):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'document_number', 'is_active', 'group']
+        fields = ['first_name', 'last_name', 'document_number', 'is_active', 'is_accountable', 'group']
 
 
 class UserListCreateView(AuditMixin, generics.ListCreateAPIView):

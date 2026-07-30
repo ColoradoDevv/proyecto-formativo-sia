@@ -61,7 +61,8 @@ class UserAdmin(admin.ModelAdmin):
                 'institutional_email',
                 'start_date',
                 'end_date',
-                'accountable',
+                'is_instructor_planta',
+                'is_accountable',
             )
         }),
         ('Permisos y Roles', {
