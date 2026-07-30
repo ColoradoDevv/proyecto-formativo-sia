@@ -2,19 +2,62 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDocumentTypes } from "../../services/selectServices";
 import useUserGroups from "../../hooks/useUserGroups";
-import { Input, Button, StatusLabel, showAlert, cancelAlert, IconButton, usePermissions } from "@/shared";
+import { Input, Button, StatusLabel, showAlert, cancelAlert, IconButton, usePermissions, AccordionItem } from "@/shared";
 import { UserTasksModal } from "@/features/tasks";
 import { createTask } from "@/features/tasks/services/taskService";
-import { userSchema } from "../../schemas/userSchema";
+import { userBaseSchema, userSchema } from "../../schemas/userSchema";
 import { createUser } from "../../services/userService";
 import { deriveRoleFlags } from "../../utils/userRoleUtils";
-import UserForm from "../UserForm";
-import { ClipboardList, Undo2 } from "lucide-react";
+import { UserPersonalCard, UserContactCard, UserSystemCard, UserDatesCard } from "../UserForm";
+import { ClipboardList, Undo2, User, Phone, Shield, CalendarDays, CheckCircle2 } from "lucide-react";
+
+const PERSONAL_FIELDS = ["firstName", "lastName", "documentType", "documentNumber", "address"];
+const CONTACT_FIELDS = ["email", "confirmEmail", "institutionalEmail", "phone", "additionalPhone"];
+const SYSTEM_FIELDS = ["groups", "isInstructorPlanta", "isAccountable"];
+const DATES_FIELDS = ["startDate", "endDate"];
+
+const personalStepSchema = userBaseSchema.pick({
+    firstName: true,
+    lastName: true,
+    documentType: true,
+    documentNumber: true,
+    address: true,
+});
+
+const contactStepSchema = userBaseSchema.pick({
+    email: true,
+    confirmEmail: true,
+    institutionalEmail: true,
+    phone: true,
+    additionalPhone: true,
+}).refine(
+    (data) => data.email === data.confirmEmail,
+    { message: "Los correos no coinciden", path: ["confirmEmail"] }
+).refine(
+    (data) => !data.institutionalEmail || data.institutionalEmail !== data.email,
+    { message: "No puede coincidir con el correo personal", path: ["institutionalEmail"] }
+);
+
+const systemStepSchema = userBaseSchema.pick({
+    groups: true,
+    isInstructorPlanta: true,
+    isAccountable: true,
+});
+
+const datesStepSchema = userBaseSchema.pick({
+    startDate: true,
+    endDate: true,
+}).refine(
+    (data) => !data.startDate || !data.endDate || data.endDate >= data.startDate,
+    { message: "La fecha de finalización no puede ser anterior a la de inicio", path: ["endDate"] }
+);
 
 export default function UserRegisterForm() {
 
     const navigate = useNavigate();
     const [showTaskModal, setShowTaskModal] = useState(false);
+    const [activeStep, setActiveStep] = useState(0);
+    const [completedSteps, setCompletedSteps] = useState([false, false, false, false]);
 
     // Usa la misma convencion de nombres que el UserForm reutilizable.
     // `confirmEmail` y `userTasks` son extras propios de la creacion.
@@ -34,6 +77,7 @@ export default function UserRegisterForm() {
         phone: "",
         address: "",
         isInstructorPlanta: false,
+        isAccountable: false,
         userTasks: [],
     });
 
@@ -65,6 +109,89 @@ export default function UserRegisterForm() {
 
     const { groups: userGroups } = useUserGroups();
     const availableGroups = userGroups.filter((group) => String(group.label || "").trim().toUpperCase() !== "SADMIN");
+
+    const { isInstructorRole } = deriveRoleFlags(userGroups, formData.groups);
+
+    const clearErrorsForFields = (fields) => {
+        setErrors((prev) => {
+            if (!prev || typeof prev !== "object") return prev;
+            const next = { ...prev };
+            fields.forEach((f) => { delete next[f]; });
+            return next;
+        });
+    };
+
+    const setErrorsForFields = (fields, fieldErrors) => {
+        setErrors((prev) => {
+            const next = { ...(prev || {}) };
+            fields.forEach((f) => { delete next[f]; });
+            return { ...next, ...fieldErrors };
+        });
+    };
+
+    const validateStep = (stepIndex) => {
+        const stepConfig = [
+            { schema: personalStepSchema, fields: PERSONAL_FIELDS },
+            { schema: contactStepSchema, fields: CONTACT_FIELDS },
+            { schema: systemStepSchema, fields: SYSTEM_FIELDS },
+            { schema: datesStepSchema, fields: DATES_FIELDS },
+        ][stepIndex];
+
+        if (!stepConfig) return true;
+
+        const stepData = Object.fromEntries(
+            stepConfig.fields.map((f) => [f, formData[f]])
+        );
+
+        const result = stepConfig.schema.safeParse(stepData);
+        if (result.success) {
+            clearErrorsForFields(stepConfig.fields);
+            return true;
+        }
+
+        const fieldErrors = {};
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0];
+            if (field !== undefined && !(field in fieldErrors)) fieldErrors[field] = issue.message;
+        });
+        setErrorsForFields(stepConfig.fields, fieldErrors);
+        return false;
+    };
+
+    const goToStep = (targetIndex) => {
+        if (targetIndex === activeStep) return;
+        if (targetIndex < activeStep) {
+            setActiveStep(targetIndex);
+            return;
+        }
+
+        for (let i = activeStep; i < targetIndex; i++) {
+            const ok = validateStep(i);
+            if (!ok) {
+                setActiveStep(i);
+                return;
+            }
+            setCompletedSteps((prev) => {
+                const next = [...prev];
+                next[i] = true;
+                return next;
+            });
+        }
+        setActiveStep(targetIndex);
+    };
+
+    const nextStep = () => {
+        const ok = validateStep(activeStep);
+        if (!ok) return;
+        setCompletedSteps((prev) => {
+            const next = [...prev];
+            next[activeStep] = true;
+            return next;
+        });
+        setActiveStep((prev) => Math.min(prev + 1, 3));
+    };
+
+    const prevStep = () => setActiveStep((prev) => Math.max(prev - 1, 0));
 
     useEffect(() => {
         // usePermissions lee sessionStorage sincrónicamente — canCreateUsers es
@@ -131,35 +258,23 @@ export default function UserRegisterForm() {
         }
 
         // --- Fase 1: validación (síncrona, fuera del try de submit) ---
-        const { isInstructorRole, isAdminLikeRole } = deriveRoleFlags(userGroups, formData.groups);
-        const datesOptional = (formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
-
-        const fieldErrors = {};
-
-        if (!datesOptional) {
-            if (!formData.startDate) fieldErrors.startDate = "Debe ingresar una fecha de inicio";
-            if (!formData.endDate)   fieldErrors.endDate   = "Debe ingresar una fecha de finalización";
-        }
-
-        if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
-            fieldErrors.endDate = "La fecha de finalización no puede ser anterior a la de inicio";
-        }
-
-        const result = userSchema.safeParse({
-            ...formData,
-            startDate: formData.startDate || "",
-            endDate: formData.endDate || "",
-        });
+        const result = userSchema.safeParse(formData);
 
         if (!result.success) {
+            const fieldErrors = {};
             result.error.issues.forEach((issue) => {
                 const field = issue.path[0];
-                if (!(field in fieldErrors)) fieldErrors[field] = issue.message;
+                if (field !== undefined && !(field in fieldErrors)) fieldErrors[field] = issue.message;
             });
-        }
-
-        if (Object.keys(fieldErrors).length) {
             setErrors(fieldErrors);
+            const stepByField = {
+                ...Object.fromEntries(PERSONAL_FIELDS.map((f) => [f, 0])),
+                ...Object.fromEntries(CONTACT_FIELDS.map((f) => [f, 1])),
+                ...Object.fromEntries(SYSTEM_FIELDS.map((f) => [f, 2])),
+                ...Object.fromEntries(DATES_FIELDS.map((f) => [f, 3])),
+            };
+            const stepCandidates = Object.keys(fieldErrors).map((f) => stepByField[f]).filter((v) => v != null);
+            if (stepCandidates.length) setActiveStep(Math.min(...stepCandidates));
             return;
         }
 
@@ -187,7 +302,7 @@ export default function UserRegisterForm() {
                             createTask({ ...task, taskUser: String(user.id) })
                         )
                     );
-                } catch (taskError) {
+                } catch (_taskError) {
                     // El usuario ya fue creado — notificar sin bloquear la navegación.
                     await showAlert({
                         icon: "warning",
@@ -233,117 +348,236 @@ export default function UserRegisterForm() {
 
                 <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-3">
 
-                    <UserForm
-                        formData={formData}
-                        errors={errors}
-                        onChange={handleChange}
-                        onPhotoChange={handleProfileChange}
-                        documentTypes={documentTypes}
-                        groups={availableGroups}
-                        singleGroupSelection
-                        confirmEmailSlot={
-                            <Input
-                                label="Confirmar correo electrónico"
-                                name="confirmEmail"
-                                type="email"
-                                placeholder="Confirma el correo electrónico"
-                                value={formData.confirmEmail}
-                                onChange={handleChange}
-                                error={errors.confirmEmail}
-                                required
-                            />
-                        }
-                        contactExtraSlot={
-                            // Telefono adicional: se muestra solo al presionar "Agregar número".
-                            <div className="flex flex-col gap-2">
-                                <StatusLabel optional>Teléfono adicional</StatusLabel>
-                                {!showAdditionalPhone ? (
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="md"
-                                        onClick={() => setShowAdditionalPhone(true)}
-                                    >
-                                        Agregar número
-                                    </Button>
-                                ) : (
-                                    <Input
-                                        name="additionalPhone"
-                                        placeholder="Número de teléfono adicional"
-                                        value={formData.additionalPhone}
-                                        onChange={handleChange}
-                                        error={errors.additionalPhone}
-                                    />
-                                )}
-                            </div>
-                        }
-                        emailInst={
-                            // Correo institucional: se muestra solo al presionar "Agregar Correo Institucional"
-                            <div className="flex flex-col gap-2">
-                                <StatusLabel optional>Correo Institucional</StatusLabel>
-                                {!showEmailInst ? (
-                                  <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="md"
-                                        onClick={() => setShowEmailInst(true)}
-                                    >
-                                        Agregar Correo Institucional
-                                    </Button>
-                                ) : (
-                                    <Input
-                                        name="institutionalEmail"
-                                        type="email"
-                                        optional
-                                        placeholder="correo@sena.edu.co"
-                                        onChange={handleChange}
-                                        value={formData.institutionalEmail}
-                                        error={errors.institutionalEmail}
-                                    />
-                                )}
-                            </div>
-                        }
-                        systemExtraSlot={
-                            // Tareas: se agregan en memoria y se persisten al crear el usuario.
-                            <div className="flex flex-col gap-2">
-                                <StatusLabel optional>Tareas</StatusLabel>
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    size="md"
-                                    className="flex gap-2 justify-center"
-                                    onClick={() => setShowTaskModal(true)}
-                                >
-                                    <ClipboardList size={16} />
-                                    Agregar tarea
-                                </Button>
-
-                                {/* Tareas ya agregadas */}
-                                {formData.userTasks.map((task, i) => (
-                                    <span key={i} className="flex items-center gap-1.5 text-small text-text-primary bg-surface-muted border border-border rounded-[var(--radius-full)] px-3 py-1 w-fit">
-                                        {task.taskName}
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData((prev) => ({
-                                                ...prev,
-                                                userTasks: prev.userTasks.filter((_, idx) => idx !== i),
-                                            }))}
-                                            className="text-text-muted hover:text-error transition-colors leading-none"
-                                            aria-label={`Quitar tarea ${task.taskName}`}
-                                        >
-                                            ×
-                                        </button>
+                    <div className="flex flex-col gap-3">
+                        <AccordionItem
+                            title={
+                                <span className="flex items-center gap-3">
+                                    <span className="size-9 rounded-[var(--radius-full)] border border-border bg-surface-muted flex items-center justify-center">
+                                        {completedSteps[0] ? <CheckCircle2 size={18} className="text-success" /> : <User size={18} />}
                                     </span>
-                                ))}
+                                    <span className="flex flex-col leading-tight">
+                                        <span>Información personal</span>
+                                        <span className="text-small text-text-muted">Paso 1 de 4</span>
+                                    </span>
+                                </span>
+                            }
+                            open={activeStep === 0}
+                            onToggle={() => goToStep(0)}
+                        >
+                            <div className="pt-4 flex flex-col gap-3">
+                                <UserPersonalCard
+                                    formData={formData}
+                                    errors={errors}
+                                    onChange={handleChange}
+                                    onPhotoChange={handleProfileChange}
+                                    documentTypes={documentTypes}
+                                />
+                                <div className="flex gap-3 justify-between">
+                                    <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
+                                        Cancelar
+                                    </Button>
+                                    <Button type="button" variant="primary" size="md" onClick={nextStep} disabled={submitting}>
+                                        Siguiente
+                                    </Button>
+                                </div>
                             </div>
-                        }
-                    />
-                    
-                    <div className="flex gap-8 pb-6 justify-center md:justify-end md:pb-0">
-                        <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>Cancelar</Button>
-                        <Button type="submit" variant="primary" size="md" disabled={submitting}>
-                            {submitting ? "Creando..." : "Crear"}
-                        </Button>
+                        </AccordionItem>
+
+                        <AccordionItem
+                            title={
+                                <span className="flex items-center gap-3">
+                                    <span className="size-9 rounded-[var(--radius-full)] border border-border bg-surface-muted flex items-center justify-center">
+                                        {completedSteps[1] ? <CheckCircle2 size={18} className="text-success" /> : <Phone size={18} />}
+                                    </span>
+                                    <span className="flex flex-col leading-tight">
+                                        <span>Contacto</span>
+                                        <span className="text-small text-text-muted">Paso 2 de 4</span>
+                                    </span>
+                                </span>
+                            }
+                            open={activeStep === 1}
+                            onToggle={() => goToStep(1)}
+                        >
+                            <div className="pt-4 flex flex-col gap-3">
+                                <UserContactCard
+                                    formData={formData}
+                                    errors={errors}
+                                    onChange={handleChange}
+                                    confirmEmailSlot={
+                                        <Input
+                                            label="Confirmar correo electrónico"
+                                            name="confirmEmail"
+                                            type="email"
+                                            placeholder="Confirma el correo electrónico"
+                                            value={formData.confirmEmail}
+                                            onChange={handleChange}
+                                            error={errors.confirmEmail}
+                                            required
+                                        />
+                                    }
+                                    contactExtraSlot={
+                                        <div className="flex flex-col gap-2">
+                                            <StatusLabel optional>Teléfono adicional</StatusLabel>
+                                            {!showAdditionalPhone ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    size="md"
+                                                    onClick={() => setShowAdditionalPhone(true)}
+                                                >
+                                                    Agregar número
+                                                </Button>
+                                            ) : (
+                                                <Input
+                                                    name="additionalPhone"
+                                                    placeholder="Número de teléfono adicional"
+                                                    value={formData.additionalPhone}
+                                                    onChange={handleChange}
+                                                    error={errors.additionalPhone}
+                                                />
+                                            )}
+                                        </div>
+                                    }
+                                    emailInst={
+                                        <div className="flex flex-col gap-2">
+                                            <StatusLabel optional>Correo Institucional</StatusLabel>
+                                            {!showEmailInst ? (
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    size="md"
+                                                    onClick={() => setShowEmailInst(true)}
+                                                >
+                                                    Agregar Correo Institucional
+                                                </Button>
+                                            ) : (
+                                                <Input
+                                                    name="institutionalEmail"
+                                                    type="email"
+                                                    optional
+                                                    placeholder="correo@sena.edu.co"
+                                                    onChange={handleChange}
+                                                    value={formData.institutionalEmail}
+                                                    error={errors.institutionalEmail}
+                                                />
+                                            )}
+                                        </div>
+                                    }
+                                />
+                                <div className="flex gap-3 justify-between">
+                                    <Button type="button" variant="secondary" size="md" onClick={prevStep} disabled={submitting}>
+                                        Atrás
+                                    </Button>
+                                    <Button type="button" variant="primary" size="md" onClick={nextStep} disabled={submitting}>
+                                        Siguiente
+                                    </Button>
+                                </div>
+                            </div>
+                        </AccordionItem>
+
+                        <AccordionItem
+                            title={
+                                <span className="flex items-center gap-3">
+                                    <span className="size-9 rounded-[var(--radius-full)] border border-border bg-surface-muted flex items-center justify-center">
+                                        {completedSteps[2] ? <CheckCircle2 size={18} className="text-success" /> : <Shield size={18} />}
+                                    </span>
+                                    <span className="flex flex-col leading-tight">
+                                        <span>Sistema</span>
+                                        <span className="text-small text-text-muted">Paso 3 de 4</span>
+                                    </span>
+                                </span>
+                            }
+                            open={activeStep === 2}
+                            onToggle={() => goToStep(2)}
+                        >
+                            <div className="pt-4 flex flex-col gap-3">
+                                <UserSystemCard
+                                    formData={formData}
+                                    errors={errors}
+                                    onChange={handleChange}
+                                    groups={availableGroups}
+                                    singleGroupSelection
+                                    isInstructorRole={isInstructorRole}
+                                    includeDates={false}
+                                    systemExtraSlot={
+                                        <div className="flex flex-col gap-2">
+                                            <StatusLabel optional>Tareas</StatusLabel>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="md"
+                                                className="flex gap-2 justify-center"
+                                                onClick={() => setShowTaskModal(true)}
+                                            >
+                                                <ClipboardList size={16} />
+                                                Agregar tarea
+                                            </Button>
+                                            {formData.userTasks.map((task, i) => (
+                                                <span key={i} className="flex items-center gap-1.5 text-small text-text-primary bg-surface-muted border border-border rounded-[var(--radius-full)] px-3 py-1 w-fit">
+                                                    {task.taskName}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData((prev) => ({
+                                                            ...prev,
+                                                            userTasks: prev.userTasks.filter((_, idx) => idx !== i),
+                                                        }))}
+                                                        className="text-text-muted hover:text-error transition-colors leading-none"
+                                                        aria-label={`Quitar tarea ${task.taskName}`}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    }
+                                />
+                                <div className="flex gap-3 justify-between">
+                                    <Button type="button" variant="secondary" size="md" onClick={prevStep} disabled={submitting}>
+                                        Atrás
+                                    </Button>
+                                    <Button type="button" variant="primary" size="md" onClick={nextStep} disabled={submitting}>
+                                        Siguiente
+                                    </Button>
+                                </div>
+                            </div>
+                        </AccordionItem>
+
+                        <AccordionItem
+                            title={
+                                <span className="flex items-center gap-3">
+                                    <span className="size-9 rounded-[var(--radius-full)] border border-border bg-surface-muted flex items-center justify-center">
+                                        {completedSteps[3] ? <CheckCircle2 size={18} className="text-success" /> : <CalendarDays size={18} />}
+                                    </span>
+                                    <span className="flex flex-col leading-tight">
+                                        <span>Vigencia</span>
+                                        <span className="text-small text-text-muted">Paso 4 de 4</span>
+                                    </span>
+                                </span>
+                            }
+                            open={activeStep === 3}
+                            onToggle={() => goToStep(3)}
+                        >
+                            <div className="pt-4 flex flex-col gap-3">
+                                <UserDatesCard
+                                    formData={formData}
+                                    errors={errors}
+                                    onChange={handleChange}
+                                />
+                                <div className="flex gap-3 justify-between">
+                                    <Button type="button" variant="secondary" size="md" onClick={prevStep} disabled={submitting}>
+                                        Atrás
+                                    </Button>
+                                    <div className="flex gap-3">
+                                        <Button type="button" variant="secondary" size="md" onClick={handleCancel} disabled={submitting}>
+                                            Cancelar
+                                        </Button>
+                                        <Button type="submit" variant="primary" size="md" disabled={submitting}>
+                                            {submitting ? "Creando..." : "Crear"}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </AccordionItem>
                     </div>
                 </form>
 

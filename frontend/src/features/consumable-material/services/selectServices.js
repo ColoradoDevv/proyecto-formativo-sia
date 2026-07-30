@@ -33,7 +33,7 @@ export function getStates() {
 }
 
 export async function getUsers() {
-    const response = await apiFetch("/api/users/")
+    const response = await apiFetch("/api/users/?is_accountable=true&is_active=true")
     const data = await response.json()
     return data.map((user) => ({ id: user.id, label: `${user.first_name} ${user.last_name}` }))
 }

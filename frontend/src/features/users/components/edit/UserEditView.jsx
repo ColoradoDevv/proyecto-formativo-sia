@@ -77,6 +77,7 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
         isActive:             user.is_active             != null ? String(user.is_active) : "true",
         deactivationReason:   user.deactivation_reason   ?? "",
         isInstructorPlanta:   user.is_instructor_planta  ?? false,
+        isAccountable:        user.is_accountable        ?? false,
         startDate:            user.start_date            ?? "",
         endDate:              user.end_date              ?? "",
     });
@@ -95,12 +96,7 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
     // Se usa allGroups (lista completa, incluye SADMIN) para que usuarios con ese
     // rol existente sean detectados correctamente. groups (availableGroups) es solo
     // para el select — excluye SADMIN para que no se pueda asignar desde la UI.
-    const { isInstructorRole, isAdminLikeRole } = deriveRoleFlags(allGroups ?? groups, formData.groups);
-    // Mientras groups no ha cargado, asumir opcional para evitar el flash donde
-    // las fechas aparecen brevemente como requeridas antes de que llegue la lista.
-    const datesOptional = groups.length === 0
-        ? true
-        : Boolean(formData.isInstructorPlanta && isInstructorRole) || isAdminLikeRole;
+    const { isInstructorRole } = deriveRoleFlags(allGroups ?? groups, formData.groups);
 
     // Efecto unificado de guardia: se dispara cuando cambia `groups` (carga async)
     // o `isInstructorRole` (el admin cambió el grupo en el form).
@@ -128,17 +124,7 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
     async function handleSubmit(e) {
         e.preventDefault();
 
-        // Validación manual del requerido de fechas, igual que en UserRegisterForm.
-        // El schema acepta startDate vacío para soportar datesOptional, así que
-        // este control previo es necesario cuando las fechas son requeridas.
         const preErrors = {};
-        if (!datesOptional) {
-            if (!formData.startDate) preErrors.startDate = "Debe ingresar una fecha de inicio";
-            if (!formData.endDate)   preErrors.endDate   = "Debe ingresar una fecha de finalización";
-        }
-        if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
-            preErrors.endDate = "La fecha de finalización no puede ser anterior a la de inicio";
-        }
         if (user.is_active && formData.isActive === "false" && formData.deactivationReason.trim().length < 10) {
             preErrors.deactivationReason = "Debe indicar un motivo de inactivación de al menos 10 caracteres.";
         }
@@ -174,6 +160,7 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
                 ...result.data,
                 // Campos fuera del schema o que Zod puede omitir si son optional/undefined.
                 isInstructorPlanta: formData.isInstructorPlanta,
+                isAccountable: formData.isAccountable,
                 deactivationReason: formData.deactivationReason,
                 profilePicture: formData.profilePicture,
             });
@@ -238,7 +225,6 @@ function UserEditForm({ id, user, documentTypes, groups, allGroups }) {
                     documentTypes={documentTypes}
                     groups={groups}
                     isInstructorRole={isInstructorRole}
-                    datesOptional={datesOptional}
                     isPrimaryAdmin={Boolean(user.is_primary_admin)}
                     showStatus
                     singleGroupSelection

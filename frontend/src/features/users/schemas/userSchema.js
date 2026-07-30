@@ -17,7 +17,7 @@ function isValidDateString(value) {
 
 // Schema para CREACION. Usa la MISMA convencion de nombres que el UserForm
 // reutilizable (firstName, lastName, ...) y agrega la confirmacion de correo.
-export const userSchema = z.object({
+export const userBaseSchema = z.object({
 
     firstName: z
         .string()
@@ -104,7 +104,9 @@ export const userSchema = z.object({
         .boolean()
         .optional(),
 
-} )
+} );
+
+export const userSchema = userBaseSchema
 .refine(
     (data) => data.email === data.confirmEmail,
     { message: "Los correos no coinciden", path: ["confirmEmail"] }
@@ -198,6 +200,10 @@ export const userEditSchema = z.object({
 
     profilePicture: z
         .array(z.any())
+        .optional(),
+
+    isAccountable: z
+        .boolean()
         .optional(),
 })
 .refine(

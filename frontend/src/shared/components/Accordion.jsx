@@ -1,15 +1,28 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-export function AccordionItem({ title, defaultOpen = false, children }) {
-    const [open, setOpen] = useState(defaultOpen);
+export function AccordionItem({ title, defaultOpen = false, open: openProp, onToggle, disableToggle = false, children }) {
+    const [openInternal, setOpenInternal] = useState(defaultOpen);
+    const open = openProp ?? openInternal;
+
+    const toggle = () => {
+        if (disableToggle) return;
+        if (typeof onToggle === "function") {
+            onToggle(!open);
+            return;
+        }
+        if (openProp === undefined) {
+            setOpenInternal((prev) => !prev);
+        }
+    };
 
     return (
         <section className="border border-border rounded-2xl overflow-hidden">
             <button
                 type="button"
-                onClick={() => setOpen((prev) => !prev)}
+                onClick={toggle}
                 aria-expanded={open}
+                disabled={disableToggle}
                 className="
                     w-full
                     flex
