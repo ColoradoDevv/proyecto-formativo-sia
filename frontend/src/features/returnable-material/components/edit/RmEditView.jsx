@@ -102,10 +102,23 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setPhotoFile(file);
-            setPhotoPreview(URL.createObjectURL(file));
+        if (!file) return;
+
+        const allowedMimeTypes = ["image/jpeg", "image/png"];
+        if (!allowedMimeTypes.includes(file.type)) {
+            setPhotoFile(null);
+            e.target.value = "";
+            showAlert({
+                icon: "error",
+                iconColor: "var(--color-error)",
+                title: "Formato de imagen no permitido",
+                text: "Solo se permiten archivos JPG o PNG.",
+            });
+            return;
         }
+
+        setPhotoFile(file);
+        setPhotoPreview(URL.createObjectURL(file));
     };
 
     async function handleSubmit(e) {
@@ -190,7 +203,7 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
                                     ref={photoInputRef}
                                     type="file"
                                     hidden
-                                    accept=".jpg,.jpeg,.png,.svg"
+                                    accept=".jpg,.jpeg,.png"
                                     onChange={handlePhotoChange}
                                 />
                             </div>
