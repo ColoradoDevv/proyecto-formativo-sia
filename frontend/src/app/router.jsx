@@ -19,7 +19,10 @@ import { CmHomePage, CmCreatePage, CmDetailPage, CmEditPage } from "@/features/c
 import { RmHomePage, RmCreatePage, RmDetailPage, RmEditPage } from "@/features/returnable-material";
 
 // Imports de Prestamos
-import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage, LoanSignPage } from "@/features/loans";
+import { LoansHomePage, LoansCreatePage, LoansEditPage, LoansDetailPage, LoanSignPage, BatchReturnPage } from "@/features/loans";
+
+// Imports de Auditoría
+import { AuditLogPage } from "@/features/audit";
 
 import { ConfigLayout, MainLayout } from "@/shared";
 
@@ -70,6 +73,8 @@ export default function AppRouter() {
                     <Route path="crear" element={<LoansCreatePage />} />
                     <Route path="visualizar/:id" element={<LoansDetailPage />} />
                     <Route path="editar/:id" element={<LoansEditPage />} />
+                    <Route path="lote/:batchId" element={<LoansDetailPage />} />
+                    <Route path="lote/:batchId/devolver" element={<BatchReturnPage />} />
                 </Route>
 
                 {/* Firma electrónica de préstamo — requiere sesión */}
@@ -83,6 +88,11 @@ export default function AppRouter() {
 
                 {/* Configuracion */}
                 <Route path="/configuracion" element={<ConfigLayout />} />
+
+                {/* Historial de Auditoría — solo superadministrador primigenio */}
+                <Route path="/auditoria" element={<MainLayout />}>
+                    <Route index element={<AuditLogPage />} />
+                </Route>
 
             </Route>
         </Routes>

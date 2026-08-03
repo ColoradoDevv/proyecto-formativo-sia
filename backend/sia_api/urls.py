@@ -30,4 +30,5 @@ urlpatterns = [
     path("api/loans/", include("modules.loans.urls")),
     path("api/returns/", include("modules.returns.urls")),
     path("api/tasks/", include("modules.tasks.urls")),
+    path("api/audit/", include("modules.audit.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

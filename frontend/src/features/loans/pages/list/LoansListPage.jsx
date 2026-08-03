@@ -1,39 +1,16 @@
-import { useState } from "react";
-import DataTable from "@/shared/components/DataTable";
-import { loansColumns } from "../../table/LoansColumns";
-import { loansReportConfig } from "../../reports/loansReportConfig.js";
-import useLoans from "../../hooks/useLoans";
+import { Link, useNavigate } from "react-router-dom";
 import { TailChase } from "ldrs/react";
 import { CloudAlert, Plus, Download } from "lucide-react";
-import Alert from "@mui/material/Alert";
-import { Link, useNavigate } from "react-router-dom";
-import { Button, usePermissions } from "@/shared"
-import ReturnLoanModal from "../../components/ReturnLoanModal";
 
-
+import { Button, usePermissions } from "@/shared";
+import DataTable from "@/shared/components/DataTable";
+import { batchColumns } from "../../table/BatchColumns";
+import useLoanBatches from "../../hooks/useLoanBatches";
 
 export default function LoansListPage() {
     const navigate = useNavigate();
-    const { loans, setLoans, loading, error } = useLoans();
-    const [notification, setNotification] = useState(null);
     const { isAdmin } = usePermissions();
-
-    // Modal de devolución: préstamo seleccionado.
-    const [returningLoan, setReturningLoan] = useState(null);
-
-    // Tras devolver: marca el préstamo como finalizado en la lista.
-    const handleReturned = (loanId) => {
-        setLoans((prev) =>
-            prev.map((l) =>
-                l.id_loan === loanId ? { ...l, state: "Finalizado", is_active: false } : l
-            )
-        );
-    };
-
-    const columns = loansColumns({
-        onReturn: setReturningLoan,
-        onDeleted: (loanId) => setLoans((prev) => prev.filter((loan) => loan.id_loan !== loanId)),
-    });
+    const { batches, loading, error } = useLoanBatches();
 
     if (loading)
         return (
@@ -55,33 +32,25 @@ export default function LoansListPage() {
             </div>
         );
 
+    const columns = batchColumns();
+
     return (
         <div className="h-full p-4 sm:p-6 text-text-primary">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <h2 className="text-h3 font-heading">
                     {isAdmin ? "Listado de Préstamos" : "Mis Préstamos"}
                 </h2>
-                {notification && (
-                    <Alert severity={notification.severity} onClose={() => setNotification(null)}>
-                        {notification.message}
-                    </Alert>
-                )}
+
                 <div className={isAdmin ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "flex justify-end"}>
                     {isAdmin && (
                         <Link to="/prestamos/crear" className="w-full">
-                            <Button
-                                className="w-full"
-                                variant="soft"
-                                icon={Plus}
-                            >
+                            <Button className="w-full" variant="soft" icon={Plus}>
                                 Registrar Préstamo
                             </Button>
                         </Link>
                     )}
-
                     <Button
-                        data={loans}
-                        reportConfig={loansReportConfig}
+                        data={batches}
                         className="w-full"
                         icon={Download}
                     >
@@ -90,18 +59,13 @@ export default function LoansListPage() {
                 </div>
             </div>
 
-            {/* Doble click en una fila navega al detalle del préstamo */}
+            {/* Doble click navega al detalle del lote */}
             <DataTable
-                data={loans}
+                data={batches}
                 columns={columns}
-                onRowDoubleClick={(loan) => navigate(`/prestamos/visualizar/${loan.id_loan}`)}
-            />
-
-            <ReturnLoanModal
-                isOpen={Boolean(returningLoan)}
-                onClose={() => setReturningLoan(null)}
-                loan={returningLoan}
-                onReturned={handleReturned}
+                onRowDoubleClick={(batch) =>
+                    navigate(`/prestamos/lote/${batch.batch_id}`)
+                }
             />
         </div>
     );

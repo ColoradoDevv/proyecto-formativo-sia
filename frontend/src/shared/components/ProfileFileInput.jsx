@@ -21,6 +21,10 @@ export default function ProfileFileInput({
     const [isLoading, setIsLoading] = useState(false);
     const [sizeError, setSizeError] = useState(null);
 
+    // Guarda el blob URL anterior para revocarlo DESPUÉS de que el nuevo render
+    // ya pintó la imagen, evitando que la imagen quede rota entre renders.
+    const prevBlobRef = useRef(null);
+
     const preview = useMemo(() => {
         const file = value[0];
         if (!file) return null;
@@ -30,7 +34,23 @@ export default function ProfileFileInput({
     }, [value]);
 
     useEffect(() => {
-        return () => { if (preview && typeof value[0] !== "string") URL.revokeObjectURL(preview); };
+        // Cuando el preview cambia, revocamos el blob anterior (si lo había).
+        // El nuevo preview ya está pintado en este punto, así que es seguro.
+        if (prevBlobRef.current) {
+            URL.revokeObjectURL(prevBlobRef.current);
+            prevBlobRef.current = null;
+        }
+        // Si el preview actual es un blob, lo guardamos para revocarlo después.
+        if (preview && !preview.startsWith("/") && !preview.startsWith("http")) {
+            prevBlobRef.current = preview;
+        }
+        // Al desmontar el componente, revocamos el blob activo.
+        return () => {
+            if (prevBlobRef.current) {
+                URL.revokeObjectURL(prevBlobRef.current);
+                prevBlobRef.current = null;
+            }
+        };
     }, [preview]);
 
     const handleFiles = async (files) => {
@@ -90,7 +110,7 @@ export default function ProfileFileInput({
                     </div>
                 ) : preview ? (
                     <>
-                        <img src={preview} className="w-full h-full object-cover object-top" />
+                        <img src={preview} className="w-full h-full object-contain" />
                         <div
                             className="
                                 absolute inset-0
@@ -118,7 +138,7 @@ export default function ProfileFileInput({
                     </>
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-text-muted group-hover:text-brand transition-colors duration-[var(--duration-base)] p-2">
-                        <IconButton className="p-2" variant="ghost">
+                        <IconButton className="p-2" variant="ghost" ariaLabel="Subir foto">
                             <Upload size={18} />
                         </IconButton>
                         <span className="text-small font-medium text-center leading-tight">
@@ -137,12 +157,12 @@ export default function ProfileFileInput({
             />
 
             {description && (
-                <p className="text-text-muted text-small text-center leading-tight max-w-[160px]">
+                <p className="text-text-muted text-small text-center leading-tight w-full">
                     {description}
                 </p>
             )}
 
-            {displayError && <span className="text-error text-small text-center max-w-[160px]">{displayError}</span>}
+            {displayError && <span className="text-error text-small text-center w-full">{displayError}</span>}
         </div>
     );
 }

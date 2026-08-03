@@ -107,8 +107,8 @@ class ReturnableMaterial(models.Model):
     # Obligatorio segun diccionario
     model = models.CharField(max_length=100)
 
-    # Unico y obligatorio segun diccionario
-    serial = models.CharField(max_length=20, unique=True)
+    # Unico y opcional (segun categoria, ej. Herramienta)
+    serial = models.CharField(max_length=20, unique=True, null=True, blank=True)
 
     technical_sheet = models.FileField(upload_to='specs/', blank=True, default='')
 
@@ -117,3 +117,28 @@ class ReturnableMaterial(models.Model):
 
     def __str__(self):
         return self.consumable.name
+
+
+class TechnicalSheet(models.Model):
+    """
+    Ficha técnica de un material devolutivo.
+    Un devolutivo puede tener 1-3 fichas (PDF, Excel o PNG).
+    """
+    material = models.ForeignKey(
+        ConsumableMaterial,
+        on_delete=models.CASCADE,
+        related_name='technical_sheets',
+        help_text='Material al que pertenece esta ficha técnica.',
+    )
+    file = models.FileField(
+        upload_to='specs/returnables/',
+        help_text='Archivo de la ficha técnica (PDF, Excel o PNG).',
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'technical_sheets'
+        ordering = ['uploaded_at']
+
+    def __str__(self):
+        return f'Ficha {self.pk} — material {self.material_id}'

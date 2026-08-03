@@ -21,34 +21,33 @@ import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, ListFilter } fr
 // - data: datos que se mostrarán
 // - columns: configuración de columnas
 // - onRowDoubleClick: (opcional) callback con la fila original al hacer doble click
-export default function DataTable({ data, columns, onRowDoubleClick }) {
+// - hiddenColumns: array de column ids que se ocultan en la tabla pero siguen siendo filtrables
+export default function DataTable({ data, columns, onRowDoubleClick, hiddenColumns = [] }) {
   // ================== ESTADO DE PAGINACIÓN ==================
-  // pageIndex → página actual
-  // pageSize → cantidad de filas por página
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 5,
   });
 
   // ================== ESTADO DEL FILTRO GLOBAL ==================
-  // Se usa para el buscador de la tabla
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState([]);
   const [areFiltersVisible, setAreFiltersVisible] = useState(false);
 
+  // Visibilidad de columnas: las de hiddenColumns arrancan ocultas.
+  const [columnVisibility, setColumnVisibility] = useState(() =>
+    Object.fromEntries(hiddenColumns.map((id) => [id, false]))
+  );
+
   // ================== CONFIGURACIÓN DE LA TABLA ==================
   const table = useReactTable({
-    // Datos que se mostrarán
     data,
-
-    // Definición de columnas
     columns,
-
-    // Estado controlado de la tabla
     state: {
       globalFilter,
       pagination,
       columnFilters,
+      columnVisibility,
     },
 
     // Función que se ejecuta cuando cambia la paginación
@@ -57,6 +56,7 @@ export default function DataTable({ data, columns, onRowDoubleClick }) {
     // Función que se ejecuta cuando cambia el filtro global
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
 
     // Modelo base de filas
     getCoreRowModel: getCoreRowModel(),

@@ -157,26 +157,36 @@ export default function RmDetailView() {
                 <EditCard title="Información General" cols={1}>
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
 
-                        {/* Foto + estado + ficha técnica */}
-                        <div className="flex flex-col items-center gap-2 shrink-0 w-full sm:w-32">
+                        {/* Foto + estado + fichas técnicas */}
+                        <div className="flex flex-col items-center gap-2 shrink-0 w-full sm:w-36">
                             <div className="size-24 rounded-[var(--radius-xl)] overflow-hidden border border-border bg-surface-muted flex items-center justify-center">
                                 {material.image
-                                    ? <img src={material.image} alt={material.name} className="w-full h-full object-cover" />
+                                    ? <img src={material.image} alt={material.name} className="w-full h-full object-contain" />
                                     : <ImageOff size={40} className="text-text-muted" />
                                 }
                             </div>
                             <StatusBadge active={material.is_active} />
-                            {material.technical_sheet
-                                ? <a
-                                    href={material.technical_sheet}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center gap-1 text-brand text-caption hover:underline"
-                                >
-                                    <FileText size={14} />
-                                    Ficha técnica
-                                </a>
-                                : <span className="text-caption italic text-text-muted">Sin ficha</span>
+
+                            {/* Lista de fichas técnicas */}
+                            {material.technical_sheets?.length > 0
+                                ? <div className="flex flex-col gap-1.5 w-full">
+                                    {material.technical_sheets.map((sheet, i) => (
+                                        <a
+                                            key={sheet.id}
+                                            href={sheet.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-full)] border border-brand/40 bg-brand/8 text-brand text-small font-medium hover:bg-brand/15 transition-colors"
+                                        >
+                                            <FileText size={13} className="shrink-0" />
+                                            <span className="truncate">Ficha {i + 1}</span>
+                                        </a>
+                                    ))}
+                                  </div>
+                                : <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-full)] border border-border bg-surface-muted text-text-muted text-small italic">
+                                    <FileText size={13} className="shrink-0" />
+                                    Sin ficha
+                                  </span>
                             }
                         </div>
 
@@ -216,7 +226,7 @@ export default function RmDetailView() {
                     <Button variant="secondary" size="md" onClick={() => navigate("/devolutivos")}>
                         Volver al listado
                     </Button>
-                    <Button variant="primary" size="md" onClick={() => navigate(`/devolutivos/editar/${material.id}`)}>
+                    <Button variant="primary" size="md" onClick={() => navigate(`/devolutivos/editar/${material.consumable_id}`)}>
                         Editar
                     </Button>
                 </div>

@@ -51,7 +51,12 @@ export async function createRM(rmData) {
     if (rmData.quantity)    formData.append("quantity", rmData.quantity);
     if (rmData.location)    formData.append("location", rmData.location);
     if (rmData.photo?.[0])  formData.append("image", rmData.photo[0]);
-    if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);
+    // Fichas técnicas: se envían como technical_sheet_0, _1, _2 (hasta 3)
+    if (Array.isArray(rmData.technicalSheet)) {
+        rmData.technicalSheet.forEach((file, i) => {
+            if (file instanceof File) formData.append(`technical_sheet_${i}`, file);
+        });
+    }
     
     // Concatenar dimensiones si existen (formato: "30x50x20")
     if (rmData.width || rmData.length || rmData.depth) {
@@ -87,7 +92,12 @@ export async function updateRM(id, rmData) {
 
     if (rmData.location) formData.append("location", rmData.location);
     if (rmData.photo?.[0]) formData.append("image", rmData.photo[0]);
-    if (rmData.technicalSheet?.[0]) formData.append("technical_sheet", rmData.technicalSheet[0]);    
+    // Fichas técnicas nuevas: se envían indexadas para que el backend las agregue
+    if (Array.isArray(rmData.technicalSheet)) {
+        rmData.technicalSheet.forEach((file, i) => {
+            if (file instanceof File) formData.append(`technical_sheet_${i}`, file);
+        });
+    }    
     // Concatenar dimensiones si existen (formato: "30x50x20")
     if (rmData.width || rmData.length || rmData.depth) {
         const dimensions = `${rmData.width || ""}x${rmData.length || ""}x${rmData.depth || ""}`;
@@ -115,6 +125,13 @@ export async function toggleRMActive(consumableId, isActive) {
 
 export async function deleteRM(consumableId) {
     const response = await apiFetch(`/api/products/returnables/${consumableId}/`, {
+        method: "DELETE",
+    });
+    if (!response.ok) await throwApiError(response);
+}
+
+export async function deleteTechnicalSheet(sheetId) {
+    const response = await apiFetch(`/api/products/technical-sheets/${sheetId}/`, {
         method: "DELETE",
     });
     if (!response.ok) await throwApiError(response);

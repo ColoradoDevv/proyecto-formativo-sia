@@ -43,8 +43,14 @@ class UserSerializer(serializers.ModelSerializer):
         memberships = obj.user_groups.exclude(group__name__iexact=SYSTEM_GROUP_NAME).select_related('group')
         return UserGroupSerializer(memberships, many=True).data
     
-    # URL absoluta para la foto de perfil (devuelve /media/... para que el proxy de Vite la redirija)
+    # URL absoluta para la foto de perfil (devuelve /media/... para que el proxy de Vite la redirija).
+    # Se usa get_profile_picture solo para leer; el campo del modelo acepta escritura
+    # normalmente via ImageField, pero lo necesitamos declarar explícitamente para
+    # que DRF no lo sobreescriba con el SerializerMethodField (que es read-only).
     profile_picture = serializers.SerializerMethodField()
+    profile_picture_upload = serializers.ImageField(
+        write_only=True, required=False, source="profile_picture"
+    )
 
     # Para escribir - acepta solo el ID en POST
     document_type_id = serializers.PrimaryKeyRelatedField(
@@ -72,8 +78,11 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "is_active": {"required": False, "default": True},
             "is_instructor_planta": {"required": False, "default": False},
+            "is_accountable": {"required": False, "default": False},
             "second_phone_number": {"required": False, "allow_null": True},
             "institutional_email": {"required": False, "allow_null": True},
+            "start_date": {"required": False, "allow_null": True},
+            "end_date": {"required": False, "allow_null": True},
             # Se valida manualmente para devolver un mensaje claro y mapearlo
             # al input documentNumber del formulario.
             "document_number": {
@@ -82,6 +91,10 @@ class UserSerializer(serializers.ModelSerializer):
                 "allow_blank": True,
                 "validators": [],
             },
+            # is_primary_admin se expone en lectura para que el frontend pueda
+            # saber si está editando al superadmin primigenio y deshabilitar
+            # los controles sensibles. Nunca debe ser escritura desde la API.
+            "is_primary_admin": {"read_only": True},
         }
 
     def validate_document_number(self, value):
@@ -103,6 +116,38 @@ class UserSerializer(serializers.ModelSerializer):
 
         return document_number
 
+    def _validate_dates(self, attrs):
+        start = attrs.get("start_date")
+        end = attrs.get("end_date")
+
+        if self.instance is None:
+            if not start:
+                raise serializers.ValidationError(
+                    {"start_date": "La fecha de inicio es obligatoria."}
+                )
+            if not end:
+                raise serializers.ValidationError(
+                    {"end_date": "La fecha de finalización es obligatoria."}
+                )
+        else:
+            start = start if "start_date" in attrs else self.instance.start_date
+            end = end if "end_date" in attrs else self.instance.end_date
+            if not start:
+                raise serializers.ValidationError(
+                    {"start_date": "La fecha de inicio es obligatoria."}
+                )
+            if not end:
+                raise serializers.ValidationError(
+                    {"end_date": "La fecha de finalización es obligatoria."}
+                )
+
+        if start and end and end < start:
+            raise serializers.ValidationError(
+                {"end_date": "La fecha de finalización no puede ser anterior a la de inicio."}
+            )
+
+        return attrs
+
     def create(self, validated_data):
         # Ignoramos cualquier password que llegue del frontend: siempre se genera
         # automaticamente y se envia por correo, nunca la define el usuario.
@@ -112,6 +157,7 @@ class UserSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             user = User(**validated_data)
             user.set_password(plain_password)
+            user.must_change_password = True
             user.save()
 
             try:
@@ -144,6 +190,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         if password:
             instance.set_password(password)
+            instance.must_change_password = True
         instance.save()
         return instance
 
@@ -154,6 +201,8 @@ class UserSerializer(serializers.ModelSerializer):
         no lance un falso error de unicidad.
         """
         instance = self.instance  # None en creación, User en edición
+        attrs = self._validate_dates(attrs)
+
         if instance is None:
             return attrs
 

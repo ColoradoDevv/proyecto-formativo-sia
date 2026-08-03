@@ -1,5 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
-import { House, Users, Wrench, Truck, Scroll, Settings, LogOut, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { House, Users, Wrench, Truck, Scroll, Settings, LogOut, X, ClipboardList } from "lucide-react";
 import { logout } from "@/features/auth/services/authService";
 import { cancelAlert } from "@/shared";
 import { usePermissions } from "@/shared/hooks/usePermissions";
@@ -19,14 +20,13 @@ const NAV_MODULES = [
     {
         to: "/usuarios",
         icon: <Users size={24} />,
-        label: "Gestión de Usuarios",
+        label: "Usuarios",
         requiredPerms: ["view_user", "create_user", "edit_user", "delete_user", "list_users"],
     },
     {
         to: "/consumibles",
         icon: <Wrench size={24} />,
-        label: "Materiales de Consumo",
-        // Codenames reales en BD (migración 0002)
+        label: "Consumibles",
         requiredPerms: [
             "view_consumable_material", "list_consumable_materials",
             "create_consumable_material", "update_consumable_material",
@@ -36,8 +36,7 @@ const NAV_MODULES = [
     {
         to: "/devolutivos",
         icon: <Scroll size={24} />,
-        label: "Materiales Devolutivos",
-        // Codenames reales en BD (migración 0002)
+        label: "Devolutivos",
         requiredPerms: [
             "view_returnable_material", "list_returnable_materials",
             "create_returnable_material", "update_returnable_material",
@@ -52,18 +51,23 @@ const NAV_MODULES = [
     },
 ];
 
-function NavLinks({ onLinkClick }) {
+function NavLinks({ onLinkClick, isCollapsed = false }) {
     const navigate = useNavigate();
-    const { canAny, isSuper } = usePermissions();
+    const { canAny, isSuper, isPrimaryAdmin } = usePermissions();
 
     // Filtramos los módulos según los permisos del usuario.
-    // Si requiredPerms está vacío siempre pasa; si no, basta uno de ellos.
     const visibleModules = NAV_MODULES.filter(({ requiredPerms }) =>
         requiredPerms.length === 0 ? true : canAny(requiredPerms)
     );
 
-    const linkClass =
-        "flex items-center gap-3 p-2 rounded hover:bg-surface-muted transition-colors";
+    const linkClass = ({ isActive }) =>
+        `flex items-center gap-3 p-2.5 rounded-lg transition-colors ${
+            isCollapsed ? "justify-center" : ""
+        } ${
+            isActive
+                ? "bg-surface-muted text-primary font-medium"
+                : "hover:bg-surface-muted text-text-primary"
+        }`;
 
     async function handleLogout() {
         const result = await cancelAlert({
@@ -83,43 +87,81 @@ function NavLinks({ onLinkClick }) {
     }
 
     return (
-        <>
-            <ul className="flex flex-col gap-5">
+        <div className="flex flex-col h-full justify-between gap-6 overflow-y-auto">
+            <ul className="flex flex-col gap-4">
                 {visibleModules.map(({ to, icon, label }) => (
                     <li key={to}>
-                        <Link to={to} onClick={onLinkClick} className={linkClass}>
-                            {icon} {label}
-                        </Link>
+                        <NavLink
+                            to={to}
+                            end={to === "/"}
+                            onClick={onLinkClick}
+                            className={linkClass}
+                            title={label}
+                        >
+                            <span className="shrink-0 flex items-center justify-center">{icon}</span>
+                            {!isCollapsed && <span className="truncate whitespace-nowrap">{label}</span>}
+                        </NavLink>
                     </li>
                 ))}
             </ul>
 
-            <ul className="flex flex-col gap-5">
-                {/* Configuración: superusuarios o usuarios con gestión de grupos/roles */}
+            <ul className="flex flex-col gap-4 pt-4 border-t border-border/50">
+                {/* Configuración */}
                 {(isSuper || canAny(["manage_groups", "manage_role_permissions", "create_role", "list_roles"])) && (
                     <li>
-                        <Link to="/configuracion" onClick={onLinkClick} className={linkClass}>
-                            <Settings size={24} /> Configuración
-                        </Link>
+                        <NavLink to="/configuracion" onClick={onLinkClick} className={linkClass} title="Configuración">
+                            <span className="shrink-0 flex items-center justify-center"><Settings size={24} /></span>
+                            {!isCollapsed && <span className="truncate whitespace-nowrap">Configuración</span>}
+                        </NavLink>
                     </li>
                 )}
 
-                {/* Cerrar sesión: siempre visible */}
+                {/* Auditoría */}
+                {isPrimaryAdmin && (
+                    <li>
+                        <NavLink to="/auditoria" onClick={onLinkClick} className={linkClass} title="Auditoría">
+                            <span className="shrink-0 flex items-center justify-center"><ClipboardList size={24} /></span>
+                            {!isCollapsed && <span className="truncate whitespace-nowrap">Auditoría</span>}
+                        </NavLink>
+                    </li>
+                )}
+
+                {/* Cerrar sesión */}
                 <li>
                     <button
                         type="button"
                         onClick={handleLogout}
-                        className={`${linkClass} w-full text-left cursor-pointer`}
+                        title="Cerrar sesión"
+                        className={`flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-muted transition-colors w-full text-left cursor-pointer ${
+                            isCollapsed ? "justify-center" : ""
+                        }`}
                     >
-                        <LogOut size={24} /> Cerrar sesión
+                        <span className="shrink-0 flex items-center justify-center"><LogOut size={24} /></span>
+                        {!isCollapsed && <span className="truncate whitespace-nowrap">Cerrar sesión</span>}
                     </button>
                 </li>
             </ul>
-        </>
+        </div>
     );
 }
 
 export default function Sidenav({ isOpen = false, onClose }) {
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        return localStorage.getItem("sidebar_collapsed") === "true";
+    });
+    
+    useEffect(() => {
+        const handleToggle = () => {
+            setIsCollapsed((prev) => {
+                const next = !prev;
+                localStorage.setItem("sidebar_collapsed", String(next));
+                return next;
+            });
+        };
+        window.addEventListener("toggle-sidebar-collapse", handleToggle);
+        return () => window.removeEventListener("toggle-sidebar-collapse", handleToggle);
+    }, []);
+
     return (
         <>
             {/* ── Móvil / tablet: drawer con overlay ── */}
@@ -135,32 +177,40 @@ export default function Sidenav({ isOpen = false, onClose }) {
                 {/* Panel deslizante */}
                 <aside
                     className={`
-                        absolute left-0 top-0 h-full w-[var(--size-field-sm)]
+                        absolute left-0 top-0 h-full w-64
                         bg-surface-hover border-r border-border text-text-primary
                         p-5 flex flex-col justify-between
                         transition-transform duration-[var(--duration-slow)] ease-in-out
                         ${isOpen ? "translate-x-0" : "-translate-x-full"}
                     `}
                 >
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-4 h-full">
                         {/* Botón cerrar */}
                         <button
                             type="button"
                             aria-label="Cerrar menú"
                             onClick={onClose}
-                            className="self-end p-1 rounded hover:bg-surface-muted transition-colors"
+                            className="self-end p-1 rounded hover:bg-surface-muted transition-colors cursor-pointer"
                         >
                             <X size={20} />
                         </button>
-                        <NavLinks onLinkClick={onClose} />
+                        <div className="flex-1 overflow-hidden">
+                            <NavLinks onLinkClick={onClose} isCollapsed={false} />
+                        </div>
                     </div>
                 </aside>
 
             </div>
 
-            {/* ── Desktop: sidebar estático ── */}
-            <aside className="hidden lg:flex w-[var(--size-field-sm)] bg-surface-hover border-r border-border text-text-primary p-5 flex-col justify-between shrink-0">
-                <NavLinks />
+            {/* ── Desktop: sidebar colapsable ── */}
+            <aside
+                className={`hidden lg:flex bg-surface-hover border-r border-border text-text-primary p-4 flex-col justify-between shrink-0 transition-all duration-300 ease-in-out ${
+                    isCollapsed ? "w-16 px-2" : "w-64"
+                }`}
+            >
+                <div className="flex-1 overflow-hidden">
+                    <NavLinks isCollapsed={isCollapsed} />
+                </div>
             </aside>
         </>
     );

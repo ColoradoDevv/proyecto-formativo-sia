@@ -155,3 +155,17 @@ class IsAuthenticated(BasePermission):
 
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated
+
+
+# ---------------------------------------------------------------------------
+# Helper — no es una permission class, se usa directamente en las vistas.
+# ---------------------------------------------------------------------------
+
+def is_primary_admin(user) -> bool:
+    """
+    Devuelve True si el usuario es el superadministrador primigenio del sistema.
+    Se accede al campo a través del atributo del modelo para evitar imports
+    circulares: el campo vive en users.models pero permissions.views necesita
+    usarlo sin importar dicho módulo de forma directa (ya lo importa normalmente).
+    """
+    return bool(getattr(user, "is_primary_admin", False))

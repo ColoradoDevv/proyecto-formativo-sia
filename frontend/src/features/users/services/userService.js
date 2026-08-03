@@ -14,6 +14,7 @@ const FIELD_MAP = {
     address: "address",
     start_date: "startDate",
     end_date: "endDate",
+    is_accountable: "isAccountable",
 };
 
 // METODO GET (obtener lista de usuarios)
@@ -41,8 +42,8 @@ export async function createUser(userData) {
     formData.append("email", userData.email);
     formData.append("phone_number", userData.phone);
     formData.append("address", userData.address);
-    if (userData.startDate) formData.append("start_date", userData.startDate);
-    if (userData.endDate) formData.append("end_date", userData.endDate);
+    formData.append("start_date", userData.startDate);
+    formData.append("end_date", userData.endDate);
 
     if (userData.additionalPhone)
         formData.append("second_phone_number", userData.additionalPhone);
@@ -51,6 +52,7 @@ export async function createUser(userData) {
         formData.append("institutional_email", userData.institutionalEmail);
 
     formData.append("is_instructor_planta", userData.isInstructorPlanta === true);
+    formData.append("is_accountable", userData.isAccountable === true);
 
     if (userData.profilePicture?.[0])
         formData.append("profile_picture", userData.profilePicture[0]);
@@ -103,6 +105,7 @@ const EDIT_FIELD_MAP = {
     is_active: "isActive",
     deactivation_reason: "deactivationReason",
     is_instructor_planta: "isInstructorPlanta",
+    is_accountable: "isAccountable",
 };
 
 export async function updateUser(id, userData) {
@@ -115,16 +118,15 @@ export async function updateUser(id, userData) {
     formData.append("email", userData.email);
     formData.append("phone_number", userData.phone);
     formData.append("address", userData.address);
-    if (userData.startDate) formData.append("start_date", userData.startDate);
+    formData.append("start_date", userData.startDate);
     formData.append("is_active", userData.isActive === "true" || userData.isActive === true);
     if (userData.deactivationReason) formData.append("deactivation_reason", userData.deactivationReason);
-
-    // end_date es opcional: solo se envia si tiene valor.
-    if (userData.endDate) formData.append("end_date", userData.endDate);
+    formData.append("end_date", userData.endDate);
 
     if (userData.additionalPhone) formData.append("second_phone_number", userData.additionalPhone);
     if (userData.institutionalEmail) formData.append("institutional_email", userData.institutionalEmail);
     formData.append("is_instructor_planta", userData.isInstructorPlanta === true);
+    formData.append("is_accountable", userData.isAccountable === true);
 
     // La foto solo se reemplaza si el usuario subio un archivo nuevo (File).
     const picture = userData.profilePicture?.[0];
@@ -182,6 +184,41 @@ export async function updateUserProfilePicture(picture) {
     });
 
     if (!response.ok) await throwApiError(response, { profile_picture: "profilePicture" });
+    return response.json();
+}
+
+// ── Cambio de contraseña con OTP ────────────────────────────────────────────
+
+// Paso 1: valida la contraseña actual, la nueva y solicita el envío del OTP
+// al correo del usuario autenticado.
+export async function requestPasswordChangeOtp({ currentPassword, newPassword, confirmNewPassword }) {
+    const OTP_FIELD_MAP = {
+        current_password: "currentPassword",
+        new_password: "newPassword",
+        confirm_new_password: "confirmNewPassword",
+    };
+    const response = await apiFetch("/api/users/me/change-password/request/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_new_password: confirmNewPassword,
+        }),
+    });
+    if (!response.ok) await throwApiError(response, OTP_FIELD_MAP);
+    return response.json();
+}
+
+// Paso 2: verifica el OTP ingresado por el usuario y aplica el cambio de contraseña.
+export async function confirmPasswordChange({ otpCode }) {
+    const OTP_FIELD_MAP = { otp_code: "otp" };
+    const response = await apiFetch("/api/users/me/change-password/confirm/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp_code: otpCode }),
+    });
+    if (!response.ok) await throwApiError(response, OTP_FIELD_MAP);
     return response.json();
 }
 

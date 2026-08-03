@@ -26,16 +26,21 @@ export default function Navbar({ onToggleSidebar }) {
         navigate("/iniciar-sesion");
     }
 
+    const handleMenuClick = () => {
+        if (onToggleSidebar) onToggleSidebar();
+        window.dispatchEvent(new Event("toggle-sidebar-collapse"));
+    };
+
     return (
         <div className="bg-surface-hover px-4 sm:px-6 border-b border-border flex items-center text-text-primary h-(--size-control-2xl) shrink-0">
 
-            {/* Hamburger — solo visible en móvil/tablet */}
+            {/* Hamburger / Toggle Sidebar */}
             {onToggleSidebar && (
                 <button
                     type="button"
-                    aria-label="Abrir menú de navegación"
-                    onClick={onToggleSidebar}
-                    className="lg:hidden mr-3 p-1.5 rounded hover:bg-surface-muted transition-colors"
+                    aria-label="Alternar menú de navegación"
+                    onClick={handleMenuClick}
+                    className="mr-3 p-1.5 rounded-lg hover:bg-surface-muted transition-colors cursor-pointer text-text-primary"
                 >
                     <Menu size={22} />
                 </button>

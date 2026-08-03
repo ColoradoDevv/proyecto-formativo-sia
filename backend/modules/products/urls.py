@@ -8,14 +8,16 @@ from .views import (
     CategoryViewSet,
     ConsumableMaterialViewSet,
     ReturnableMaterialViewSet,
+    TechnicalSheetDeleteView,
 )
 
 router = DefaultRouter()
-router.register(r"brands", BrandViewSet, basename="brands")
-router.register(r"categories", CategoryViewSet, basename="categories")
+router.register(r"brands",      BrandViewSet,              basename="brands")
+router.register(r"categories",  CategoryViewSet,           basename="categories")
 router.register(r"consumables", ConsumableMaterialViewSet, basename="consumables")
 router.register(r"returnables", ReturnableMaterialViewSet, basename="returnables")
 
 urlpatterns = [
+    path("technical-sheets/<int:pk>/", TechnicalSheetDeleteView.as_view(), name="technical-sheet-delete"),
     path("", include(router.urls)),
 ]

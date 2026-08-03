@@ -39,25 +39,24 @@ class UserMinimalSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'last_name']
 
 class ConsumableMaterialSerializer(serializers.ModelSerializer):
-    # Para leer
-    brand = BrandSerializer(read_only=True)
-    user = UserMinimalSerializer(read_only=True)
+    # ── Campos de solo lectura (enriquecidos) ─────────────────────────────
+    brand              = BrandSerializer(read_only=True)
+    user               = UserMinimalSerializer(read_only=True)
     available_quantity = serializers.SerializerMethodField()
+    is_exhausted       = serializers.SerializerMethodField()
 
-    # URL con prefijo /media/ para que el proxy de Vite la redirija al backend.
-    # Se usa SerializerMethodField para controlar el formato exacto del path.
-    image = serializers.SerializerMethodField()
+    # ── Campos de escritura para archivos ─────────────────────────────────
+    # ImageField/FileField aceptan el archivo subido en un POST/PATCH multipart.
+    # En to_representation se reemplazan por la URL relativa (/media/...).
+    image           = serializers.ImageField(required=False, allow_null=True, allow_empty_file=True, use_url=False)
+    technical_sheet = serializers.FileField(required=False,  allow_null=True, allow_empty_file=True, use_url=False)
 
-    # URL de la ficha técnica con el mismo patrón que la imagen.
-    technical_sheet = serializers.SerializerMethodField()
-
-    # Para escribir
+    # ── Campos de escritura para FKs ──────────────────────────────────────
     user_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source='user',
         write_only=True
     )
-
     brand_id = serializers.PrimaryKeyRelatedField(
         queryset=Brand.objects.all(),
         source='brand',
@@ -66,52 +65,66 @@ class ConsumableMaterialSerializer(serializers.ModelSerializer):
         allow_null=True
     )
 
-    def get_image(self, obj):
-        # obj.image es un ImageField; .name es el path relativo guardado en BD
-        # (ej. "materials/archivo.jpg"). Solo devolvemos la URL si el archivo
-        # tiene nombre real — evita devolver "/media/" cuando el campo está vacío.
-        if obj.image and obj.image.name:
-            return f"/media/{obj.image.name}"
-        return None
+    # ── Métodos computados ────────────────────────────────────────────────
 
-    def get_technical_sheet(self, obj):
-        # Mismo patrón que get_image: path relativo prefijado con /media/
-        # para que el proxy de Vite lo redirija al backend en desarrollo.
-        if obj.technical_sheet and obj.technical_sheet.name:
-            return f"/media/{obj.technical_sheet.name}"
-        return None
+    def get_available_quantity(self, obj):
+        if obj.quantity is None:
+            return None
+        from modules.loans.models import Loans
+        already_lent = (
+            Loans.objects.filter(id_material=obj, state='Activo')
+            .aggregate(total=Sum('amount_lent'))['total'] or 0
+        )
+        return max(0, obj.quantity - already_lent)
 
-    
+    def get_is_exhausted(self, obj):
+        if obj.quantity is None:
+            return False
+        if obj.quantity <= 0:
+            return True
+        available = self.get_available_quantity(obj)
+        return available is not None and available <= 0
+
+    def validate_sena_plate(self, value):
+        if not value:
+            return None
+        qs = ConsumableMaterial.objects.filter(sena_plate__iexact=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("Ya existe un material con esta placa SENA.")
+        return value
+
     def validate(self, data):
-        # Obligatoriedad condicional: si no hay placa SENA debe haber cantidad
         if 'sena_plate' in data or 'quantity' in data:
             sena_plate = data.get('sena_plate')
-            quantity = data.get('quantity')
+            quantity   = data.get('quantity')
             if not sena_plate and quantity is None:
                 raise serializers.ValidationError({"quantity": "La cantidad es obligatoria si no hay placa SENA."})
 
-        # El stock no puede ser negativo
         quantity = data.get('quantity')
         if quantity is not None and quantity < 0:
             raise serializers.ValidationError({'quantity': 'El stock no puede ser negativo.'})
 
         return data
 
-    def get_available_quantity(self, obj):
-        if obj.quantity is None:
-            return None
+    # ── Serialización de salida ───────────────────────────────────────────
 
-        # Import local para evitar import circular: loans.models importa
-        # ConsumableMaterial desde products, asi que products no puede
-        # importar Loans a nivel de modulo.
-        from modules.loans.models import Loans
-
-        already_lent = Loans.objects.filter(
-            id_material=obj,
-            state='Activo',
-        ).aggregate(total=Sum('amount_lent'))['total'] or 0
-
-        return obj.quantity - already_lent
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        # Reemplazar los valores de ImageField/FileField (rutas relativas del FS)
+        # por URLs navegables via el proxy de Vite → /media/<path>.
+        rep['image'] = (
+            f"/media/{instance.image.name}" if instance.image and instance.image.name else None
+        )
+        rep['technical_sheet'] = (
+            f"/media/{instance.technical_sheet.name}"
+            if instance.technical_sheet and instance.technical_sheet.name else None
+        )
+        # Si el material está agotado, forzar state = "No Disponible" en la respuesta.
+        if rep.get('is_exhausted'):
+            rep['state'] = 'No Disponible'
+        return rep
 
     class Meta:
         model = ConsumableMaterial
@@ -122,35 +135,90 @@ class ConsumableMaterialSerializer(serializers.ModelSerializer):
         }
 
 
+# ── Ficha técnica ─────────────────────────────────────────────────────────────
+
+class TechnicalSheetSerializer(serializers.ModelSerializer):
+    """Serializer para una ficha técnica individual."""
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj):
+        return f"/media/{obj.file.name}" if obj.file and obj.file.name else None
+
+    class Meta:
+        from .models import TechnicalSheet
+        model  = TechnicalSheet
+        fields = ['id', 'url', 'uploaded_at']
+
+
 class ReturnableMaterialSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
+    category        = CategorySerializer(read_only=True)
+    technical_sheets = serializers.SerializerMethodField()
+
+    def get_technical_sheets(self, obj):
+        from .models import TechnicalSheet
+        sheets = TechnicalSheet.objects.filter(material=obj.consumable)
+        return TechnicalSheetSerializer(sheets, many=True).data
 
     class Meta:
         model = ReturnableMaterial
-        fields = ['consumable', 'category', 'model', 'serial', 'technical_sheet', 'dimensions']
+        fields = ['consumable', 'category', 'model', 'serial', 'technical_sheet', 'dimensions', 'technical_sheets']
         extra_kwargs = {
-            "dimensions": {"required": False, "allow_null": True},
+            "serial":         {"required": False, "allow_null": True},
+            "dimensions":     {"required": False, "allow_null": True},
             "technical_sheet": {"required": False},
         }
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
+
+        # IMPORTANTE: usar el consumable ya asociado a esta instancia,
+        # NUNCA crear uno nuevo aquí. to_representation() se ejecuta en
+        # cada lectura (GET/list/create response), así que cualquier
+        # .objects.create() en este método duplicaría registros en la DB.
         c = instance.consumable
+
+        # Refrescar desde la DB: si esta instancia viene de un create()/save()
+        # reciente en la vista (típico con multipart/form-data), los campos
+        # numéricos pueden seguir siendo str en memoria (p.ej. "10" en vez
+        # de 10), lo que rompe las comparaciones numéricas de abajo.
+        c.refresh_from_db()
+
         rep['consumable_id'] = c.id
-        rep['name'] = c.name
-        rep['sena_plate'] = c.sena_plate
-        rep['state'] = c.state
-        rep['quantity'] = c.quantity
-        rep['unit_price'] = str(c.unit_price)
-        rep['total_price'] = str(c.total_price)
-        rep['is_active'] = c.is_active
-        # Mismo formato que ConsumableMaterialSerializer: /media/<path> via proxy Vite.
-        rep['image'] = f"/media/{c.image.name}" if c.image and c.image.name else None
-        # Ficha técnica: también con el mismo patrón para consistencia.
-        rep['technical_sheet'] = f"/media/{instance.technical_sheet.name}" if instance.technical_sheet and instance.technical_sheet.name else None
+        rep['name']          = c.name
+        rep['sena_plate']    = c.sena_plate
+        rep['state']         = c.state
+        rep['quantity']      = c.quantity
+        rep['unit_price']    = str(c.unit_price)
+        rep['total_price']   = str(c.total_price)
+        rep['is_active']     = c.is_active
+
+        # is_exhausted / available_quantity
+        if c.quantity is None:
+            rep['is_exhausted']       = False
+            rep['available_quantity'] = None
+        else:
+            from modules.loans.models import Loans
+            from django.db.models import Sum as _Sum
+
+            qty = int(c.quantity)  # cast defensivo por si vuelve a llegar como str
+            already_lent = (
+                Loans.objects.filter(id_material=c, state='Activo')
+                .aggregate(total=_Sum('amount_lent'))['total'] or 0
+            )
+            rep['is_exhausted']       = qty <= 0 or max(0, qty - already_lent) == 0
+            rep['available_quantity'] = max(0, qty - already_lent)
+
+        if rep['is_exhausted']:
+            rep['state'] = 'No Disponible'
+
+        rep['image']        = f"/media/{c.image.name}" if c.image and c.image.name else None
         rep['purchase_date'] = str(c.purchase_date) if c.purchase_date else None
-        rep['location'] = c.location
-        rep['description'] = c.description
-        rep['brand'] = BrandSerializer(c.brand).data if c.brand else None
-        rep['user'] = UserMinimalSerializer(c.user).data if c.user else None
+        rep['location']     = c.location
+        rep['description']  = c.description
+        rep['brand']        = BrandSerializer(c.brand).data if c.brand else None
+        rep['user']         = UserMinimalSerializer(c.user).data if c.user else None
+
+        # Fichas técnicas como lista de { id, url, uploaded_at }
+        # (reemplaza el campo legacy technical_sheet de la tabla ReturnableMaterial)
+        rep.pop('technical_sheet', None)
         return rep

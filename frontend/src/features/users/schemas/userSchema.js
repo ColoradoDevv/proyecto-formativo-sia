@@ -17,7 +17,7 @@ function isValidDateString(value) {
 
 // Schema para CREACION. Usa la MISMA convencion de nombres que el UserForm
 // reutilizable (firstName, lastName, ...) y agrega la confirmacion de correo.
-export const userSchema = z.object({
+export const userBaseSchema = z.object({
 
     firstName: z
         .string()
@@ -47,13 +47,15 @@ export const userSchema = z.object({
 
     startDate: z
         .string()
-        .refine((value) => value === "" || isValidDateString(value), {
+        .min(1, "Debe ingresar una fecha de inicio")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
         }),
 
     endDate: z
         .string()
-        .refine((value) => value === "" || isValidDateString(value), {
+        .min(1, "Debe ingresar una fecha de finalización")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
         }),
 
@@ -98,7 +100,13 @@ export const userSchema = z.object({
         .boolean()
         .optional(),
 
-} )
+    isAccountable: z
+        .boolean()
+        .optional(),
+
+} );
+
+export const userSchema = userBaseSchema
 .refine(
     (data) => data.email === data.confirmEmail,
     { message: "Los correos no coinciden", path: ["confirmEmail"] }
@@ -178,19 +186,24 @@ export const userEditSchema = z.object({
 
     startDate: z
         .string()
-        .refine((val) => val === "" || isValidDateString(val), {
+        .min(1, "Debe ingresar una fecha de inicio")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
         }),
 
     endDate: z
         .string()
-        .refine((val) => val === "" || isValidDateString(val), {
+        .min(1, "Debe ingresar una fecha de finalización")
+        .refine(isValidDateString, {
             message: "Debe ingresar una fecha válida",
-        })
-        .optional(),
+        }),
 
     profilePicture: z
         .array(z.any())
+        .optional(),
+
+    isAccountable: z
+        .boolean()
         .optional(),
 })
 .refine(

@@ -16,6 +16,16 @@ export function getToken() {
 export function setSession(token, user) {
     sessionStorage.setItem(TOKEN_KEY, token);
     sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    window.dispatchEvent(new CustomEvent("sia:session-updated"));
+}
+
+export function updateStoredUser(updates) {
+    const user = getStoredUser();
+    if (!user) return null;
+    const updated = { ...user, ...updates };
+    sessionStorage.setItem(USER_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent("sia:session-updated"));
+    return updated;
 }
 
 export function clearSession() {
