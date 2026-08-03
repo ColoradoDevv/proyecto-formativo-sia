@@ -29,7 +29,7 @@ function isValidDateString(value) {
 
 // Schema para CREACION. Usa la MISMA convencion de nombres que ConsumableForm
 // (name, senaPlate, brand, ...) para poder reutilizar el formulario.
-export const cmSchema = z.object({
+export const cmBaseSchema = z.object({
     name: z
         .string()
         .trim()
@@ -137,7 +137,9 @@ export const cmSchema = z.object({
             { message: "La ficha técnica no puede superar 3MB" }
         )
         .optional(),
-}).superRefine((data, ctx) => {
+});
+
+export const cmSchema = cmBaseSchema.superRefine((data, ctx) => {
 
     const hasSenaPlate = data.senaPlate && data.senaPlate.trim() !== "";
 

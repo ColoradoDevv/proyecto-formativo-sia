@@ -10,6 +10,172 @@ const CM_STATE_OPTIONS = [
     { id: "Baja",          label: "Baja"          },
 ];
 
+export function ConsumableGeneralCard({
+    formData,
+    errors = {},
+    onChange,
+    brands = [],
+    onCreateBrand = null,
+}) {
+    const handleBrandCreated = (option) => {
+        onChange({ target: { name: "brand", value: String(option.id) } });
+    };
+
+    return (
+        <EditCard title="Información General" cols={1}>
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
+                <Input
+                    label="Nombre"
+                    name="name"
+                    placeholder="Nombre del material"
+                    value={formData.name}
+                    onChange={onChange}
+                    error={errors.name}
+                    required
+                />
+                <Select
+                    label="Marca"
+                    name="brand"
+                    options={brands}
+                    value={formData.brand}
+                    onChange={onChange}
+                    error={errors.brand}
+                    required
+                    labelAction={
+                        <CreateOptionButton
+                            onCreate={onCreateBrand}
+                            onCreated={handleBrandCreated}
+                            title="Nueva marca"
+                            inputLabel="Nombre de la marca"
+                            inputPlaceholder="Ej. Bosch"
+                            errorTitle="No se pudo crear la marca"
+                            ariaLabel="Agregar nueva marca"
+                            icon={Plus}
+                        />
+                    }
+                />
+                <div className="sm:col-span-2">
+                    <TextArea
+                        label="Descripción"
+                        name="description"
+                        placeholder="Descripción del material"
+                        value={formData.description}
+                        onChange={onChange}
+                        error={errors.description}
+                        required
+                    />
+                </div>
+            </div>
+        </EditCard>
+    );
+}
+
+export function ConsumableInventoryCard({ formData, errors = {}, onChange }) {
+    const hasSenaPlate = (formData.senaPlate ?? "").trim() !== "";
+
+    return (
+        <EditCard title="Inventario">
+            <Input
+                label="Placa SENA (opcional)"
+                name="senaPlate"
+                placeholder="Placa SENA"
+                value={formData.senaPlate}
+                onChange={onChange}
+                error={errors.senaPlate}
+            />
+            <Input
+                label="Cantidad"
+                name="quantity"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="Cantidad"
+                value={formData.quantity}
+                onChange={onChange}
+                disabled={hasSenaPlate}
+                error={errors.quantity}
+                hint={hasSenaPlate ? "La cantidad es 1 porque el material tiene placa SENA, no es editable." : undefined}
+                required
+            />
+            <Input
+                label="Ubicación (opcional)"
+                name="location"
+                placeholder="Ubicación del material"
+                value={formData.location}
+                onChange={onChange}
+                error={errors.location}
+            />
+            <Select
+                label="Estado"
+                name="state"
+                options={CM_STATE_OPTIONS}
+                value={formData.state}
+                onChange={onChange}
+                error={errors.state}
+                required
+            />
+        </EditCard>
+    );
+}
+
+export function ConsumableValuesCard({ formData, errors = {}, onChange }) {
+    return (
+        <EditCard title="Valores">
+            <Input
+                label="Fecha de compra"
+                name="purchaseDate"
+                type="date"
+                value={formData.purchaseDate}
+                onChange={onChange}
+                error={errors.purchaseDate}
+                required
+            />
+            <Input
+                label="Valor Unitario"
+                name="unitPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Valor unitario"
+                value={formData.unitPrice}
+                onChange={onChange}
+                error={errors.unitPrice}
+                required
+            />
+            <Input
+                label="Valor Total"
+                name="totalPrice"
+                type="number"
+                placeholder="Calculado automáticamente"
+                value={formData.totalPrice}
+                readOnly
+            />
+        </EditCard>
+    );
+}
+
+export function ConsumableAccountableCard({ formData, errors = {}, onChange, users = [] }) {
+    return (
+        <EditCard title="Asignación">
+            <Select
+                label="Cuentadante"
+                name="user"
+                options={users}
+                value={formData.user}
+                onChange={onChange}
+                error={errors.user}
+                required
+                labelAction={
+                    <CreateOptionButton
+                        onCreate={null}
+                        variant="spacer"
+                    />
+                }
+            />
+        </EditCard>
+    );
+}
+
 // Campos de material de consumo, reutilizables entre crear y editar.
 // PRESENTACIONAL: recibe formData/errors/onChange, las opciones de selects, y
 // un slot para la seccion de foto (distinta en crear vs editar).
