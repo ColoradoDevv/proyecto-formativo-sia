@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, SearchField, IconButton, ActiveSwitch } from '@/shared';
+import { Button, SearchField, IconButton, ActiveSwitch, promptAlert } from '@/shared';
 import { Plus, ArrowLeft, ArrowRight, Pencil, CloudAlert } from 'lucide-react';
 import { TailChase } from 'ldrs/react';
 import Alert from '@mui/material/Alert';
@@ -70,14 +70,37 @@ export default function BrandListPage() {
     const handlePrevPage = () => setCurrentPage((p) => Math.max(0, p - 1));
     const handleNextPage = () => setCurrentPage((p) => Math.min(totalPages - 1, p + 1));
 
-    const handleToggle = async (id, newValue) => {
+    const requestToggleReason = async (brand, newValue) => {
+        const action = newValue ? 'activación' : 'desactivación';
+        const result = await promptAlert({
+            icon: 'warning',
+            iconColor: 'var(--color-warning)',
+            title: `Motivo de ${action}`,
+            text: `Indique el motivo para ${newValue ? 'activar' : 'desactivar'} la marca ${brand.name}.`,
+            inputLabel: `Motivo de ${action}`,
+            inputPlaceholder: `Describa el motivo de la ${action}`,
+            confirmText: newValue ? 'Activar' : 'Desactivar',
+            cancelText: 'Cancelar',
+            inputValidator: (value) => value.trim().length < 10
+                ? 'El motivo debe tener al menos 10 caracteres.'
+                : '',
+        });
+
+        return result.isConfirmed ? result.value.trim() : false;
+    };
+
+    const handleToggle = async (id, newValue, reason) => {
+        if (!reason) return false;
+
         try {
-            await toggleBrandActive(id, newValue);
+            const updated = await toggleBrandActive(id, newValue, reason);
             setBrands((prev) =>
-                prev.map((b) => (b.id === id ? { ...b, is_active: newValue } : b))
+                prev.map((b) => (b.id === id ? { ...b, is_active: updated.is_active } : b))
             );
+            return updated;
         } catch {
             setNotification({ severity: 'error', message: 'Error al cambiar el estado de la marca' });
+            return false;
         }
     };
 
@@ -133,6 +156,7 @@ export default function BrandListPage() {
                                         id={brand.id}
                                         isActive={brand.is_active}
                                         toggleFn={handleToggle}
+                                        beforeToggle={(value) => requestToggleReason(brand, value)}
                                     />
                                 </div>
                             </div>

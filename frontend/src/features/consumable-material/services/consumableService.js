@@ -101,19 +101,26 @@ export async function updateCm(id, cmData) {
 }
 
 // METODO PATCH (activar o desactivar un material)
-export async function toggleCmActive(id, isActive) {
+export async function toggleCmActive(id, isActive, reason) {
+  const body = { is_active: isActive };
+  if (reason) body.reason = reason;
+
   const response = await apiFetch(`/api/products/consumables/${id}/toggle_active/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ is_active: isActive }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) await throwApiError(response);
   return response.json();
 }
 
-export async function deleteCm(id) {
+export async function deleteCm(id, deletionReason) {
+  const payload = deletionReason ? { deletion_reason: deletionReason } : undefined;
+
   const response = await apiFetch(`/api/products/consumables/${id}/`, {
     method: "DELETE",
+    headers: payload ? { "Content-Type": "application/json" } : undefined,
+    body: payload ? JSON.stringify(payload) : undefined,
   });
   if (!response.ok) await throwApiError(response);
 }

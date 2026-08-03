@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { IconButton, cancelAlert, showAlert} from "@/shared";
+import { IconButton, promptAlert, showAlert } from "@/shared";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { deleteUser } from "@/features/users/services/userService"; // ajusta la ruta real
@@ -13,19 +13,31 @@ export default function UserRowActions({ user, onDeleted }) {
   const handleEdit = () => navigate(`/usuarios/editar/${user.id}`);
   const handleVisualizer = () => navigate(`/usuarios/visualizar/${user.id}`);
 
-  const handleDelete = async () => {
-    const result = await cancelAlert({
-      title: "¿Eliminar usuario?",
-      text: `${user.first_name} ${user.last_name} será eliminado. Esta acción se puede revertir después desde la papelera.`,
-      confirmText: "Sí, eliminar",
+  const requestDeletionReason = async () => {
+    const result = await promptAlert({
+      icon: "warning",
+      iconColor: "var(--color-warning)",
+      title: "Motivo de eliminación",
+      text: `${user.first_name} ${user.last_name} será eliminado. Indique el motivo de esta eliminación. Esta acción se puede revertir después desde la papelera.`,
+      inputLabel: "Motivo de eliminación",
+      inputPlaceholder: "Describa el motivo de la eliminación",
+      confirmText: "Eliminar",
       cancelText: "Cancelar",
+      inputValidator: (value) => value.trim().length < 10
+        ? "El motivo debe tener al menos 10 caracteres."
+        : "",
     });
 
-    if (!result.isConfirmed) return;
+    return result.isConfirmed ? result.value.trim() : false;
+  };
+
+  const handleDelete = async () => {
+    const deletionReason = await requestDeletionReason();
+    if (!deletionReason) return;
 
     try {
       setDeleting(true);
-      await deleteUser(user.id);
+      await deleteUser(user.id, deletionReason);
       onDeleted?.(user.id);
 
       await showAlert({

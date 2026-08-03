@@ -1,4 +1,4 @@
-import { IconButton, cancelAlert, showAlert } from "@/shared";
+import { IconButton, promptAlert, showAlert } from "@/shared";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { deleteRM } from "../../services/returnableService";
@@ -10,17 +10,30 @@ export default function RmRowActions({ Rm, onDeleted }) {
 
     const handleEdit = () => navigate(`/devolutivos/editar/${Rm.consumable_id}`);
     const handleVisualizar = () => navigate(`/devolutivos/visualizar/${Rm.consumable_id}`);
-    const handleDelete = async () => {
-        const result = await cancelAlert({
-            title: "¿Eliminar material devolutivo?",
-            text: `El material ${Rm.name} será eliminado permanentemente.`,
-            confirmText: "Sí, eliminar",
+    const requestDeletionReason = async () => {
+        const result = await promptAlert({
+            icon: "warning",
+            iconColor: "var(--color-warning)",
+            title: "Motivo de eliminación",
+            text: `Indique el motivo para eliminar el material devolutivo ${Rm.name}. Esta acción no se puede deshacer.`,
+            inputLabel: "Motivo de eliminación",
+            inputPlaceholder: "Describa el motivo de la eliminación",
+            confirmText: "Eliminar",
             cancelText: "Cancelar",
+            inputValidator: (value) => value.trim().length < 10
+                ? "El motivo debe tener al menos 10 caracteres."
+                : "",
         });
-        if (!result.isConfirmed) return;
+
+        return result.isConfirmed ? result.value.trim() : false;
+    };
+
+    const handleDelete = async () => {
+        const deletionReason = await requestDeletionReason();
+        if (!deletionReason) return;
 
         try {
-            await deleteRM(Rm.consumable_id);
+            await deleteRM(Rm.consumable_id, deletionReason);
             onDeleted?.(Rm.consumable_id);
             showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Material eliminado correctamente" });
         } catch (error) {

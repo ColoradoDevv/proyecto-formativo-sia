@@ -1,6 +1,25 @@
-import { Switch } from "@/shared";
+import { Switch, promptAlert } from "@/shared";
 import RmRowActions from "../components/list/RmRowActions";
 import { toggleRMActive } from "../services/returnableService";
+
+const requestRmToggleReason = async (rm, newValue) => {
+    const action = newValue ? "activación" : "desactivación";
+    const result = await promptAlert({
+        icon: "warning",
+        iconColor: "var(--color-warning)",
+        title: `Motivo de ${action}`,
+        text: `Indique el motivo para ${newValue ? "activar" : "desactivar"} el material devolutivo ${rm.name}.`,
+        inputLabel: `Motivo de ${action}`,
+        inputPlaceholder: `Describa el motivo de la ${action}`,
+        confirmText: newValue ? "Activar" : "Desactivar",
+        cancelText: "Cancelar",
+        inputValidator: (value) => value.trim().length < 10
+            ? "El motivo debe tener al menos 10 caracteres."
+            : "",
+    });
+
+    return result.isConfirmed ? result.value.trim() : false;
+};
 
 export const RmColumns = (setRMs, setNotification) => [
     {
@@ -63,8 +82,11 @@ export const RmColumns = (setRMs, setNotification) => [
             const rm = row.original;
 
             const handleChange = async (value) => {
+                const reason = await requestRmToggleReason(rm, value);
+                if (!reason) return;
+
                 try {
-                    const updatedMaterial = await toggleRMActive(rm.consumable_id, value);
+                    const updatedMaterial = await toggleRMActive(rm.consumable_id, value, reason);
                     setRMs((prev) =>
                         prev.map((item) =>
                             item.consumable_id === rm.consumable_id
@@ -76,7 +98,6 @@ export const RmColumns = (setRMs, setNotification) => [
                                 : item
                         )
                     );
-                    setNotification({ severity: "success", message: "Estado actualizado." });
                 } catch {
                     setNotification({ severity: "error", message: "Error al actualizar estado." });
                 }

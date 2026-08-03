@@ -14,6 +14,8 @@ const FIELD_MAP = {
     address: "address",
     start_date: "startDate",
     end_date: "endDate",
+    deactivation_reason: "deactivationReason",
+    deletion_reason: "deletionReason",
     is_accountable: "isAccountable",
 };
 
@@ -223,13 +225,15 @@ export async function confirmPasswordChange({ otpCode }) {
 }
 
 // METODO PATCH (activar o desactivar un usuario)
-export async function toggleUserActive(id, isActive, { deactivationReason } = {}) {
+export async function toggleUserActive(id, isActive, { deactivationReason, reason } = {}) {
   const response = await apiFetch(`/api/users/${id}/`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       is_active: isActive,
-      ...(deactivationReason ? { deactivation_reason: deactivationReason } : {}),
+      ...((deactivationReason || reason)
+        ? { deactivation_reason: deactivationReason || reason }
+        : {}),
     }),
   });
   if (!response.ok) await throwApiError(response, FIELD_MAP);
@@ -319,9 +323,15 @@ export async function updateUserGroups(userId, groupIds) {
 }
 
 // METODO DELETE (eliminar un usuario - borrado logico)
-export async function deleteUser(id) {
+export async function deleteUser(id, deletionReason) {
+  const payload = deletionReason
+    ? { deletion_reason: deletionReason }
+    : undefined;
+
   const response = await apiFetch(`/api/users/${id}/`, {
     method: "DELETE",
+    headers: payload ? { "Content-Type": "application/json" } : undefined,
+    body: payload ? JSON.stringify(payload) : undefined,
   });
   if (!response.ok) await throwApiError(response, FIELD_MAP);
   // El backend responde 204 No Content, no hay body que parsear

@@ -113,19 +113,26 @@ export async function updateRM(id, rmData) {
 }
 
 // El toggle de is_active va contra el ConsumableMaterial (donde vive el campo)
-export async function toggleRMActive(consumableId, isActive) {
+export async function toggleRMActive(consumableId, isActive, reason) {
+    const body = { is_active: isActive };
+    if (reason) body.reason = reason;
+
     const response = await apiFetch(`/api/products/returnables/${consumableId}/toggle_active/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: isActive }),
+        body: JSON.stringify(body),
     });
     if (!response.ok) await throwApiError(response);
     return response.json();
 }
 
-export async function deleteRM(consumableId) {
+export async function deleteRM(consumableId, deletionReason) {
+    const payload = deletionReason ? { deletion_reason: deletionReason } : undefined;
+
     const response = await apiFetch(`/api/products/returnables/${consumableId}/`, {
         method: "DELETE",
+        headers: payload ? { "Content-Type": "application/json" } : undefined,
+        body: payload ? JSON.stringify(payload) : undefined,
     });
     if (!response.ok) await throwApiError(response);
 }

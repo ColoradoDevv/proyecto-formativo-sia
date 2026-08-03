@@ -64,7 +64,13 @@ export async function updateTask(id, taskData) {
     return response.json();
 }
 
-export async function deleteTask(id) {
-    const response = await apiFetch(`/api/tasks/${id}/`, { method: "DELETE" });
+export async function deleteTask(id, deletionReason) {
+    const payload = deletionReason ? { deletion_reason: deletionReason } : undefined;
+
+    const response = await apiFetch(`/api/tasks/${id}/`, {
+        method: "DELETE",
+        headers: payload ? { "Content-Type": "application/json" } : undefined,
+        body: payload ? JSON.stringify(payload) : undefined,
+    });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
 }

@@ -96,6 +96,9 @@ def handle_user_save(sender, instance, created, **kwargs):
         if "is_deleted" in update_fields:
             action = AuditLog.ACTION_DELETE
             detail = f"Eliminado lógicamente: {instance.email}"
+            deletion_reason = getattr(req, "data", {}).get("deletion_reason")
+            if deletion_reason:
+                detail += f" | Motivo: {str(deletion_reason).strip()}"
         elif "is_active" in update_fields and "is_deleted" not in update_fields:
             action = AuditLog.ACTION_TOGGLE_ACTIVE
             detail = f"{'Activado' if instance.is_active else 'Desactivado'}: {instance.email}"

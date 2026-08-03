@@ -1,20 +1,34 @@
-import { IconButton, showAlert, cancelAlert } from "@/shared";
+import { IconButton, promptAlert, showAlert } from "@/shared";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { deleteTask } from "../services/taskService";
 
 // Acciones de cada fila de tarea: visualizar, editar y eliminar (iconos, sin dropdown).
 export default function TaskRowActions({ task, onView, onEdit, onDeleted, onNotify }) {
 
-    const handleDelete = async () => {
-        const result = await cancelAlert({
-            title: "¿Eliminar esta tarea?",
-            text: "Esta acción no se puede deshacer.",
-            confirmText: "Sí, eliminar",
+    const requestDeletionReason = async () => {
+        const result = await promptAlert({
+            icon: "warning",
+            iconColor: "var(--color-warning)",
+            title: "Motivo de eliminación",
+            text: "Indique el motivo para eliminar esta tarea. Esta acción no se puede deshacer.",
+            inputLabel: "Motivo de eliminación",
+            inputPlaceholder: "Describa el motivo de la eliminación",
+            confirmText: "Eliminar",
+            cancelText: "Cancelar",
+            inputValidator: (value) => value.trim().length < 10
+                ? "El motivo debe tener al menos 10 caracteres."
+                : "",
         });
-        if (!result.isConfirmed) return;
+
+        return result.isConfirmed ? result.value.trim() : false;
+    };
+
+    const handleDelete = async () => {
+        const deletionReason = await requestDeletionReason();
+        if (!deletionReason) return;
 
         try {
-            await deleteTask(task.id);
+            await deleteTask(task.id, deletionReason);
             onDeleted(task.id);
             showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Tarea eliminada exitosamente" });
         } catch (error) {

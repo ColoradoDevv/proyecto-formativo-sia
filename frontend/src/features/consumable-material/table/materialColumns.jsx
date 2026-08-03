@@ -1,6 +1,25 @@
-import { ActiveSwitch } from "@/shared";
+import { ActiveSwitch, promptAlert } from "@/shared";
 import { toggleCmActive } from "../services/consumableService";
 import CmRowActions from "../components/list/CmRowActions";
+
+const requestCmToggleReason = async (cm, newValue) => {
+    const action = newValue ? "activación" : "desactivación";
+    const result = await promptAlert({
+        icon: "warning",
+        iconColor: "var(--color-warning)",
+        title: `Motivo de ${action}`,
+        text: `Indique el motivo para ${newValue ? "activar" : "desactivar"} el material de consumo ${cm.name}.`,
+        inputLabel: `Motivo de ${action}`,
+        inputPlaceholder: `Describa el motivo de la ${action}`,
+        confirmText: newValue ? "Activar" : "Desactivar",
+        cancelText: "Cancelar",
+        inputValidator: (value) => value.trim().length < 10
+            ? "El motivo debe tener al menos 10 caracteres."
+            : "",
+    });
+
+    return result.isConfirmed ? result.value.trim() : false;
+};
 
 export const materialColumns = (setCMs) => [
     {
@@ -69,6 +88,7 @@ export const materialColumns = (setCMs) => [
                 id={row.original.id}
                 isActive={row.original.is_active}
                 toggleFn={toggleCmActive}
+                beforeToggle={(value) => requestCmToggleReason(row.original, value)}
                 onToggled={(updatedMaterial) => {
                     setCMs((prev) => prev.map((item) =>
                         item.id === row.original.id

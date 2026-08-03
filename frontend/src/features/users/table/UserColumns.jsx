@@ -1,40 +1,7 @@
-import { ActiveSwitch, promptAlert } from "@/shared";
-import { toggleUserActive } from "@/features/users/services/userService"; // ajusta la ruta segun tu estructura real
+import { ActiveSwitch } from "@/shared";
 import UserRowActions from "@/features/users/components/list/UserRowActions"; // ajusta la ruta segun tu estructura real
+import UserActiveSwitch  from "../components/list/UserActiveSwitch"; 
 
-function UserActiveSwitch({ user }) {
-    const requestDeactivationReason = async (nextIsActive) => {
-        if (nextIsActive) return undefined;
-
-        const result = await promptAlert({
-            icon: "warning",
-            iconColor: "var(--color-warning)",
-            title: "Motivo de inactivación",
-            text: "Indique el motivo para deshabilitar esta cuenta de usuario.",
-            inputLabel: "Motivo de inactivación",
-            inputPlaceholder: "Describa el motivo de la inactivación",
-            confirmText: "Deshabilitar",
-            cancelText: "Cancelar",
-            inputValidator: (value) => value.trim().length < 10
-                ? "El motivo debe tener al menos 10 caracteres."
-                : "",
-        });
-
-        return result.isConfirmed
-            ? { deactivationReason: result.value.trim() }
-            : false;
-    };
-
-    return (
-        <ActiveSwitch
-            id={user.id}
-            isActive={user.is_active}
-            toggleFn={toggleUserActive}
-            entity="usuario"
-            beforeToggle={requestDeactivationReason}
-        />
-    );
-}
 
 export const getUserColumns = (onDeleted) => [
     {

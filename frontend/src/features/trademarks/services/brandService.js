@@ -34,19 +34,26 @@ export const updateBrand = async (id, brandData) => {
     return response.json();
 };
 
-export const toggleBrandActive = async (id, isActive) => {
+export const toggleBrandActive = async (id, isActive, reason) => {
+    const body = { is_active: isActive };
+    if (reason) body.reason = reason;
+
     const response = await apiFetch(`/api/products/brands/${id}/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: isActive }),
+        body: JSON.stringify(body),
     });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
     return response.json();
 };
 
-export const deleteBrand = async (id) => {
+export const deleteBrand = async (id, deletionReason) => {
+    const payload = deletionReason ? { deletion_reason: deletionReason } : undefined;
+
     const response = await apiFetch(`/api/products/brands/${id}/`, {
         method: "DELETE",
+        headers: payload ? { "Content-Type": "application/json" } : undefined,
+        body: payload ? JSON.stringify(payload) : undefined,
     });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
 };

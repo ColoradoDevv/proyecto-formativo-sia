@@ -27,19 +27,26 @@ export async function updateGroup(groupId, group) {
     return response.json();
 }
 
-export async function toggleGroupActive(groupId, isActive) {
+export async function toggleGroupActive(groupId, isActive, reason) {
+    const body = { is_active: isActive };
+    if (reason) body.reason = reason;
+
     const response = await apiFetch(`/api/permissions/groups/${groupId}/toggle_active/`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: isActive }),
+        body: JSON.stringify(body),
     });
     if (!response.ok) await throwApiError(response);
     return response.json();
 }
 
-export async function deleteGroup(groupId) {
+export async function deleteGroup(groupId, deletionReason) {
+    const payload = deletionReason ? { deletion_reason: deletionReason } : undefined;
+
     const response = await apiFetch(`/api/permissions/groups/${groupId}/`, {
         method: "DELETE",
+        headers: payload ? { "Content-Type": "application/json" } : undefined,
+        body: payload ? JSON.stringify(payload) : undefined,
     });
     if (!response.ok) await throwApiError(response);
 }

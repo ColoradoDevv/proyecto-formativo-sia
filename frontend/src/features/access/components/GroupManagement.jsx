@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CloudAlert, Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import { TailChase } from "ldrs/react";
 import "ldrs/react/TailChase.css";
-import { Button, DataTable, IconButton, Input, Modal, Switch, showAlert, cancelAlert } from "@/shared";
+import { Button, DataTable, IconButton, Input, Modal, Switch, promptAlert, showAlert, cancelAlert } from "@/shared";
 import { createGroup, deleteGroup, getGroups, toggleGroupActive, updateGroup } from "../services/groupService";
 
 const EMPTY_FORM = { name: "", description: "" };
@@ -81,19 +81,31 @@ export default function GroupManagement({ onChanged }) {
         }
     };
 
-    const handleToggle = async (group, isActive) => {
-        const result = await cancelAlert({
-            title: isActive ? "¿Activar grupo?" : "¿Desactivar grupo?",
-            text: isActive
-                ? `El grupo ${group.name} volverá a estar disponible para asignar usuarios.`
-                : `El grupo ${group.name} dejará de estar disponible para nuevas asignaciones.`,
-            confirmText: isActive ? "Sí, activar" : "Sí, desactivar",
+    const requestToggleReason = async (group, isActive) => {
+        const action = isActive ? "activación" : "desactivación";
+        const result = await promptAlert({
+            icon: "warning",
+            iconColor: "var(--color-warning)",
+            title: `Motivo de ${action}`,
+            text: `Indique el motivo para ${isActive ? "activar" : "desactivar"} el grupo ${group.name}.`,
+            inputLabel: `Motivo de ${action}`,
+            inputPlaceholder: `Describa el motivo de ${action}`,
+            confirmText: isActive ? "Activar" : "Desactivar",
             cancelText: "Cancelar",
+            inputValidator: (value) => value.trim().length < 10
+                ? "El motivo debe tener al menos 10 caracteres."
+                : "",
         });
-        if (!result.isConfirmed) return;
+
+        return result.isConfirmed ? result.value.trim() : false;
+    };
+
+    const handleToggle = async (group, isActive) => {
+        const reason = await requestToggleReason(group, isActive);
+        if (!reason) return;
 
         try {
-            const updated = await toggleGroupActive(group.id, isActive);
+            const updated = await toggleGroupActive(group.id, isActive, reason);
             setGroups((previous) => previous.map((item) => item.id === group.id
                 ? { ...item, is_active: updated.is_active }
                 : item
@@ -105,17 +117,30 @@ export default function GroupManagement({ onChanged }) {
         }
     };
 
-    const handleDelete = async (group) => {
-        const result = await cancelAlert({
-            title: "¿Eliminar grupo?",
-            text: `El grupo ${group.name} será eliminado permanentemente.`,
-            confirmText: "Sí, eliminar",
+    const requestDeletionReason = async (group) => {
+        const result = await promptAlert({
+            icon: "warning",
+            iconColor: "var(--color-warning)",
+            title: "Motivo de eliminación",
+            text: `Indique el motivo para eliminar el grupo ${group.name}. Esta acción no se puede deshacer.`,
+            inputLabel: "Motivo de eliminación",
+            inputPlaceholder: "Describa el motivo de la eliminación",
+            confirmText: "Eliminar",
             cancelText: "Cancelar",
+            inputValidator: (value) => value.trim().length < 10
+                ? "El motivo debe tener al menos 10 caracteres."
+                : "",
         });
-        if (!result.isConfirmed) return;
+
+        return result.isConfirmed ? result.value.trim() : false;
+    };
+
+    const handleDelete = async (group) => {
+        const reason = await requestDeletionReason(group);
+        if (!reason) return;
 
         try {
-            await deleteGroup(group.id);
+            await deleteGroup(group.id, reason);
             setGroups((previous) => previous.filter((item) => item.id !== group.id));
             onChanged?.();
             showAlert({ icon: "success", iconColor: "var(--color-success)", title: "Grupo eliminado correctamente" });
