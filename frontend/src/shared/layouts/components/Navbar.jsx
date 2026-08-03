@@ -1,9 +1,11 @@
 import { ChevronDown, Menu } from "lucide-react";
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator } from "@/shared";
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem, DropdownSeparator, IconButton } from "@/shared";
 import { Link, useNavigate } from "react-router-dom";
 import { getStoredUser } from "@/shared/services/api"
 import { logout } from "@/features/auth/services/authService";
 import { cancelAlert } from "@/shared";
+import { useState } from "react";
+import clsx from "clsx";
 
 
 export default function Navbar({ onToggleSidebar }) {
@@ -32,23 +34,24 @@ export default function Navbar({ onToggleSidebar }) {
     };
 
     return (
-        <div className="bg-surface-hover px-4 sm:px-6 border-b border-border flex items-center text-text-primary h-(--size-control-2xl) shrink-0">
+        <div className={clsx("bg-surface-hover dark:bg-amber-950 px-4 sm:px-6 border-b border-border flex items-center text-text-primary  h-(--size-control-2xl) shrink-0")}>
 
             {/* Hamburger / Toggle Sidebar */}
             {onToggleSidebar && (
-                <button
+                <IconButton
                     type="button"
                     aria-label="Alternar menú de navegación"
                     onClick={handleMenuClick}
                     className="mr-3 p-1.5 rounded-lg hover:bg-surface-muted transition-colors cursor-pointer text-text-primary"
                 >
                     <Menu size={22} />
-                </button>
+                </IconButton>
             )}
 
             {/* Título — completo desde sm, abreviado en móvil */}
             <h1 className="text-h2 font-heading flex-1 truncate">
                 SGI - Inventario<span className="hidden sm:inline"> Teleínformatica</span>
+
             </h1>
 
             {/* Menú de usuario */}

@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 import Sidenav from "./components/Sidenav";
 import { useInactivityLogout } from "@/shared/hooks/useInactivityLogout";
 import { getStoredUser, isAuthenticated } from "@/shared/services/api";
+import { clsx } from 'clsx';
 
 function useMustChangePassword() {
     const [mustChange, setMustChange] = useState(false);
@@ -22,6 +23,12 @@ function useMustChangePassword() {
 }
 
 export default function MainLayout({ children }) {
+    
+    const [isDark, setDark] = useState(false);
+
+    const toggleTheme = () => {
+        setDark(!isDark)
+    }
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const mustChangePassword = useMustChangePassword();
     useInactivityLogout();
@@ -33,8 +40,9 @@ export default function MainLayout({ children }) {
     }
 
     return (
-        <div className="h-screen flex flex-col">
-            <Navbar onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
+        <div className={clsx ("h-screen flex flex-col", isDark ? "dark" : "")}>
+            <Navbar onToggleSidebar={() => setSidebarOpen(prev => !prev)}/>
+                <button onClick={toggleTheme}> fenfefenfen</button>
             <div className="flex flex-1 overflow-hidden">
                 <Sidenav isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <main className="flex-1 bg-background/70 text-text-primary overflow-y-auto">
