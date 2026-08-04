@@ -63,6 +63,13 @@ export default function loanSchema(materials = [], { multipleMaterials = false }
             .max(10, "El grupo no puede tener mas de 10 caracteres")
             .optional(),
 
+        loanType: z
+            .string()
+            .min(1, "Debe seleccionar el tipo de préstamo")
+            .refine((val) => ["interno", "externo"].includes(val), {
+                message: "El tipo de préstamo debe ser interno o externo",
+            }),
+
         loanJustification: z
             .string()
             .trim()

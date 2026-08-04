@@ -18,6 +18,11 @@ class Loans(models.Model):
         ('Incompleto', 'Incompleto'),
     ]
 
+    LOAN_TYPE = [
+        ('Interno', 'Interno'),
+        ('Externo', 'Externo')
+    ]
+
     # id_loan: PK, AI, Único, obligatorio — Django lo genera automático con AutoField
     id_loan = models.AutoField(primary_key=True)
 
@@ -97,6 +102,11 @@ class Loans(models.Model):
         max_length=20,
         choices=STATE_CHOICES,
         default='Pendiente',
+    )
+    state = models.CharField(
+        max_length=20,
+        choices=LOAN_TYPE,
+        default='Interno',
     )
 
     # ── Trazabilidad de firma electrónica ────────────────────────────────
