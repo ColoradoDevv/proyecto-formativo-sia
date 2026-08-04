@@ -51,6 +51,15 @@ export const cmBaseSchema = z.object({
         })
         .optional(),
 
+    serial: z
+        .string()
+        .trim()
+        .max(20, "El numero de serial es demasiado larga")
+        .refine(val => val === "" || val.length >= 3, {
+            message: "El numero de serial debe tener minimo 3 caracteres"
+        })
+        .optional(),
+
     quantity: z
         .string()
         .trim()
@@ -67,7 +76,8 @@ export const cmBaseSchema = z.object({
 
     brand: z
         .string()
-        .min(1, "Debe seleccionar una marca"),
+        .trim()
+        .optional(),
 
     state: z
         .string()
@@ -198,6 +208,15 @@ export const cmEditSchema = z.object({
         })
         .optional(),
 
+    serial: z
+        .string()
+        .trim()
+        .max(20, "El numero de serial es demasiado larga")
+        .refine(val => val === "" || val.length >= 3, {
+            message: "El numero de serial debe tener minimo 3 caracteres"
+        })
+        .optional(),
+
     quantity: z
         .string()
         .trim()
@@ -214,7 +233,7 @@ export const cmEditSchema = z.object({
 
     brand: z
         .string()
-        .min(1, "Debe seleccionar una marca"),
+        .optional(),
 
     state: z
         .string()

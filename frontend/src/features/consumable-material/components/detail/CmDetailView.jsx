@@ -86,6 +86,7 @@ export default function CmDetailView() {
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 min-w-0">
                             <Input label="Nombre" value={CM.name ?? ""} disabled readOnly />
                             <Input label="Placa SENA" value={CM.sena_plate ?? "Sin placa"} disabled readOnly />
+                            <Input label="Numero de serial" value={CM.serial ?? "Sin numero de serial"} disabled readOnly />
                             <Input label="Marca" value={brandLabel} disabled readOnly />
                             <Input label="Cuentadante" value={userLabel} disabled readOnly />
                             <div className="sm:col-span-2">
