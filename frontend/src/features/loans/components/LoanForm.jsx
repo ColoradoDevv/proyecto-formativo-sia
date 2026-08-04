@@ -125,7 +125,7 @@ export default function LoanForm({
                     onChange={onChange}
                     error={errors.loanGroup}
                     labelAction={<CreateOptionButton variant="spacer" />}
-                    required
+                    optional
                 />
                 <Input
                     label="Fecha de salida"
