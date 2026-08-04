@@ -410,7 +410,7 @@ export default function CmRegisterForm() {
                                             label="Ficha Técnica"
                                             name="technicalSheet"
                                             placeholder="Subir ficha técnica"
-                                            optional
+                                            required
                                             value={formData.technicalSheet}
                                             onChange={handleFileChange("technicalSheet")}
                                             error={errors.technicalSheet}

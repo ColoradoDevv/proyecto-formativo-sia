@@ -134,8 +134,9 @@ export const cmBaseSchema = z.object({
     // y tamaño máximo 3MB según RF RFADMIN14.
     technicalSheet: z
         .array(z.instanceof(File))
+        .min(1, "Debe subir la ficha técnica")
         .refine(
-            (files) => files.length === 0 || [
+            (files) => [
                 "application/pdf",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "image/png",
@@ -143,10 +144,10 @@ export const cmBaseSchema = z.object({
             { message: "La ficha técnica debe ser PDF, Excel o PNG" }
         )
         .refine(
-            (files) => files.length === 0 || files[0]?.size <= 3 * 1024 * 1024,
+            (files) => files[0]?.size <= 3 * 1024 * 1024,
             { message: "La ficha técnica no puede superar 3MB" }
         )
-        .optional(),
+        .min(1, "Debe subir la ficha técnica"),
 });
 
 export const cmSchema = cmBaseSchema.superRefine((data, ctx) => {
