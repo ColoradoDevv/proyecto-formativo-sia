@@ -4,6 +4,7 @@ import { Button, IconButton, showAlert, cancelAlert } from "@/shared";
 import { Undo2 } from "lucide-react";
 import useLoan from "../../hooks/useLoan";
 import { getUsers, getMaterials } from "../../services/selectServices";
+import { getLoanTypes } from "../../services/loanService";
 import loanSchema from "../../schemas/loanSchema";
 import { updateLoan } from "../../services/loanService";
 import LoanForm from "../LoanForm";
@@ -17,9 +18,11 @@ export default function LoanEditView() {
 
     const [users,     setUsers]     = useState([]);
     const [materials, setMaterials] = useState([]);
+    const [loanTypes, setLoanTypes] = useState([]);
 
     useEffect(() => { getUsers().then(setUsers);         }, []);
     useEffect(() => { getMaterials().then(setMaterials); }, []);
+    useEffect(() => { getLoanTypes().then(setLoanTypes).catch(() => {}); }, []);
 
     if (loading)
         return (
@@ -30,11 +33,11 @@ export default function LoanEditView() {
 
     if (error) return <p>Error al cargar préstamo: {error.message}</p>;
 
-    return <LoanEditForm loan={loan} users={users} materials={materials} />;
+    return <LoanEditForm loan={loan} users={users} materials={materials} loanTypes={loanTypes} />;
 }
 
 // Componente interno: recibe el prestamo ya cargado e inicializa el estado directamente
-function LoanEditForm({ loan, users, materials }) {
+function LoanEditForm({ loan, users, materials, loanTypes }) {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -43,6 +46,7 @@ function LoanEditForm({ loan, users, materials }) {
         loanMaterial:        loan.id_material          != null ? String(loan.id_material)         : "",
         loanAmount:          loan.amount_lent          != null ? String(loan.amount_lent)          : "",
         loanGroup:           loan.apprentice_group  ?? "",
+        loanType:            loan.loan_type           ?? "",
         loanJustification:   loan.justification_use ?? "",
         loanReturnDate:      loan.return_date        ?? "",
     });
@@ -111,6 +115,7 @@ function LoanEditForm({ loan, users, materials }) {
                     onChange={handleChange}
                     users={users}
                     materials={materials}
+                    loanTypeOptions={loanTypes}
                     loanDepartureDate={loan.loan_date ?? ""}
                     readonlyUsers
                 />

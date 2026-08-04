@@ -39,6 +39,7 @@ export async function createLoanDraft(loanData) {
             apprentice_group:    loanData.loanGroup,
             justification_use:   loanData.loanJustification,
             return_date:         loanData.loanReturnDate,
+            loan_type:          loanData.loanType,
         }),
     });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
@@ -58,6 +59,7 @@ export async function createLoan(loanData) {
             apprentice_group:    loanData.loanGroup,
             justification_use:   loanData.loanJustification,
             return_date:         loanData.loanReturnDate,
+            loan_type:          loanData.loanType,
         }),
     });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
@@ -76,6 +78,7 @@ export async function updateLoan(id, loanData) {
             apprentice_group:    loanData.loanGroup,
             justification_use:   loanData.loanJustification,
             return_date:         loanData.loanReturnDate,
+            loan_type:          loanData.loanType,
         }),
     });
     if (!response.ok) await throwApiError(response, FIELD_MAP);
@@ -170,4 +173,11 @@ export async function getLoanBatches() {
     const response = await apiFetch("/api/loans/batches/");
     if (!response.ok) await throwApiError(response);
     return response.json();
+}
+
+export async function getLoanTypes() {
+    const response = await apiFetch("/api/loans/types/");
+    if (!response.ok) await throwApiError(response);
+    const data = await response.json();
+    return data.map((item) => ({ id: item.id, label: item.name }));
 }

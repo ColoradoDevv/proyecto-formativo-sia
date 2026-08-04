@@ -15,6 +15,7 @@ class LoanSerializer(serializers.ModelSerializer):
     material            = serializers.SerializerMethodField()
     material_type       = serializers.SerializerMethodField()
     is_active           = serializers.SerializerMethodField()
+    loan_type           = serializers.CharField(source='loan_types')
 
     # ── Trazabilidad de firma (solo lectura) ──────────────────────────────
     firma_responsable = serializers.SerializerMethodField()

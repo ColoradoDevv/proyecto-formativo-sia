@@ -59,6 +59,7 @@ export default function ReturnableForm({
                             value={formData.model}
                             onChange={onChange}
                             error={errors.model}
+                            optional
                             labelAction={<CreateOptionButton variant="spacer" />}
 
                             //required
@@ -205,12 +206,13 @@ export default function ReturnableForm({
                         required
                     />
                     <Input
-                        label="Ubicación (opcional)"
+                        label="Ubicación"
                         name="location"
                         placeholder="Ubicación del material"
                         value={formData.location}
                         onChange={onChange}
                         error={errors.location}
+                        optional
                         labelAction={<CreateOptionButton variant="spacer" />}
                     />
                     <Input
@@ -245,6 +247,7 @@ export default function ReturnableForm({
                         type="number"
                         placeholder="Calculado automáticamente"
                         value={formData.totalPrice}
+                        required
                         error={errors.totalPrice}
                         labelAction={<CreateOptionButton variant="spacer" />}
                         readOnly

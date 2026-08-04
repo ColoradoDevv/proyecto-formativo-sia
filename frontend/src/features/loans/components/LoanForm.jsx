@@ -12,7 +12,7 @@ export default function LoanForm({
     users = [],
     materials = [],
     multipleMaterials = false,
-    loan_type = "",
+    loanTypeOptions = [],
     onMaterialQuantityChange,
     loanDepartureDate = "",
     extraSlot = null,

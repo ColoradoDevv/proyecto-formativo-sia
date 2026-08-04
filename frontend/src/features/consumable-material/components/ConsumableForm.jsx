@@ -76,8 +76,9 @@ export function ConsumableInventoryCard({ formData, errors = {}, onChange }) {
     return (
         <EditCard title="Inventario">
             <Input
-                label="Placa SENA (opcional)"
+                label="Placa SENA"
                 name="senaPlate"
+                optional
                 placeholder="Placa SENA"
                 value={formData.senaPlate}
                 onChange={onChange}
@@ -121,8 +122,9 @@ export function ConsumableInventoryCard({ formData, errors = {}, onChange }) {
                         /> */}
 
             <Input
-                label="Ubicación (opcional)"
+                label="Ubicación"
                 name="location"
+                optional
                 placeholder="Ubicación del material"
                 value={formData.location}
                 onChange={onChange}
@@ -168,6 +170,7 @@ export function ConsumableValuesCard({ formData, errors = {}, onChange }) {
             <Input
                 label="Valor Total"
                 name="totalPrice"
+                required
                 type="number"
                 placeholder="Calculado automáticamente"
                 value={formData.totalPrice}

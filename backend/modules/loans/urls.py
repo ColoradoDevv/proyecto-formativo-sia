@@ -4,6 +4,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import (
     LoanViewSet,
+    LoanTypeListView,
     LoanSignView,
     LoanSignRequestOTPView,
     LoanDraftCreateView,
@@ -26,6 +27,7 @@ urlpatterns = [
     path('draft/sign/request-otp/',             LoanDraftSignRequestOTPView.as_view(),   name='loan-draft-sign-request-otp'),
     path('draft/sign/',                         LoanDraftSignView.as_view(),             name='loan-draft-sign'),
     path('draft/<str:batch_id>/status/',        LoanDraftStatusView.as_view(),           name='loan-draft-status'),
+    path('types/',                              LoanTypeListView.as_view(),               name='loan-types'),
 
     # ── Listado agrupado por lote ──────────────────────────────────────────
     path('batches/',                            LoanBatchListView.as_view(),             name='loan-batch-list'),

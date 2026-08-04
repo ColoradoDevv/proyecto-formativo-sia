@@ -5,6 +5,7 @@ import { getStoredUser } from "@/shared/services/api";
 import loanSchema from "../../schemas/loanSchema";
 import { createLoanDraft, getDraftStatus } from "../../services/loanService";
 import { getUsers, getMaterials } from "../../services/selectServices";
+import { getLoanTypes } from "../../services/loanService";
 import LoanForm from "../LoanForm";
 import { Undo2, CircleCheck, Clock } from "lucide-react";
 
@@ -27,6 +28,7 @@ export default function LoanRegisterForm() {
 
     const [users,      setUsers]      = useState([]);
     const [materials,  setMaterials]  = useState([]);
+    const [loanTypes,  setLoanTypes]  = useState([]);
     const [submitting, setSubmitting] = useState(false);
     const [draftCreated, setDraftCreated] = useState(null);
     const [draftStatus, setDraftStatus]   = useState(null);
@@ -38,6 +40,7 @@ export default function LoanRegisterForm() {
         loanMaterial:            [],
         loanMaterialQuantities:  {},
         loanGroup:               "",
+        loanType:                "",
         loanJustification:       "",
         loanReturnDate:          "",
     });
@@ -46,6 +49,7 @@ export default function LoanRegisterForm() {
 
     useEffect(() => { getUsers().then(setUsers); },         []);
     useEffect(() => { getMaterials().then(setMaterials); }, []);
+    useEffect(() => { getLoanTypes().then(setLoanTypes).catch(() => {}); }, []);
 
     // Polling: consultar estado de firmas cada 5 s mientras hay un borrador activo.
     useEffect(() => {
@@ -219,6 +223,7 @@ export default function LoanRegisterForm() {
                     onChange={handleChange}
                     users={users}
                     materials={materials}
+                    loanTypeOptions={loanTypes}
                     multipleMaterials
                     onMaterialQuantityChange={handleMaterialQuantityChange}
                     loanDepartureDate={getTodayDateString()}

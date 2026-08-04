@@ -66,8 +66,8 @@ export default function loanSchema(materials = [], { multipleMaterials = false }
         loanType: z
             .string()
             .min(1, "Debe seleccionar el tipo de préstamo")
-            .refine((val) => ["interno", "externo"].includes(val), {
-                message: "El tipo de préstamo debe ser interno o externo",
+            .refine((val) => ["Interno", "Externo"].includes(val), {
+                message: "El tipo de préstamo debe ser Interno o Externo",
             }),
 
         loanJustification: z

@@ -103,7 +103,7 @@ class Loans(models.Model):
         choices=STATE_CHOICES,
         default='Pendiente',
     )
-    state = models.CharField(
+    loan_types = models.CharField(
         max_length=20,
         choices=LOAN_TYPE,
         default='Interno',
@@ -225,6 +225,11 @@ class LoanDraft(models.Model):
     justification_use = models.CharField(max_length=255)
     return_date       = models.DateField()
     loan_date         = models.DateField(auto_now_add=True)
+    loan_type         = models.CharField(
+        max_length=20,
+        choices=Loans.LOAN_TYPE,
+        default='Interno',
+    )
 
     state = models.CharField(max_length=20, choices=STATE_CHOICES, default=STATE_PENDING)
 

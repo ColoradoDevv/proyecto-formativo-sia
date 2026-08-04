@@ -360,6 +360,17 @@ class LoanViewSet(AuditMixin, viewsets.ModelViewSet):
         return response
 
 
+class LoanTypeListView(APIView):
+    """Lista los tipos de préstamo disponibles para los formularios."""
+
+    def get(self, request):
+        data = [
+            {"id": value, "name": label}
+            for value, label in Loans.LOAN_TYPE
+        ]
+        return Response(data)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers internos de firma (compartidos por los dos endpoints)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -941,6 +952,7 @@ class LoanDraftCreateView(APIView):
         responsable_id = data.get("id_responsable_user")
         receptor_id    = data.get("id_receptor_user")
         group          = data.get("apprentice_group", "").strip()
+        loan_type      = data.get("loan_type", "").strip()
         justification  = data.get("justification_use", "").strip()
         return_date    = data.get("return_date")
 
@@ -954,6 +966,10 @@ class LoanDraftCreateView(APIView):
             field_errors["apprentice_group"] = "Este campo es obligatorio."
         if not justification:
             field_errors["justification_use"] = "Este campo es obligatorio."
+        if not loan_type:
+            field_errors["loan_type"] = "Este campo es obligatorio."
+        elif loan_type not in [choice[0] for choice in Loans.LOAN_TYPE]:
+            field_errors["loan_type"] = "Tipo de préstamo inválido."
         if not return_date:
             field_errors["return_date"] = "Este campo es obligatorio."
 
@@ -1026,6 +1042,7 @@ class LoanDraftCreateView(APIView):
                 id_material       = materials[str(mid)],
                 amount_lent       = amount,
                 apprentice_group  = group,
+                loan_type         = loan_type,
                 justification_use = justification,
                 return_date       = return_date,
                 expires_at        = expires,
@@ -1359,6 +1376,7 @@ class LoanDraftSignView(APIView):
                         id_material         = draft.id_material,
                         amount_lent         = draft.amount_lent,
                         apprentice_group    = draft.apprentice_group,
+                        loan_types          = draft.loan_type,
                         justification_use   = draft.justification_use,
                         return_date         = draft.return_date,
                         state               = 'Activo',
