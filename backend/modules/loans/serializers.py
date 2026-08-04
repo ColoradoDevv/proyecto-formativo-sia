@@ -42,6 +42,7 @@ class LoanSerializer(serializers.ModelSerializer):
             # firma
             'firma_responsable',
             'firma_receptor',
+            'loan_type'
         ]
         extra_kwargs = {
             # return_date no tiene auto_now_add, el frontend debe enviarlo
