@@ -9,18 +9,19 @@ import { ConsumableAccountableCard, ConsumableGeneralCard, ConsumableInventoryCa
 import { Undo2, Package, Layers, BadgeDollarSign, UserCheck, Paperclip, CheckCircle2 } from "lucide-react";
 
 const GENERAL_FIELDS = ["name", "brand", "description"];
-const INVENTORY_FIELDS = ["senaPlate", "quantity", "location", "state"];
+const INVENTORY_FIELDS = ["senaPlate", "quantity", "location", "state", "serial"];
 const VALUES_FIELDS = ["purchaseDate", "unitPrice", "totalPrice"];
 const SUPPORT_FIELDS = ["user", "photo", "technicalSheet"];
 
 const generalStepSchema = cmBaseSchema.pick({
     name: true,
-    brand: true,
+    brand: false,
     description: true,
 });
 
 const inventoryStepSchema = cmBaseSchema.pick({
     senaPlate: true,
+    serial: true,
     quantity: true,
     location: true,
     state: true,
@@ -81,6 +82,7 @@ export default function CmRegisterForm() {
         name: "",
         description: "",
         senaPlate: "",
+        serial: "",
         quantity: "",
         location: "",
         brand: "",
@@ -416,7 +418,7 @@ export default function CmRegisterForm() {
                                             multiple={false}
                                             maxFiles={1}
                                             maxSixeMB={3}
-                                            description="Formato PDF, Excel o JPG. Tamaño máximo: 3MB. Máximo 1 archivo."
+                                            description="Formato PDF, Excel o JPG. Tamaño máximo: 3MB. Máximo 1 archivo ."
                                             className="w-full h-14 rounded-2xl"
                                         />
                                     </div>
