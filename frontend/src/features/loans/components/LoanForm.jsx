@@ -12,6 +12,7 @@ export default function LoanForm({
     users = [],
     materials = [],
     multipleMaterials = false,
+    loan_type = "",
     onMaterialQuantityChange,
     loanDepartureDate = "",
     extraSlot = null,
@@ -71,6 +72,16 @@ export default function LoanForm({
                         required
                     />
                 )}
+                    <Select
+                        label="Tipo de Préstamo"
+                        name="loanType"
+                        options={loanTypeOptions}
+                        value={formData.loanType}
+                        onChange={onChange}
+                        error={errors.loanType}
+                        labelAction={<CreateOptionButton variant="spacer" />}
+                        required
+                />
 
                 {/* ── Responsable ── */}
                 {!hideResponsable && (
@@ -125,7 +136,7 @@ export default function LoanForm({
                     onChange={onChange}
                     error={errors.loanGroup}
                     labelAction={<CreateOptionButton variant="spacer" />}
-                    required
+                    optional
                 />
                 <Input
                     label="Fecha de salida"

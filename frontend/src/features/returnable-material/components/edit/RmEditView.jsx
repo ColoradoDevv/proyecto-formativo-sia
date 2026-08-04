@@ -48,7 +48,28 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
     const navigate      = useNavigate();
     const photoInputRef = useRef();
 
-    const [photoPreview, setPhotoPreview] = useState(RM.image ?? null);
+    const ALLOWED_IMAGE_MIME_TYPES = ["image/jpeg", "image/png"];
+    const ALLOWED_REMOTE_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
+
+    const isSafeRemoteImageUrl = (value) => {
+        try {
+            const parsed = new URL(value, window.location.origin);
+            const isHttp = parsed.protocol === "http:" || parsed.protocol === "https:";
+            const path = parsed.pathname.toLowerCase();
+            const hasAllowedExtension = ALLOWED_REMOTE_IMAGE_EXTENSIONS.some((ext) => path.endsWith(ext));
+            return isHttp && hasAllowedExtension;
+        } catch {
+            return false;
+        }
+    };
+
+    const sanitizePreviewSrc = (value) => {
+        if (!value || typeof value !== "string") return null;
+        if (value.startsWith("blob:")) return value;
+        return isSafeRemoteImageUrl(value) ? value : null;
+    };
+
+    const [photoPreview, setPhotoPreview] = useState(sanitizePreviewSrc(RM.image ?? null));
     const [photoFile,    setPhotoFile]    = useState(null);
     const [submitting,   setSubmitting]   = useState(false);
 
@@ -100,7 +121,20 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
 
     const handlePhotoChange = (e) => {
         const file = e.target.files[0];
-        if (file) { setPhotoFile(file); setPhotoPreview(URL.createObjectURL(file)); }
+        if (!file) return;
+
+        if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
+            showAlert({
+                icon: "error",
+                iconColor: "var(--color-error)",
+                title: "Formato de imagen no permitido",
+                text: "Solo se permiten imágenes JPG o PNG."
+            });
+            return;
+        }
+
+        setPhotoFile(file);
+        setPhotoPreview(URL.createObjectURL(file));
     };
 
     // Eliminar una ficha existente (llama al backend)
@@ -186,7 +220,7 @@ function RmEditForm({ RM, categories, brands, states, onCreateBrand }) {
                                 >
                                     <Pencil size={13} />
                                 </button>
-                                <input ref={photoInputRef} type="file" hidden accept=".jpg,.jpeg,.png,.svg" onChange={handlePhotoChange} />
+                                <input ref={photoInputRef} type="file" hidden accept=".jpg,.jpeg,.png" onChange={handlePhotoChange} />
                             </div>
                             <StatusBadge active={RM.is_active} />
 

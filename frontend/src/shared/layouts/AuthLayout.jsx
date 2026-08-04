@@ -38,7 +38,6 @@ export default function AuthLayout({ children }) {
                         />
                     </div>
 
-
                 {/* ── Lado derecho: formulario ── */}
                 <div className="relative grid items-center justify-center p-6 pt-20 sm:pt-24 md:p-0 ">
                     <div className="w-full max-w-md px-8 py-10 sm:px-10">
@@ -54,7 +53,6 @@ export default function AuthLayout({ children }) {
                     </div>
                 </div>
             </div>
-
         </div>
     );
 }

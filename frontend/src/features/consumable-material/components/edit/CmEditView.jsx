@@ -53,6 +53,7 @@ function CmEditForm({ id, CM, brands, users, onCreateBrand }) {
         name:         CM.name ?? "",
         description:  CM.description ?? "",
         senaPlate:    CM.sena_plate ?? "",
+        serial:    CM.serial ?? "",
         quantity:     CM.quantity != null ? String(CM.quantity) : "",
         location:     CM.location ?? "",
         brand:        CM.brand?.id != null ? String(CM.brand.id) : "",

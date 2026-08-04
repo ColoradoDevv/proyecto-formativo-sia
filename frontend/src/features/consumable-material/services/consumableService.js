@@ -13,6 +13,7 @@ const FIELD_MAP = {
   total_price: "totalPrice",
   purchase_date: "purchaseDate",
   sena_plate: "senaPlate",
+  serial: "serial",
   quantity: "quantity",
   location: "location",
   image: "photo",
@@ -49,6 +50,8 @@ export async function createCm(cmData) {
 
   if (cmData.senaPlate)
     formData.append("sena_plate", cmData.senaPlate);
+  if (cmData.serial)
+    formData.append("serial", cmData.serial);
   if (cmData.quantity)
     formData.append("quantity", cmData.quantity);
   if (cmData.location)
@@ -82,6 +85,8 @@ export async function updateCm(id, cmData) {
 
   if (cmData.senaPlate)
     formData.append("sena_plate", cmData.senaPlate);
+  if (cmData.serial)
+    formData.append("serial", cmData.serial);
   if (cmData.quantity)
     formData.append("quantity", cmData.quantity);
   if (cmData.location)
