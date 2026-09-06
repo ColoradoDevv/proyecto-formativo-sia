@@ -46,50 +46,73 @@ export default function DashboardLayout() {
 
     const userName = getStoredUser()?.first_name
 
+    const now = new Date()
+    const formattedDate = `${String(now.getDate()).padStart(2, "0")}.${String(now.getMonth() + 1).padStart(2, "0")}.${now.getFullYear()}`
+    const hour = now.getHours()
+    const greeting = hour < 12 ? "Buenos días" : hour < 18 ? "Buenas tardes" : "Buenas noches"
+
+    const cards = []
+    if (canSeeUsers) {
+        cards.push({
+            label: "Usuarios registrados",
+            Icon: <Users />,
+            value: userCount,
+            to: "/usuarios",
+        })
+    }
+    if (canSeeConsumables) {
+        cards.push({
+            label: "Materiales consumibles",
+            Icon: <Wrench />,
+            value: consumableCount,
+            to: "/consumibles",
+        })
+    }
+    if (canSeeReturnables) {
+        cards.push({
+            label: "Materiales devolutivos",
+            Icon: <Package />,
+            value: returnableCount,
+            to: "/devolutivos",
+        })
+    }
+    if (canSeeLoans) {
+        cards.push({
+            label: "Préstamos registrados",
+            Icon: <ClipboardList />,
+            value: loansCount,
+            to: "/prestamos",
+        })
+    }
+
     return (
         <div className="p-4 sm:p-6 flex flex-col gap-6">
-            <div>
-                <h2 className="text-h3 text-text-primary">¡Hola! {userName}.</h2>
-                <p className="text-small text-text-muted">Bienvenido al Sistema de Gestión de Inventario SGI.</p>
+            <div className="flex flex-col gap-2">
+                <p className="text-text-primary uppercase tracking-widest font-medium">
+                    Panel de control / {formattedDate}
+                </p>
+                <h2 className="text-h1 text-text-primary font-heading">
+                    {greeting}, {userName}.
+                </h2>
+                <p className="text-body text-text-secondary">
+                    Bienvenido al Sistema de Gestión de Inventario. Aquí tienes un resumen de tu operación.
+                </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {canSeeUsers && (
+                {cards.map((card, index) => (
                     <AccessCards
-                        label="Usuarios Registrados"
-                        Icon={<Users />}
-                        value={userCount}
-                        to="/usuarios"
+                        key={card.to}
+                        Icon={card.Icon}
+                        label={card.label}
+                        value={card.value}
+                        to={card.to}
+                        isFeatured={index === 0}
                     />
-                )}
-                {canSeeConsumables && (
-                    <AccessCards
-                        Icon={<Wrench />}
-                        label="Materiales consumibles"
-                        value={consumableCount}
-                        to="/consumibles"
-                    />
-                )}
-                {canSeeReturnables && (
-                    <AccessCards
-                        Icon={<Package />}
-                        label="Materiales Devolutivos"
-                        value={returnableCount}
-                        to="/devolutivos"
-                    />
-                )}
-                {canSeeLoans && (
-                    <AccessCards
-                        Icon={<ClipboardList />}
-                        label="Prestamos Registrados"
-                        value={loansCount}
-                        to="/prestamos"
-                    />
-                )}
+                ))}
             </div>
 
             <QuickActions />
-
             <RecentActivity />
         </div>
     )

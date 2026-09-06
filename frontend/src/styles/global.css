@@ -116,6 +116,11 @@
         font-family: 'Work Sans', 'Calibri', Helvetica, Arial, sans-serif;
     }
 
+    ::selection {
+        background-color: var(--color-secondary-400);
+        color: var(--semantic-text-primary);
+    }
+
     input[type="search"]::-webkit-search-decoration,
     input[type="search"]::-webkit-search-cancel-button,
     input[type="search"]::-webkit-search-results-button,
