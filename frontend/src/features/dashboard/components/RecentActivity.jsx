@@ -16,7 +16,7 @@ export default function RecentActivity() {
     const { loans, loading, error } = useRecentLoans(canViewLoans ? 4 : 0);
 
     return (
-        <div className="bg-surface-hover rounded-2xl shadow-(--shadow-elevation-4) p-6 flex flex-col gap-4 border border-border">
+        <div className="bg-surface-hover rounded-2xl shadow-(--shadow-elevation-4) p-6 flex flex-col gap-4 border border-border animate-fade-in">
             <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-col gap-1">
                     <p className="text-medium text-text-primary uppercase tracking-widest font-medium">

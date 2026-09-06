@@ -108,6 +108,7 @@ export default function DashboardLayout() {
                         value={card.value}
                         to={card.to}
                         isFeatured={index === 0}
+                        className={`[animation-delay:${index * 60}ms]`}
                     />
                 ))}
             </div>

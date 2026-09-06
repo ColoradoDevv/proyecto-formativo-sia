@@ -8,7 +8,7 @@ export default function AccessCards({ className = "", Icon, label, value, to, is
     return (
         <div
             onClick={() => navigate(to)}
-            className={`rounded-2xl cursor-pointer shadow-(--shadow-elevation-4) hover:shadow-(--shadow-elevation-5) hover:-translate-y-1 p-5 w-full flex flex-col gap-4 transition-all duration-200 border border-border ${
+            className={`rounded-2xl cursor-pointer shadow-(--shadow-elevation-4) hover:shadow-(--shadow-elevation-5) hover:-translate-y-1 p-5 w-full flex flex-col gap-4 transition-all duration-200 border border-border animate-slide-up ${
                 isFeatured
                     ? "bg-gradient-to-br from-white to-[var(--color-secondary-200)]"
                     : "bg-surface-hover"
