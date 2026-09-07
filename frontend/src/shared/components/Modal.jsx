@@ -81,7 +81,7 @@ export default function Modal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={title ? titleId : undefined}
-                className={`relative z-10 w-full ${maxWidth} max-h-[90vh] overflow-y-auto ${styles.card} rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-6 sm:p-8 flex flex-col gap-5`}
+                className={`relative z-10 w-full ${maxWidth} max-h-[90vh] overflow-y-auto ${styles.card} rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] p-6 sm:p-8 flex flex-col gap-5 animate-slide-up`}
             >
                 {/* Header */}
                 {(title || showClose) && (

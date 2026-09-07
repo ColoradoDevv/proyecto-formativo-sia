@@ -168,7 +168,7 @@ export default function LoanRegisterForm() {
 
         return (
             <div className="h-full p-3 sm:p-4 flex items-center justify-center">
-                <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-10 py-10 w-full max-w-md flex flex-col items-center gap-5">
+                <div className="bg-surface-hover rounded-[var(--radius-3xl)] shadow-[var(--shadow-elevation-5)] px-6 sm:px-10 py-10 w-full max-w-md flex flex-col items-center gap-5 animate-slide-up">
 
                     <div className="flex flex-col items-center gap-1">
                         <span className="text-h2 font-heading text-text-primary">{total}/2</span>

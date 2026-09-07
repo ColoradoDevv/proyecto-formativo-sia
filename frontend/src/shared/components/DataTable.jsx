@@ -121,7 +121,7 @@ export default function DataTable({ data, columns, onRowDoubleClick, hiddenColum
 
   return (
     <>
-    <div className="bg-surface-hover rounded-2xl shadow-(--shadow-elevation-4) p-6 mt-4 flex flex-col gap-4 border border-border">
+    <div className="bg-surface-hover rounded-2xl shadow-(--shadow-elevation-4) p-6 mt-4 flex flex-col gap-4 border border-border animate-fade-in">
       {/* ================== TOOLBAR ================== */}
       {/* Barra superior con buscador y selector de filas */}
 

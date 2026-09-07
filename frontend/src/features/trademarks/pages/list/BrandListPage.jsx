@@ -49,7 +49,7 @@ export default function BrandListPage() {
     if (error)
         return (
             <div className="h-full flex items-center justify-center">
-                <div className="bg-surface-hover rounded-2xl border border-border shadow-(--shadow-elevation-2) p-6 max-w-md">
+                <div className="bg-surface-hover rounded-2xl border border-border shadow-(--shadow-elevation-2) p-6 max-w-md animate-fade-in">
                     <div className="flex items-center gap-3 text-text-primary">
                         <span className="text-h2 text-text-secondary"><CloudAlert /></span>
                         <div>
@@ -107,7 +107,7 @@ export default function BrandListPage() {
             )}
 
             {/* Toolbar */}
-            <div className="bg-surface-hover rounded-2xl border border-border shadow-(--shadow-elevation-4) p-6 flex flex-col gap-4">
+            <div className="bg-surface-hover rounded-2xl border border-border shadow-(--shadow-elevation-4) p-6 flex flex-col gap-4 animate-fade-in">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <SearchField
                         placeholder="Buscar marca..."
