@@ -4,8 +4,8 @@
     /* ========== BRAND =========== */
     --semantic-brand: var(--color-secondary-900);              /* #203F57 */
     --semantic-brand-hover: var(--color-secondary-950);       /* #0C2D48 */
-    --semantic-brand-soft: var(--color-quaternary-800);        /* #62E8FA */
-    --semantic-brand-soft-hover: var(--color-quaternary-900); /* #55E6F9 */
+    --semantic-brand-soft: var(--color-secondary-300);        /* #62E8FA */
+    --semantic-brand-soft-hover: var(--color-secondary-400); /* #55E6F9 */
 
     /* ========= BACKGROUND ========== */
     --semantic-background: var(--color-secondary-100);         /* #F0F5EE */
