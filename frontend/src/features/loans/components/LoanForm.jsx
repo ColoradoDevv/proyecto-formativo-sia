@@ -12,7 +12,7 @@ export default function LoanForm({
     users = [],
     materials = [],
     multipleMaterials = false,
-    loan_type = "",
+    loan_type = [],
     onMaterialQuantityChange,
     loanDepartureDate = "",
     extraSlot = null,
@@ -75,7 +75,7 @@ export default function LoanForm({
                     <Select
                         label="Tipo de Préstamo"
                         name="loanType"
-                        options={loanTypeOptions}
+                        options={loan_type}
                         value={formData.loanType}
                         onChange={onChange}
                         error={errors.loanType}
